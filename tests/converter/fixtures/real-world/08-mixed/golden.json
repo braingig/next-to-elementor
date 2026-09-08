@@ -1,0 +1,127 @@
+{
+  "id": "08-mixed",
+  "outcome": "partial",
+  "summary": {
+    "totalNodes": 5,
+    "nativeCount": 5,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 1,
+    "errorCount": 0,
+    "message": "5 nodes, 5 native, 0 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    }
+  ],
+  "diagnosticCodes": [
+    {
+      "severity": "warning",
+      "code": "unsupported-css"
+    }
+  ],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "background_background",
+          "background_color",
+          "container_type",
+          "content_width",
+          "flex_direction",
+          "flex_direction_tablet",
+          "flex_gap",
+          "html_tag",
+          "padding",
+          "padding_mobile"
+        ],
+        "children": [
+          {
+            "elType": "container",
+            "settingKeys": [
+              "background_background",
+              "background_color",
+              "border_border",
+              "border_color",
+              "border_radius",
+              "border_width",
+              "container_type",
+              "content_width",
+              "flex_direction",
+              "html_tag",
+              "padding"
+            ],
+            "children": [
+              {
+                "elType": "widget",
+                "widgetType": "heading",
+                "settingKeys": [
+                  "header_size",
+                  "title",
+                  "title_color",
+                  "typography_font_size",
+                  "typography_font_weight"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settingKeys": [
+                  "_margin",
+                  "editor",
+                  "text_color",
+                  "typography_font_size"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "button",
+                "settingKeys": [
+                  "_margin",
+                  "_padding",
+                  "background_background",
+                  "background_color",
+                  "border_radius",
+                  "button_text_color",
+                  "button_type",
+                  "link",
+                  "text"
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

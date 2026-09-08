@@ -1,0 +1,165 @@
+{
+  "id": "01-hero",
+  "outcome": "complete",
+  "summary": {
+    "totalNodes": 8,
+    "nativeCount": 7,
+    "customCount": 1,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "8 nodes, 7 native, 1 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    },
+    {
+      "irKind": "link",
+      "decision": "custom",
+      "widgetType": "html"
+    },
+    {
+      "irKind": "image",
+      "decision": "native",
+      "widgetType": "image"
+    }
+  ],
+  "diagnosticCodes": [],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "container_type",
+          "content_width",
+          "flex_align_items",
+          "flex_align_items_tablet",
+          "flex_direction",
+          "flex_direction_tablet",
+          "flex_gap",
+          "html_tag",
+          "padding",
+          "padding_tablet"
+        ],
+        "children": [
+          {
+            "elType": "container",
+            "settingKeys": [
+              "container_type",
+              "content_width",
+              "flex_direction",
+              "flex_gap",
+              "html_tag"
+            ],
+            "children": [
+              {
+                "elType": "widget",
+                "widgetType": "heading",
+                "settingKeys": [
+                  "header_size",
+                  "title",
+                  "title_color",
+                  "typography_font_size",
+                  "typography_font_size_tablet",
+                  "typography_font_weight"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settingKeys": [
+                  "editor",
+                  "text_color",
+                  "typography_font_size"
+                ],
+                "children": []
+              },
+              {
+                "elType": "container",
+                "settingKeys": [
+                  "container_type",
+                  "content_width",
+                  "flex_direction",
+                  "flex_gap",
+                  "html_tag"
+                ],
+                "children": [
+                  {
+                    "elType": "widget",
+                    "widgetType": "button",
+                    "settingKeys": [
+                      "_padding",
+                      "background_background",
+                      "background_color",
+                      "border_radius",
+                      "button_text_color",
+                      "button_type",
+                      "link",
+                      "text",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "html",
+                    "settingKeys": [
+                      "html"
+                    ],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "elType": "widget",
+            "widgetType": "image",
+            "settingKeys": [
+              "_border_radius",
+              "_element_custom_width",
+              "caption_source",
+              "image",
+              "image_size",
+              "link_to",
+              "width"
+            ],
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

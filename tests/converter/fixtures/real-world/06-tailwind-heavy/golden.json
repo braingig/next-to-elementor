@@ -1,0 +1,227 @@
+{
+  "id": "06-tailwind-heavy",
+  "outcome": "partial",
+  "summary": {
+    "totalNodes": 11,
+    "nativeCount": 11,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 1,
+    "errorCount": 0,
+    "message": "11 nodes, 11 native, 0 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    }
+  ],
+  "diagnosticCodes": [
+    {
+      "severity": "warning",
+      "code": "unknown-tailwind-class"
+    }
+  ],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "container_type",
+          "content_width",
+          "flex_direction",
+          "flex_gap",
+          "html_tag",
+          "padding",
+          "padding_tablet"
+        ],
+        "children": [
+          {
+            "elType": "container",
+            "settingKeys": [
+              "container_type",
+              "content_width",
+              "flex_align_items_tablet",
+              "flex_direction",
+              "flex_direction_tablet",
+              "flex_gap",
+              "flex_justify_content_tablet",
+              "html_tag"
+            ],
+            "children": [
+              {
+                "elType": "widget",
+                "widgetType": "heading",
+                "settingKeys": [
+                  "header_size",
+                  "title",
+                  "title_color",
+                  "typography_font_size",
+                  "typography_font_size_mobile",
+                  "typography_font_weight"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settingKeys": [
+                  "editor",
+                  "text_color",
+                  "typography_font_size",
+                  "typography_font_size_tablet"
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "elType": "container",
+            "settingKeys": [
+              "container_type",
+              "content_width",
+              "flex_direction",
+              "flex_direction_mobile",
+              "flex_gap",
+              "html_tag"
+            ],
+            "children": [
+              {
+                "elType": "container",
+                "settingKeys": [
+                  "background_background",
+                  "background_color",
+                  "border_radius",
+                  "container_type",
+                  "content_width",
+                  "flex_direction",
+                  "html_tag",
+                  "padding",
+                  "width",
+                  "width_tablet"
+                ],
+                "children": [
+                  {
+                    "elType": "widget",
+                    "widgetType": "heading",
+                    "settingKeys": [
+                      "header_size",
+                      "title",
+                      "title_color",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "_margin",
+                      "editor",
+                      "text_color",
+                      "typography_font_size"
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "elType": "container",
+                "settingKeys": [
+                  "background_background",
+                  "background_color",
+                  "border_radius",
+                  "container_type",
+                  "content_width",
+                  "flex_direction",
+                  "html_tag",
+                  "padding",
+                  "width",
+                  "width_tablet"
+                ],
+                "children": [
+                  {
+                    "elType": "widget",
+                    "widgetType": "heading",
+                    "settingKeys": [
+                      "header_size",
+                      "title",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "_margin",
+                      "editor",
+                      "typography_font_size"
+                    ],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

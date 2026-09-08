@@ -1,0 +1,101 @@
+{
+  "id": "03-cta",
+  "outcome": "complete",
+  "summary": {
+    "totalNodes": 4,
+    "nativeCount": 4,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "4 nodes, 4 native, 0 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    }
+  ],
+  "diagnosticCodes": [],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "background_background",
+          "background_color",
+          "container_type",
+          "content_width",
+          "flex_align_items",
+          "flex_direction",
+          "flex_gap",
+          "html_tag",
+          "padding",
+          "padding_tablet"
+        ],
+        "children": [
+          {
+            "elType": "widget",
+            "widgetType": "heading",
+            "settingKeys": [
+              "align",
+              "header_size",
+              "title",
+              "title_color",
+              "typography_font_size",
+              "typography_font_size_tablet",
+              "typography_font_weight"
+            ],
+            "children": []
+          },
+          {
+            "elType": "widget",
+            "widgetType": "text-editor",
+            "settingKeys": [
+              "align",
+              "editor",
+              "text_color",
+              "typography_font_size"
+            ],
+            "children": []
+          },
+          {
+            "elType": "widget",
+            "widgetType": "button",
+            "settingKeys": [
+              "_padding",
+              "background_background",
+              "background_color",
+              "border_radius",
+              "button_text_color",
+              "button_type",
+              "link",
+              "text",
+              "typography_font_weight"
+            ],
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

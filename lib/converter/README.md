@@ -31,6 +31,7 @@ if (result.outcome === "complete") {
 | 6 | `rules/custom/` | Node-scoped HTML fallback |
 | 7 | `report/`, `convert.ts` | Report + `convert(ir)` |
 | 8 | `convert-source.ts`, `emit/` | `convertSource` + shared emit helpers |
+| 9 | `tests/converter/fixtures/real-world/` | Real-world section fixtures + goldens |
 
 ## Lower-level APIs (still supported)
 
@@ -45,4 +46,4 @@ if (result.outcome === "complete") {
 - Decision order: native → custom → unsupported
 - No Pro, no AI, no user-code execution, no repo scanning
 
-Specs: `/docs` (`phase-0.md` … `phase-8.md`).
+Specs: `/docs` (`phase-0.md` … `phase-9.md`).

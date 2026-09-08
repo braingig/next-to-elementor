@@ -11,6 +11,6 @@ export {
   type ResolveStylesResult,
 } from "./types";
 export { resolveTailwindClasses, resolveTailwindUtility } from "./tailwind/map";
-export { parseCssSources } from "./css/parse";
+export { parseCssSources, collectCssClassNames } from "./css/parse";
 export { resolveInlineStyleRaw } from "./inline";
 export { mergeIrStyles, declarationsToIrStyle } from "./declarations";

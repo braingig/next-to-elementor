@@ -1,0 +1,7 @@
+{
+  "id": "01-hero",
+  "title": "Hero section",
+  "category": "hero",
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "Heading, text, CTA button, image, responsive flex. Docs link is node-scoped custom."
+}

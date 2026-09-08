@@ -1,0 +1,7 @@
+{
+  "id": "06-tailwind-heavy",
+  "title": "Tailwind-heavy section",
+  "category": "tailwind",
+  "expectedOutcomes": ["partial"],
+  "notes": "Includes deliberate unknown utility unknown-utility-xyz → unknown-tailwind-class diagnostic."
+}

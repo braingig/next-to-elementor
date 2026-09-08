@@ -19,6 +19,21 @@ export type ParsedCss = {
   diagnostics: Array<{ code: string; message: string }>;
 };
 
+/** Extract class identifiers referenced by selectors in parsed CSS. */
+export function collectCssClassNames(parsed: ParsedCss): Set<string> {
+  const classes = new Set<string>();
+  for (const rule of parsed.rules) {
+    for (const selector of rule.selectors) {
+      for (const match of selector.matchAll(
+        /\.([A-Za-z_][\w-]*)/g,
+      )) {
+        classes.add(match[1]!);
+      }
+    }
+  }
+  return classes;
+}
+
 const MEDIA_BP: Array<{ test: RegExp; bp: string }> = [
   { test: /\(max-width:\s*639px\)/i, bp: "sm" },
   { test: /\(max-width:\s*767px\)/i, bp: "sm" },

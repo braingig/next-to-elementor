@@ -1,0 +1,7 @@
+{
+  "id": "02-features",
+  "title": "Feature section",
+  "category": "features",
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "Cards with named SVG icons (data-icon). Icons may be native or custom depending on payload policy."
+}

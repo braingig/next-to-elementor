@@ -1,0 +1,7 @@
+{
+  "id": "04-navbar",
+  "title": "Navbar / header-like section",
+  "category": "navbar",
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "Logo image, nav links (custom HTML), static button. Interactive menu behavior is intentionally not claimed."
+}

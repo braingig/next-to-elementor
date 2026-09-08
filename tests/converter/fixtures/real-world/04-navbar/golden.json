@@ -1,0 +1,137 @@
+{
+  "id": "04-navbar",
+  "outcome": "complete",
+  "summary": {
+    "totalNodes": 7,
+    "nativeCount": 4,
+    "customCount": 3,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "7 nodes, 4 native, 3 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "image",
+      "decision": "native",
+      "widgetType": "image"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "link",
+      "decision": "custom",
+      "widgetType": "html"
+    },
+    {
+      "irKind": "link",
+      "decision": "custom",
+      "widgetType": "html"
+    },
+    {
+      "irKind": "link",
+      "decision": "custom",
+      "widgetType": "html"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    }
+  ],
+  "diagnosticCodes": [],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "border_border",
+          "border_color",
+          "border_width",
+          "container_type",
+          "content_width",
+          "flex_align_items",
+          "flex_direction",
+          "flex_justify_content",
+          "html_tag",
+          "padding"
+        ],
+        "children": [
+          {
+            "elType": "widget",
+            "widgetType": "image",
+            "settingKeys": [
+              "caption_source",
+              "image",
+              "image_size",
+              "link_to"
+            ],
+            "children": []
+          },
+          {
+            "elType": "container",
+            "settingKeys": [
+              "container_type",
+              "content_width",
+              "flex_align_items",
+              "flex_direction",
+              "flex_gap",
+              "html_tag"
+            ],
+            "children": [
+              {
+                "elType": "widget",
+                "widgetType": "html",
+                "settingKeys": [
+                  "html"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "html",
+                "settingKeys": [
+                  "html"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "html",
+                "settingKeys": [
+                  "html"
+                ],
+                "children": []
+              },
+              {
+                "elType": "widget",
+                "widgetType": "button",
+                "settingKeys": [
+                  "_padding",
+                  "background_background",
+                  "background_color",
+                  "border_radius",
+                  "button_text_color",
+                  "text",
+                  "typography_font_size"
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

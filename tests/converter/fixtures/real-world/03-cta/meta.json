@@ -1,0 +1,7 @@
+{
+  "id": "03-cta",
+  "title": "CTA section",
+  "category": "cta",
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "Background color, responsive padding, heading, button."
+}

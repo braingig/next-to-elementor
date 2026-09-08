@@ -22,6 +22,15 @@ const SPACING: Record<string, string> = {
   "24": "6rem",
   auto: "auto",
   full: "100%",
+  "1/2": "50%",
+  "1/3": "33.333333%",
+  "2/3": "66.666667%",
+  "1/4": "25%",
+  "3/4": "75%",
+  "1/5": "20%",
+  "2/5": "40%",
+  "3/5": "60%",
+  "4/5": "80%",
 };
 
 const COLORS: Record<string, string> = {
@@ -281,6 +290,32 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   // Border / radius
   if (utility === "border") {
     return { border: { width: "1px", style: "solid" } };
+  }
+  if (utility === "border-t") {
+    return { border: { width: "1px 0 0 0", style: "solid" } };
+  }
+  if (utility === "border-r") {
+    return { border: { width: "0 1px 0 0", style: "solid" } };
+  }
+  if (utility === "border-b") {
+    return { border: { width: "0 0 1px 0", style: "solid" } };
+  }
+  if (utility === "border-l") {
+    return { border: { width: "0 0 0 1px", style: "solid" } };
+  }
+  const borderSideW = utility.match(/^border-([trbl])-(\d+)$/);
+  if (borderSideW) {
+    const side = borderSideW[1]!;
+    const px = `${borderSideW[2]}px`;
+    const width =
+      side === "t"
+        ? `${px} 0 0 0`
+        : side === "r"
+          ? `0 ${px} 0 0`
+          : side === "b"
+            ? `0 0 ${px} 0`
+            : `0 0 0 ${px}`;
+    return { border: { width, style: "solid" } };
   }
   const borderW = utility.match(/^border-(\d+)$/);
   if (borderW) {

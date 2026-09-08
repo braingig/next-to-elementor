@@ -1,0 +1,7 @@
+{
+  "id": "07-css-heavy",
+  "title": "CSS-heavy section",
+  "category": "css",
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "External CSS with class selectors, descendant selectors, and media queries. Custom class names may produce unknown-tailwind-class warnings when resolveTailwind is on."
+}

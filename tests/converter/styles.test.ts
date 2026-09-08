@@ -7,6 +7,7 @@ import {
   resolveInlineStyleRaw,
   resolveStyles,
   resolveTailwindClasses,
+  resolveTailwindUtility,
   type IrDocument,
 } from "@/lib/converter";
 
@@ -180,6 +181,47 @@ describe("resolveStyles Phase 4", () => {
       document.diagnostics.some((d) => d.code === "unknown-tailwind-class"),
     ).toBe(true);
     expect(document.root.style?.effects?.boxShadow).toBeUndefined();
+  });
+
+  it("does not warn unknown-tailwind for class names defined in provided CSS", () => {
+    const doc = baseDoc({
+      root: {
+        ...baseDoc().root,
+        provenance: {
+          htmlTag: "div",
+          classNames: ["hero-panel", "mystery-tw"],
+          attributes: {},
+        },
+        children: [],
+      },
+    });
+    const { document } = resolveStyles(doc, {
+      css: ".hero-panel { padding: 16px; }",
+    });
+    expect(
+      document.diagnostics.some(
+        (d) =>
+          d.code === "unknown-tailwind-class" &&
+          d.message.includes("hero-panel"),
+      ),
+    ).toBe(false);
+    expect(
+      document.diagnostics.some(
+        (d) =>
+          d.code === "unknown-tailwind-class" &&
+          d.message.includes("mystery-tw"),
+      ),
+    ).toBe(true);
+    expect(document.root.style?.box?.padding).toBe("16px");
+  });
+
+  it("resolves common width fractions and side borders", () => {
+    expect(resolveTailwindUtility("w-1/2")).toEqual({
+      box: { width: "50%" },
+    });
+    expect(resolveTailwindUtility("border-b")).toEqual({
+      border: { width: "0 0 1px 0", style: "solid" },
+    });
   });
 
   it("resolves inline styles from provenance.inlineStyleRaw", () => {

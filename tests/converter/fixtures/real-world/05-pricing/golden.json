@@ -1,0 +1,307 @@
+{
+  "id": "05-pricing",
+  "outcome": "partial",
+  "summary": {
+    "totalNodes": 15,
+    "nativeCount": 15,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 2,
+    "errorCount": 0,
+    "message": "15 nodes, 15 native, 0 custom, 0 unsupported"
+  },
+  "decisions": [
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "spacer",
+      "decision": "native",
+      "widgetType": "spacer"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
+    },
+    {
+      "irKind": "heading",
+      "decision": "native",
+      "widgetType": "heading"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "text",
+      "decision": "native",
+      "widgetType": "text-editor"
+    },
+    {
+      "irKind": "divider",
+      "decision": "native",
+      "widgetType": "divider"
+    },
+    {
+      "irKind": "button",
+      "decision": "native",
+      "widgetType": "button"
+    }
+  ],
+  "diagnosticCodes": [
+    {
+      "severity": "warning",
+      "code": "unsupported-css"
+    },
+    {
+      "severity": "warning",
+      "code": "unsupported-css"
+    }
+  ],
+  "freeCompliancePassed": true,
+  "tree": {
+    "version": "0.4",
+    "type": "page",
+    "content": [
+      {
+        "elType": "container",
+        "settingKeys": [
+          "container_type",
+          "content_width",
+          "flex_align_items",
+          "flex_direction",
+          "flex_gap",
+          "html_tag",
+          "padding"
+        ],
+        "children": [
+          {
+            "elType": "widget",
+            "widgetType": "heading",
+            "settingKeys": [
+              "header_size",
+              "title",
+              "title_color",
+              "typography_font_size",
+              "typography_font_weight"
+            ],
+            "children": []
+          },
+          {
+            "elType": "container",
+            "settingKeys": [
+              "container_type",
+              "content_width",
+              "flex_direction",
+              "flex_direction_tablet",
+              "flex_gap",
+              "html_tag",
+              "width"
+            ],
+            "children": [
+              {
+                "elType": "container",
+                "settingKeys": [
+                  "background_background",
+                  "background_color",
+                  "border_border",
+                  "border_color",
+                  "border_radius",
+                  "border_width",
+                  "container_type",
+                  "content_width",
+                  "flex_direction",
+                  "flex_gap",
+                  "html_tag",
+                  "padding",
+                  "width"
+                ],
+                "children": [
+                  {
+                    "elType": "widget",
+                    "widgetType": "heading",
+                    "settingKeys": [
+                      "header_size",
+                      "title",
+                      "title_color",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "editor",
+                      "text_color",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "editor",
+                      "text_color",
+                      "typography_font_size"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "divider",
+                    "settingKeys": [
+                      "_border_border",
+                      "_border_color",
+                      "color",
+                      "look",
+                      "style"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "button",
+                    "settingKeys": [
+                      "_padding",
+                      "align",
+                      "background_background",
+                      "background_color",
+                      "border_radius",
+                      "button_text_color",
+                      "button_type",
+                      "link",
+                      "text",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "elType": "container",
+                "settingKeys": [
+                  "background_background",
+                  "background_color",
+                  "border_border",
+                  "border_color",
+                  "border_radius",
+                  "border_width",
+                  "container_type",
+                  "content_width",
+                  "flex_direction",
+                  "flex_gap",
+                  "html_tag",
+                  "padding",
+                  "width"
+                ],
+                "children": [
+                  {
+                    "elType": "widget",
+                    "widgetType": "heading",
+                    "settingKeys": [
+                      "header_size",
+                      "title",
+                      "title_color",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "editor",
+                      "text_color",
+                      "typography_font_size",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "text-editor",
+                    "settingKeys": [
+                      "editor",
+                      "text_color",
+                      "typography_font_size"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "spacer",
+                    "settingKeys": [
+                      "space"
+                    ],
+                    "children": []
+                  },
+                  {
+                    "elType": "widget",
+                    "widgetType": "button",
+                    "settingKeys": [
+                      "_padding",
+                      "align",
+                      "background_background",
+                      "background_color",
+                      "border_radius",
+                      "button_text_color",
+                      "button_type",
+                      "link",
+                      "text",
+                      "typography_font_weight"
+                    ],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

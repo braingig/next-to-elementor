@@ -1,7 +1,7 @@
 import type { IrDiagnostic, IrDocument, IrNode, IrStyle } from "../ir/schema";
 import { normalizeIrDocument } from "../ir/normalize";
 import { compareCascade, matchesSelector, type MatchContext } from "./css/match";
-import { parseCssSources, resolveCssVars } from "./css/parse";
+import { parseCssSources, resolveCssVars, collectCssClassNames } from "./css/parse";
 import { declarationsToIrStyle, mergeIrStyles } from "./declarations";
 import { resolveInlineStyleRaw } from "./inline";
 import { resolveTailwindClasses } from "./tailwind/map";
@@ -14,6 +14,12 @@ import {
 function cssList(css: string | string[] | undefined): string[] {
   if (!css) return [];
   return Array.isArray(css) ? css : [css];
+}
+
+function bareClassToken(token: string): string {
+  // md:foo → foo; hover:foo stays as unknown upstream already
+  const parts = token.split(":");
+  return parts[parts.length - 1] ?? token;
 }
 
 function resolveDeclValues(
@@ -79,6 +85,7 @@ function resolveNode(
   node: IrNode,
   ancestors: IrNode[],
   parsed: ReturnType<typeof parseCssSources>,
+  cssClassNames: Set<string>,
   options: ResolveStylesOptions,
   diagnostics: IrDiagnostic[],
 ): IrNode {
@@ -90,6 +97,11 @@ function resolveNode(
     const tw = resolveTailwindClasses(node.provenance?.classNames ?? []);
     twStyle = tw.style;
     for (const cls of tw.unknown) {
+      // Classes defined in provided CSS are stylesheet hooks, not missing Tailwind utilities.
+      const bare = bareClassToken(cls);
+      if (cssClassNames.has(cls) || cssClassNames.has(bare)) {
+        continue;
+      }
       diagnostics.push({
         severity: "warning",
         code: "unknown-tailwind-class",
@@ -121,7 +133,14 @@ function resolveNode(
   const merged = mergeIrStyles(node.style, twStyle, cssStyle, inlineStyle);
 
   const children = node.children.map((child) =>
-    resolveNode(child, [...ancestors, node], parsed, options, diagnostics),
+    resolveNode(
+      child,
+      [...ancestors, node],
+      parsed,
+      cssClassNames,
+      options,
+      diagnostics,
+    ),
   );
 
   return {
@@ -142,6 +161,7 @@ export function resolveStyles(
   const opts = ResolveStylesOptionsSchema.parse(options);
   const sources = cssList(opts.css);
   const parsed = parseCssSources(sources);
+  const cssClassNames = collectCssClassNames(parsed);
 
   const diagnostics: IrDiagnostic[] = [
     ...document.diagnostics,
@@ -152,7 +172,14 @@ export function resolveStyles(
     })),
   ];
 
-  const root = resolveNode(document.root, [], parsed, opts, diagnostics);
+  const root = resolveNode(
+    document.root,
+    [],
+    parsed,
+    cssClassNames,
+    opts,
+    diagnostics,
+  );
 
   return {
     document: normalizeIrDocument({
