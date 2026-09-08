@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "paragraph.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "text-1",
+    "kind": "text",
+    "props": {
+      "text": "Build sections once and convert them with confidence."
+    },
+    "style": {
+      "typography": {
+        "fontSize": "16px",
+        "lineHeight": "1.5",
+        "color": "#334155"
+      }
+    },
+    "provenance": {
+      "htmlTag": "p",
+      "classNames": [],
+      "attributes": {},
+      "loc": { "line": 5, "column": 2 }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,95 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "nested-containers.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "outer",
+    "kind": "container",
+    "props": {
+      "as": "section"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "24px"
+      },
+      "box": {
+        "padding": "40px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "section",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": [
+      {
+        "id": "inner",
+        "kind": "container",
+        "props": {
+          "as": "div"
+        },
+        "style": {
+          "layout": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "12px"
+          }
+        },
+        "provenance": {
+          "htmlTag": "div",
+          "classNames": [],
+          "attributes": {}
+        },
+        "children": [
+          {
+            "id": "nested-heading",
+            "kind": "heading",
+            "props": {
+              "level": 2,
+              "text": "Nested section"
+            },
+            "provenance": {
+              "htmlTag": "h2",
+              "classNames": [],
+              "attributes": {}
+            },
+            "children": []
+          },
+          {
+            "id": "nested-text",
+            "kind": "text",
+            "props": {
+              "text": "A paragraph inside nested containers."
+            },
+            "provenance": {
+              "htmlTag": "p",
+              "classNames": [],
+              "attributes": {}
+            },
+            "children": []
+          },
+          {
+            "id": "nested-button",
+            "kind": "button",
+            "props": {
+              "text": "Learn more",
+              "href": "/docs",
+              "type": "link"
+            },
+            "provenance": {
+              "htmlTag": "a",
+              "classNames": [],
+              "attributes": {}
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}

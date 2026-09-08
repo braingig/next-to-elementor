@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "button.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "button-1",
+    "kind": "button",
+    "props": {
+      "text": "Get started",
+      "href": "/signup",
+      "type": "link",
+      "target": "_self"
+    },
+    "style": {
+      "typography": {
+        "fontWeight": "600",
+        "color": "#ffffff"
+      },
+      "background": {
+        "color": "#0f766e"
+      },
+      "box": {
+        "padding": "12px 20px"
+      },
+      "border": {
+        "radius": "8px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "a",
+      "componentName": "Button",
+      "classNames": [],
+      "attributes": {
+        "role": "button"
+      }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

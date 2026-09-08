@@ -1,0 +1,78 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "tailwind-classes.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "tw-root",
+    "kind": "container",
+    "props": {
+      "as": "div"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": "16px",
+        "alignItems": "center"
+      },
+      "box": {
+        "padding": "24px"
+      },
+      "background": {
+        "color": "#ffffff"
+      },
+      "responsive": {
+        "md": {
+          "layout": {
+            "flexDirection": "column"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": [
+        "flex",
+        "items-center",
+        "gap-4",
+        "p-6",
+        "bg-white",
+        "md:flex-col",
+        "shadow-mystery"
+      ],
+      "attributes": {}
+    },
+    "children": [
+      {
+        "id": "tw-heading",
+        "kind": "heading",
+        "props": {
+          "level": 3,
+          "text": "Tailwind sample"
+        },
+        "style": {
+          "typography": {
+            "fontSize": "20px",
+            "fontWeight": "700"
+          }
+        },
+        "provenance": {
+          "htmlTag": "h3",
+          "classNames": ["text-xl", "font-bold"],
+          "attributes": {}
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "code": "unknown-tailwind-class",
+      "message": "Tailwind class \"shadow-mystery\" is not in the curated map; left unresolved.",
+      "nodeId": "tw-root"
+    }
+  ]
+}

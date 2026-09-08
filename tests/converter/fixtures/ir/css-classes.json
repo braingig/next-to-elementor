@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "css-classes.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "css-classes-root",
+    "kind": "container",
+    "props": {
+      "as": "div"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "column"
+      }
+    },
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": ["hero", "hero--dark", "u-stack"],
+      "attributes": {
+        "id": "hero"
+      }
+    },
+    "children": [
+      {
+        "id": "css-classes-heading",
+        "kind": "heading",
+        "props": {
+          "level": 1,
+          "text": "Class-driven hero"
+        },
+        "provenance": {
+          "htmlTag": "h1",
+          "classNames": ["hero__title"],
+          "attributes": {}
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "unresolved-stylesheet-class",
+      "message": "External CSS for .hero / .hero--dark was not resolved into IrStyle; classNames preserved for later phases.",
+      "nodeId": "css-classes-root"
+    }
+  ]
+}

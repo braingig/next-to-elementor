@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "spacer.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "spacer-1",
+    "kind": "spacer",
+    "props": {
+      "axis": "y",
+      "size": "48px"
+    },
+    "style": {
+      "box": {
+        "height": "48px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": [],
+      "attributes": {
+        "aria-hidden": "true"
+      }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

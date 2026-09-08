@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "simple-heading.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "heading-1",
+    "kind": "heading",
+    "props": {
+      "level": 1,
+      "text": "Welcome"
+    },
+    "provenance": {
+      "htmlTag": "h1",
+      "classNames": [],
+      "attributes": {},
+      "loc": { "line": 3, "column": 4 }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

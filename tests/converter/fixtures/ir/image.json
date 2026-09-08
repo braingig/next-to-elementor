@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "image.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "image-1",
+    "kind": "image",
+    "props": {
+      "src": "/images/hero.jpg",
+      "alt": "Product screenshot",
+      "width": 1200,
+      "height": 800
+    },
+    "style": {
+      "box": {
+        "width": "100%",
+        "maxWidth": "1200px"
+      },
+      "border": {
+        "radius": "12px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "img",
+      "classNames": [],
+      "attributes": {
+        "loading": "lazy"
+      },
+      "loc": { "line": 8, "column": 4 }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "divider.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "divider-1",
+    "kind": "divider",
+    "props": {},
+    "style": {
+      "border": {
+        "width": "1px",
+        "style": "solid",
+        "color": "#e2e8f0"
+      },
+      "box": {
+        "width": "100%"
+      }
+    },
+    "provenance": {
+      "htmlTag": "hr",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

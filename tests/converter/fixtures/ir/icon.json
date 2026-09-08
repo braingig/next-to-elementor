@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "icon.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "icon-1",
+    "kind": "icon",
+    "props": {
+      "name": "check-circle"
+    },
+    "style": {
+      "box": {
+        "width": "24px",
+        "height": "24px"
+      },
+      "typography": {
+        "color": "#0f766e"
+      }
+    },
+    "provenance": {
+      "componentName": "CheckCircleIcon",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

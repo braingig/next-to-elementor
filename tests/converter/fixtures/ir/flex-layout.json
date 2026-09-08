@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "flex-layout.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "flex-root",
+    "kind": "container",
+    "props": {
+      "as": "div"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "justifyContent": "space-between",
+        "alignItems": "center",
+        "gap": "16px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": [
+      {
+        "id": "flex-text",
+        "kind": "text",
+        "props": {
+          "text": "Left content"
+        },
+        "provenance": {
+          "htmlTag": "span",
+          "classNames": [],
+          "attributes": {}
+        },
+        "children": []
+      },
+      {
+        "id": "flex-button",
+        "kind": "button",
+        "props": {
+          "text": "Action",
+          "type": "button"
+        },
+        "provenance": {
+          "htmlTag": "button",
+          "classNames": [],
+          "attributes": {
+            "type": "button"
+          }
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

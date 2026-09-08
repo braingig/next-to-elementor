@@ -4,8 +4,12 @@ import {
   UnsupportedReasonCodeSchema,
 } from "../types/decisions";
 
-/** IR schema version for this contract freeze. */
-export const IR_SCHEMA_VERSION = "0.1.0" as const;
+/**
+ * IR schema version (Phase 2).
+ * Bumped from 0.1.0 for node status/uncertainty, provenance attributes,
+ * and open responsive breakpoint keys.
+ */
+export const IR_SCHEMA_VERSION = "0.2.0" as const;
 
 export const IrNodeKindSchema = z.enum([
   "container",
@@ -24,6 +28,10 @@ export const IrNodeKindSchema = z.enum([
   "unsupported",
 ]);
 export type IrNodeKind = z.infer<typeof IrNodeKindSchema>;
+
+/** Node certainty for non-unsupported kinds. */
+export const IrNodeStatusSchema = z.enum(["ok", "uncertain"]);
+export type IrNodeStatus = z.infer<typeof IrNodeStatusSchema>;
 
 export const IrSourceLanguageSchema = z.enum(["tsx", "jsx", "unknown"]);
 export type IrSourceLanguage = z.infer<typeof IrSourceLanguageSchema>;
@@ -44,8 +52,12 @@ export const IrProvenanceSchema = z
     loc: IrSourceLocationSchema.optional(),
     componentName: z.string().optional(),
     htmlTag: z.string().optional(),
+    /** Observed class tokens (including Tailwind), source-oriented. */
     classNames: z.array(z.string()).default([]),
+    /** Raw inline style attribute string when present. */
     inlineStyleRaw: z.string().optional(),
+    /** Static HTML attributes observed on the source element (string values only). */
+    attributes: z.record(z.string(), z.string()).default({}),
   })
   .strict();
 export type IrProvenance = z.infer<typeof IrProvenanceSchema>;
@@ -61,7 +73,15 @@ export const IrDiagnosticSchema = z
   .strict();
 export type IrDiagnostic = z.infer<typeof IrDiagnosticSchema>;
 
-/** Length/color/etc. as normalized CSS-ish strings for MVP. */
+export const IrUncertaintySchema = z
+  .object({
+    reasonCode: UnsupportedReasonCodeSchema.optional(),
+    message: z.string().min(1),
+  })
+  .strict();
+export type IrUncertainty = z.infer<typeof IrUncertaintySchema>;
+
+/** Length/color/etc. as source-oriented CSS-ish strings for MVP (not Elementor values). */
 const CssValue = z.string();
 
 export const IrBoxStyleSchema = z
@@ -162,14 +182,21 @@ export const IrEffectsStyleSchema = z
   })
   .strict();
 
-export const IrResponsiveBreakpointSchema = z.enum([
+/**
+ * Recommended responsive override keys (Tailwind-aligned).
+ * Base/desktop styles live on the node `style` itself (not under responsive).
+ * Schema accepts any non-empty string key so later breakpoints can be added
+ * without a hard schema break.
+ */
+export const IR_RECOMMENDED_BREAKPOINTS = [
   "sm",
   "md",
   "lg",
   "xl",
   "2xl",
-]);
-export type IrResponsiveBreakpoint = z.infer<typeof IrResponsiveBreakpointSchema>;
+] as const;
+export type IrRecommendedBreakpoint =
+  (typeof IR_RECOMMENDED_BREAKPOINTS)[number];
 
 type IrStyle = {
   box?: z.infer<typeof IrBoxStyleSchema>;
@@ -179,7 +206,7 @@ type IrStyle = {
   border?: z.infer<typeof IrBorderStyleSchema>;
   position?: z.infer<typeof IrPositionStyleSchema>;
   effects?: z.infer<typeof IrEffectsStyleSchema>;
-  responsive?: Partial<Record<IrResponsiveBreakpoint, IrStyle>>;
+  responsive?: Record<string, IrStyle>;
 };
 
 export const IrStyleSchema: z.ZodType<IrStyle> = z.lazy(() =>
@@ -192,10 +219,7 @@ export const IrStyleSchema: z.ZodType<IrStyle> = z.lazy(() =>
       border: IrBorderStyleSchema.optional(),
       position: IrPositionStyleSchema.optional(),
       effects: IrEffectsStyleSchema.optional(),
-      // Zod 4 z.record(enum, …) requires every enum key; responsive overrides are sparse.
-      responsive: z
-        .partialRecord(IrResponsiveBreakpointSchema, IrStyleSchema)
-        .optional(),
+      responsive: z.record(z.string().min(1), IrStyleSchema).optional(),
     })
     .strict(),
 );
@@ -203,8 +227,10 @@ export type { IrStyle };
 
 const SharedNodeFields = {
   id: z.string().min(1),
+  status: IrNodeStatusSchema.default("ok"),
+  uncertainty: IrUncertaintySchema.optional(),
   style: IrStyleSchema.default({}),
-  provenance: IrProvenanceSchema.default({ classNames: [] }),
+  provenance: IrProvenanceSchema.default({ classNames: [], attributes: {} }),
   notes: z.array(z.string()).default([]),
 };
 
@@ -311,8 +337,10 @@ export const IrUnsupportedPropsSchema = z
 
 export type IrNode = {
   id: string;
+  status?: IrNodeStatus;
+  uncertainty?: IrUncertainty;
   style?: IrStyle;
-  provenance?: z.infer<typeof IrProvenanceSchema>;
+  provenance?: IrProvenance;
   notes?: string[];
   children: IrNode[];
 } & (
@@ -458,7 +486,7 @@ export const IrMetaSchema = z
   .strict();
 export type IrMeta = z.infer<typeof IrMetaSchema>;
 
-export const IrDocumentSchema = z
+const IrDocumentObjectSchema = z
   .object({
     version: z.literal(IR_SCHEMA_VERSION),
     meta: IrMetaSchema.default({ sourceLanguage: "unknown" }),
@@ -466,4 +494,38 @@ export const IrDocumentSchema = z
     diagnostics: z.array(IrDiagnosticSchema).default([]),
   })
   .strict();
-export type IrDocument = z.infer<typeof IrDocumentSchema>;
+
+function assertUncertainNodesHaveMessage(
+  node: IrNode,
+  path: Array<string | number>,
+  ctx: z.RefinementCtx,
+): void {
+  if (node.status === "uncertain" && !node.uncertainty?.message) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        'Nodes with status "uncertain" must include uncertainty.message',
+      path: [...path, "uncertainty"],
+    });
+  }
+  node.children.forEach((child, index) => {
+    assertUncertainNodesHaveMessage(child, [...path, "children", index], ctx);
+  });
+}
+
+export const IrDocumentSchema = IrDocumentObjectSchema.superRefine(
+  (doc, ctx) => {
+    assertUncertainNodesHaveMessage(doc.root, ["root"], ctx);
+  },
+);
+export type IrDocument = z.infer<typeof IrDocumentObjectSchema>;
+
+/** Parse and validate an unknown value as an IR document. */
+export function parseIrDocument(input: unknown): IrDocument {
+  return IrDocumentSchema.parse(input);
+}
+
+/** Safe parse helper. */
+export function safeParseIrDocument(input: unknown) {
+  return IrDocumentSchema.safeParse(input);
+}

@@ -1,0 +1,98 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "unsupported-ambiguous.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "section-root",
+    "kind": "container",
+    "props": {
+      "as": "section"
+    },
+    "provenance": {
+      "htmlTag": "section",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": [
+      {
+        "id": "uncertain-widget",
+        "kind": "group",
+        "status": "uncertain",
+        "uncertainty": {
+          "reasonCode": "semantic-ambiguous",
+          "message": "Could be a card, list item, or custom widget; role is ambiguous without guessing."
+        },
+        "props": {
+          "as": "div"
+        },
+        "provenance": {
+          "htmlTag": "div",
+          "componentName": "FancyCard",
+          "classNames": ["card"],
+          "attributes": {}
+        },
+        "notes": ["Ambiguous custom component wrapper"],
+        "children": [
+          {
+            "id": "card-title",
+            "kind": "heading",
+            "props": {
+              "level": 3,
+              "text": "Card title"
+            },
+            "provenance": {
+              "htmlTag": "h3",
+              "classNames": [],
+              "attributes": {}
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "unsupported-carousel",
+        "kind": "unsupported",
+        "props": {
+          "reasonCode": "interaction-unsupported",
+          "message": "Interactive carousel cannot be represented accurately in MVP without approximation.",
+          "originalSummary": "<Carousel slides={items} autoplay />"
+        },
+        "provenance": {
+          "componentName": "Carousel",
+          "classNames": [],
+          "attributes": {}
+        },
+        "children": []
+      },
+      {
+        "id": "html-fallback-island",
+        "kind": "html-embed",
+        "props": {
+          "html": "<div class=\"badge\">Static badge markup</div>"
+        },
+        "provenance": {
+          "htmlTag": "div",
+          "classNames": ["badge"],
+          "attributes": {}
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "code": "semantic-ambiguous",
+      "message": "FancyCard role is uncertain; marked status=uncertain.",
+      "nodeId": "uncertain-widget"
+    },
+    {
+      "severity": "error",
+      "code": "interaction-unsupported",
+      "message": "Carousel marked unsupported; no silent approximation.",
+      "nodeId": "unsupported-carousel"
+    }
+  ]
+}

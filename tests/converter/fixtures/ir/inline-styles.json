@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "inline-styles.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "inline-text",
+    "kind": "text",
+    "props": {
+      "text": "Styled inline"
+    },
+    "style": {
+      "typography": {
+        "color": "#0f172a",
+        "fontSize": "18px"
+      },
+      "background": {
+        "color": "#f8fafc"
+      },
+      "box": {
+        "padding": "8px 12px"
+      }
+    },
+    "provenance": {
+      "htmlTag": "p",
+      "classNames": [],
+      "attributes": {},
+      "inlineStyleRaw": "color:#0f172a;font-size:18px;background-color:#f8fafc;padding:8px 12px",
+      "loc": { "line": 4, "column": 2 }
+    },
+    "children": []
+  },
+  "diagnostics": []
+}

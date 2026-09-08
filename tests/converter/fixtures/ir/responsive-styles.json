@@ -1,0 +1,83 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceName": "responsive-styles.tsx",
+    "sourceLanguage": "tsx"
+  },
+  "root": {
+    "id": "responsive-root",
+    "kind": "container",
+    "props": {
+      "as": "div"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": "24px"
+      },
+      "box": {
+        "padding": "32px"
+      },
+      "responsive": {
+        "md": {
+          "layout": {
+            "flexDirection": "column",
+            "gap": "16px"
+          },
+          "box": {
+            "padding": "24px"
+          }
+        },
+        "sm": {
+          "layout": {
+            "flexDirection": "column",
+            "gap": "12px"
+          },
+          "box": {
+            "padding": "16px"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": [],
+      "attributes": {}
+    },
+    "children": [
+      {
+        "id": "responsive-heading",
+        "kind": "heading",
+        "props": {
+          "level": 2,
+          "text": "Responsive title"
+        },
+        "style": {
+          "typography": {
+            "fontSize": "32px"
+          },
+          "responsive": {
+            "md": {
+              "typography": {
+                "fontSize": "28px"
+              }
+            },
+            "sm": {
+              "typography": {
+                "fontSize": "24px"
+              }
+            }
+          }
+        },
+        "provenance": {
+          "htmlTag": "h2",
+          "classNames": [],
+          "attributes": {}
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

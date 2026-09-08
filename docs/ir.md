@@ -1,44 +1,50 @@
 # Intermediate Representation (IR)
 
-Status: Phase 0 contract  
-Schema: `lib/converter/ir/schema.ts`
+Status: **Phase 2** (schema + fixture corpus)  
+Schema: `lib/converter/ir/schema.ts`  
+Version: `0.2.0`  
+Fixtures: `tests/converter/fixtures/ir/`
 
-## Goals
+## What the IR is
 
-The IR is an **Elementor-agnostic** semantic tree.
+The Intermediate Representation is an **Elementor-agnostic semantic tree**.
 
-- Captures structure, content, and resolved style facts from React/JSX + CSS/Tailwind analysis.
-- Does **not** encode Elementor widget types or settings.
-- Is the only input to Free capability matching and conversion decisions (later phases).
-- Must be deterministic and fully validatable with Zod.
+It sits between source analysis and Elementor emission:
 
-## Design principles
+```text
+React / JSX / TSX  →  IR  →  Elementor Free JSON
+```
 
-1. **Semantic over presentational HTML** — prefer `heading` / `button` / `image` over raw `div` when role is clear; otherwise use `container` or `text`.
-2. **Provenance required** — every node records enough source info to explain decisions in the report.
-3. **No silent loss** — unresolved/dynamic/unknown inputs become diagnostics or `unsupported` nodes, never omitted facts.
-4. **Decisions are not IR concerns** — conversion decision (`native` | `custom` | `unsupported`) is attached during conversion and reported separately; IR itself stays Elementor-agnostic. Optional `pendingDecision` is not stored on IR in MVP.
+Phase 2 defines and validates the IR only. It does **not** parse JSX or emit Elementor JSON.
+
+## Why it exists
+
+1. **Decouple source from target** — React structure/styles are captured once; Elementor mapping happens later against the Free catalog.
+2. **Deterministic decisions** — conversion rules operate on a validated tree, not ad-hoc AST fragments.
+3. **No silent loss** — unsupported or uncertain facts are explicit nodes/diagnostics, never dropped.
+4. **Testable corpus** — fixtures exercise IR shape without needing Elementor output yet.
 
 ## Document shape
 
 ```ts
 IrDocument {
-  version: "0.1.0"           // IR schema version (semver string)
+  version: "0.2.0"
   meta: IrMeta
-  root: IrNode               // single section/component root
-  diagnostics: IrDiagnostic[] // parse/style issues discovered while building IR
+  root: IrNode
+  diagnostics: IrDiagnostic[]
 }
 ```
 
-### `IrMeta`
+| Field | Meaning |
+|---|---|
+| `version` | IR schema version (`0.2.0` for Phase 2) |
+| `meta.sourceName` | Optional file / section name |
+| `meta.sourceLanguage` | `tsx` \| `jsx` \| `unknown` |
+| `meta.createdAt` | Optional ISO timestamp |
+| `root` | Single section/component root node |
+| `diagnostics` | Parse/style/ambiguity issues found while building IR |
 
-| Field | Type | Meaning |
-|---|---|---|
-| `sourceName` | string \| optional | Original file or section name |
-| `sourceLanguage` | `"tsx" \| "jsx" \| "unknown"` | Input dialect |
-| `createdAt` | ISO string \| optional | Set by pipeline later; optional in hand-authored fixtures |
-
-## Node kinds (`IrNodeKind`)
+## Supported node kinds
 
 | Kind | Purpose |
 |---|---|
@@ -47,147 +53,228 @@ IrDocument {
 | `text` | Paragraph / rich text / inline text block |
 | `image` | Image asset reference |
 | `button` | Button-like control (submit or styled CTA) |
-| `link` | Hyperlink that is not classified as `button` |
-| `list` | Ordered/unordered list |
-| `list-item` | Single list item |
-| `spacer` | Intentional empty vertical/horizontal space |
-| `divider` | Visual separator rule |
-| `icon` | Icon graphic (SVG/font/image icon) |
-| `html-embed` | Explicit raw HTML island already present in source |
+| `link` | Hyperlink not classified as `button` |
+| `list` / `list-item` | Lists (available; not required in every MVP fixture) |
+| `spacer` | Intentional empty space |
+| `divider` | Visual separator |
+| `icon` | Icon graphic (`name` / `svg` / `src`) |
+| `html-embed` | Explicit static HTML island |
 | `group` | Logical grouping without strong layout semantics |
-| `unsupported` | Node that cannot be represented accurately even later |
+| `unsupported` | Cannot be represented accurately without guessing |
 
-Every node has:
-
-| Field | Meaning |
-|---|---|
-| `id` | Stable string id within the document |
-| `kind` | One of `IrNodeKind` |
-| `children` | Child nodes (empty for leaves) |
-| `props` | Kind-specific props (see below) |
-| `style` | Resolved style object (may be empty) |
-| `provenance` | Source mapping |
-| `notes` | Optional human/machine notes |
-
-## Kind-specific props (summary)
-
-### `container` / `group`
-
-- `as`: optional original tag (`div`, `section`, `main`, …)
-- `role`: optional ARIA role if statically known
-
-### `heading`
-
-- `level`: 1–6
-- `text`: plain text (static)
-- `html`: optional static rich HTML if required (mutually documented with text policy later)
-
-### `text`
-
-- `text`: plain text
-- `html`: optional static HTML fragment when formatting requires it
-
-### `image`
-
-- `src`: string URL or project-relative path
-- `alt`: string
-- `width` / `height`: optional numbers
-- `decorative`: optional boolean
-
-### `button`
-
-- `text`: label
-- `href`: optional (link-styled button)
-- `type`: `"button" \| "submit" \| "reset" \| "link"` when known
-- `target`: optional (`_blank`, …)
-- `rel`: optional
-
-### `link`
-
-- `text` or children for complex labels
-- `href`
-- `target` / `rel`
-
-### `list`
-
-- `listType`: `"ul" \| "ol"`
-
-### `list-item`
-
-- `text` optional if children carry content
-
-### `spacer`
-
-- `axis`: `"y" \| "x"`
-- `size`: optional resolved length hint
-
-### `divider`
-
-- no required props beyond style
-
-### `icon`
-
-- `name` or `svg` or `src` (exactly one representation preferred; schema allows optional fields with later validation rules)
-
-### `html-embed`
-
-- `html`: static HTML string
-
-### `unsupported`
-
-- `reasonCode`: from unsupported taxonomy
-- `message`: human-readable explanation
-- `originalSummary`: short description of what was found (tag/component name, etc.)
-
-## Style model (`IrStyle`)
-
-Resolved, Elementor-agnostic style facts. Values are normalized CSS-ish strings or structured enums—not Tailwind class names.
-
-Top-level groups:
-
-- `box`: width, height, min/max, margin, padding
-- `layout`: display, flex direction/wrap/gap/align/justify, grid (subset), overflow
-- `typography`: font family/size/weight/style, line-height, letter-spacing, text-align, text-decoration, text-transform, color
-- `background`: color, image, size, position, repeat
-- `border`: widths, styles, colors, radii
-- `position`: position mode, offsets, z-index
-- `effects`: opacity, box-shadow (subset), transform (subset), transition/animation **flags only** in MVP
-- `responsive`: map of breakpoint id → partial `IrStyle` overrides (`sm`, `md`, `lg`, `xl`, `2xl`)
-
-### Unknown / unresolved styles
-
-Do not invent values. Record diagnostics:
-
-- `unknown-tailwind-class`
-- `unknown-css-property`
-- `dynamic-style`
-- `unsupported-selector`
-
-## Provenance (`IrProvenance`)
+Every node shares:
 
 | Field | Meaning |
 |---|---|
-| `sourcePath` | optional file path |
-| `loc` | optional `{ line, column, endLine?, endColumn? }` |
-| `componentName` | optional React component name |
-| `htmlTag` | optional original tag |
-| `classNames` | original class list as observed |
-| `inlineStyleRaw` | optional raw inline style string |
+| `id` | Stable id within the document |
+| `kind` | One of the kinds above |
+| `status` | `ok` (default) or `uncertain` |
+| `uncertainty` | Required message when `status` is `uncertain` |
+| `props` | Kind-specific props |
+| `style` | Source-oriented style facts (may be empty) |
+| `provenance` | Source mapping / classes / attributes |
+| `notes` | Optional free-form notes |
+| `children` | Nested nodes (order is layout-significant) |
 
-## Diagnostics (`IrDiagnostic`)
+### Kind-specific props (summary)
+
+- **container / group** — `as?`, `role?`
+- **heading** — `level` (1–6), `text`, `html?`
+- **text** — `text`, `html?`
+- **image** — `src`, `alt`, `width?`, `height?`, `decorative?`
+- **button** — `text`, `href?`, `type?`, `target?`, `rel?`
+- **link** — `href`, `text?`, `target?`, `rel?`
+- **list** — `listType`: `ul` \| `ol`
+- **list-item** — `text?`
+- **spacer** — `axis`: `y` \| `x`, `size?`
+- **divider** — no required props
+- **icon** — `name?`, `svg?`, `src?`
+- **html-embed** — `html`
+- **unsupported** — `reasonCode`, `message`, `originalSummary?`
+
+## Structure and nesting
+
+Nodes form a tree. Containers may nest arbitrarily:
+
+```text
+container
+  └─ container
+       ├─ heading
+       ├─ text
+       └─ button
+```
+
+Child **order is significant** and is preserved by normalization.
+
+## Styles
+
+`IrStyle` stores **source-oriented** CSS-ish facts. Values are plain strings (e.g. `"16px"`, `"flex"`, `"#0f766e"`).
+
+They are **not**:
+
+- Elementor control values
+- Elementor settings objects
+- Guaranteed fully resolved CSS cascade
+
+Groups:
+
+| Group | Examples |
+|---|---|
+| `box` | width/height/min/max, margin, padding |
+| `layout` | display, flex\*, gap, grid templates, overflow |
+| `typography` | font\*, line-height, text-align, color |
+| `background` | color, image, size, position, repeat |
+| `border` | width, style, color, radii |
+| `position` | position mode, offsets, z-index |
+| `effects` | opacity, box-shadow, transform; transition/animation **flags only** |
+
+Unresolved classes or CSS should become **diagnostics**, not invented style values.
+
+## Responsive styles
+
+- **Base / desktop** styles live on the node `style` object itself.
+- Overrides live under `style.responsive[<breakpoint>]` as partial `IrStyle` objects.
+- Recommended keys: `sm`, `md`, `lg`, `xl`, `2xl` (Tailwind-aligned).
+- The schema accepts **any non-empty string key** so additional breakpoints can be added later without a hard break.
+
+Typical mapping for later Elementor work (not stored in IR):
+
+| IR | Intent |
+|---|---|
+| base `style` | desktop |
+| `responsive.md` | tablet-ish |
+| `responsive.sm` | mobile-ish |
+
+## Provenance / metadata
 
 | Field | Meaning |
 |---|---|
-| `severity` | `error` \| `warning` \| `info` |
-| `code` | stable machine code |
-| `message` | human-readable |
-| `nodeId` | optional related IR node |
-| `loc` | optional source location |
+| `sourcePath` | Optional file path |
+| `loc` | Optional `{ line, column, endLine?, endColumn? }` |
+| `componentName` | Optional React component name |
+| `htmlTag` | Optional original tag |
+| `classNames` | Observed class tokens (CSS and/or Tailwind), **source-oriented** |
+| `inlineStyleRaw` | Raw inline `style` attribute string when present |
+| `attributes` | Static string HTML attributes (`id`, `loading`, `data-*`, …) |
 
-## Non-goals for IR (MVP)
+## Unsupported and uncertain states
 
-- Runtime React state, hooks, context
-- Executing user code to discover rendered output
-- Elementor widget IDs or settings
+| Mechanism | When |
+|---|---|
+| `kind: "unsupported"` | Node cannot be represented accurately; includes `reasonCode` + `message` |
+| `status: "uncertain"` | Node kind is provisional; must include `uncertainty.message` |
+| `diagnostics[]` | Property-level / document-level issues (unknown Tailwind, unresolved CSS, etc.) |
+
+Reason codes come from `UnsupportedReasonCode` in `lib/converter/types/decisions.ts` (see [unsupported-policy.md](./unsupported-policy.md)).
+
+**Never** silently approximate missing semantics in the IR.
+
+## Normalization
+
+`normalizeIrDocument()` / `canonicalizeIrJson()` in `lib/converter/ir/normalize.ts`:
+
+- Apply Zod defaults via parse
+- Preserve child order
+- Sort unordered facts: `classNames`, `notes`, `diagnostics`, attribute keys, responsive keys
+- Drop empty style groups / empty responsive overrides
+- Produce a stable JSON form for equality checks
+
+## Examples
+
+Minimal heading:
+
+```json
+{
+  "version": "0.2.0",
+  "root": {
+    "id": "heading-1",
+    "kind": "heading",
+    "props": { "level": 1, "text": "Welcome" },
+    "children": []
+  }
+}
+```
+
+Uncertain + unsupported siblings:
+
+```json
+{
+  "version": "0.2.0",
+  "root": {
+    "id": "section-root",
+    "kind": "container",
+    "props": { "as": "section" },
+    "children": [
+      {
+        "id": "uncertain-widget",
+        "kind": "group",
+        "status": "uncertain",
+        "uncertainty": {
+          "reasonCode": "semantic-ambiguous",
+          "message": "Role is ambiguous without guessing."
+        },
+        "props": { "as": "div" },
+        "children": []
+      },
+      {
+        "id": "unsupported-carousel",
+        "kind": "unsupported",
+        "props": {
+          "reasonCode": "interaction-unsupported",
+          "message": "Interactive carousel cannot be represented accurately in MVP."
+        },
+        "children": []
+      }
+    ]
+  }
+}
+```
+
+See `tests/converter/fixtures/ir/` for the full corpus.
+
+## What must NOT be stored in the IR
+
+- `elType`, `widgetType`, Elementor control IDs, or Elementor `settings` shapes
+- Conversion decisions (`native` / `custom` / `unsupported` as emit decisions)
+- Catalog references or Pro/Free capability claims
+- Runtime React state, hooks, context, or executed user code
 - Pixel-perfect animation timelines
-- Full CSS cascade fidelity for arbitrary stylesheets
+- Guarantees of full CSS cascade fidelity
+
+## Phase 2 fixture corpus
+
+| Fixture | Covers |
+|---|---|
+| `simple-heading.json` | Heading |
+| `paragraph.json` | Text |
+| `image.json` | Image + attributes |
+| `button.json` | Button/link CTA |
+| `icon.json` | Icon |
+| `divider.json` | Divider |
+| `spacer.json` | Spacer |
+| `nested-containers.json` | Nested containers + children |
+| `flex-layout.json` | Flex layout styles |
+| `responsive-styles.json` | Base + `sm`/`md` overrides |
+| `inline-styles.json` | `inlineStyleRaw` + resolved style subset |
+| `css-classes.json` | CSS class provenance |
+| `tailwind-classes.json` | Tailwind classes + unknown-class diagnostic |
+| `unsupported-ambiguous.json` | Uncertain, unsupported, html-embed |
+
+## API surface
+
+```ts
+import {
+  IrDocumentSchema,
+  parseIrDocument,
+  normalizeIrDocument,
+  canonicalizeIrJson,
+  IR_SCHEMA_VERSION,
+} from "@/lib/converter";
+```
+
+## Out of scope (later phases)
+
+- JSX/TSX parsing → IR builders
+- Tailwind/CSS resolution engines
+- IR → Elementor Free conversion
+- Elementor JSON emission / custom HTML fallbacks
