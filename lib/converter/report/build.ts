@@ -5,6 +5,7 @@ import type {
   NativeConversionResult,
   NativeNodeDecision,
 } from "../rules/native/types";
+import { flattenDecisions } from "../emit/document";
 import {
   ConversionReportSchema,
   ConversionResultSchema,
@@ -22,14 +23,6 @@ import { collectStyleAccuracyDiagnostics } from "./style-loss";
 function walkIrNodes(node: IrNode, visit: (n: IrNode) => void): void {
   visit(node);
   for (const child of node.children) walkIrNodes(child, visit);
-}
-
-function flattenDecisions(decision: NativeNodeDecision): NativeNodeDecision[] {
-  const out = [decision];
-  for (const child of decision.children ?? []) {
-    out.push(...flattenDecisions(child));
-  }
-  return out;
 }
 
 function provenanceOf(node: IrNode): ReportNodeEntry["provenance"] {

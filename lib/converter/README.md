@@ -1,14 +1,48 @@
 # Converter
 
-- **Phase 0:** IR / report / decision contracts (`ir/`, `report/`, `types/`).
-- **Phase 1:** Elementor Free capability catalog (`catalog/`).
-- **Phase 2:** IR schema `0.2.0`, normalization, fixtures.
-- **Phase 3:** JSX/TSX parser + React AST → IR (`parse/`).
-- **Phase 4:** CSS + curated Tailwind style resolution (`styles/`).
-- **Phase 5:** Native Elementor Free conversion (`rules/native/`, `emit/`) — classic JSON `0.4` only.
+End-to-end React/TSX section → Elementor Free classic JSON (`0.4`) + report.
 
-Do **not** add custom HTML fallback (Phase 6) or Pro emission.
+## Preferred API
 
-Specs: `/docs` (`phase-0.md` … `phase-5.md`, …).
+```ts
+import { convertSource, convert, analyzeReactSource, resolveStyles } from "@/lib/converter";
 
-Public exports: `./index.ts`
+const result = convertSource({
+  source,
+  language: "tsx",
+  css,
+});
+
+if (result.outcome === "complete") {
+  // valid Elementor JSON
+}
+```
+
+## Pipeline stages
+
+| Phase | Module | Responsibility |
+|---|---|---|
+| 0 | `types/`, `report/schema` | Contracts |
+| 1 | `catalog/` | Free 4.2.4 capability catalog |
+| 2 | `ir/` | IR schema + normalize |
+| 3 | `parse/` | JSX/TSX → IR (static only) |
+| 4 | `styles/` | CSS + curated Tailwind |
+| 5 | `rules/native/` | Native Free widgets |
+| 6 | `rules/custom/` | Node-scoped HTML fallback |
+| 7 | `report/`, `convert.ts` | Report + `convert(ir)` |
+| 8 | `convert-source.ts`, `emit/` | `convertSource` + shared emit helpers |
+
+## Lower-level APIs (still supported)
+
+- `analyzeReactSource` / `resolveStyles`
+- `convertToNativeElementor` — outcomes: `success` \| `partial` \| `failed`
+- `convertToElementor` — native + custom; same lower-level outcomes
+- `convert` — styled IR → Phase 7 `ConversionResult` (`complete` \| `partial` \| `failed`)
+
+## Rules
+
+- Elementor Free **4.2.4** only (classic JSON)
+- Decision order: native → custom → unsupported
+- No Pro, no AI, no user-code execution, no repo scanning
+
+Specs: `/docs` (`phase-0.md` … `phase-8.md`).

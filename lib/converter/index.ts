@@ -1,12 +1,14 @@
 /**
  * Converter library public surface.
  *
- * Phase 0: IR / report / decision contracts.
- * Phase 1: Elementor Free capability catalog (no conversion engine).
- * Phase 2: IR schema + normalization + fixture corpus (no JSX/Elementor conversion).
- * Phase 5: Native Free conversion (`convertToNativeElementor`).
- * Phase 6: Node-scoped custom HTML fallback (`convertToElementor`).
- * Phase 7: Unsupported handling + conversion report (`convert`).
+ * Preferred Phase 8 entry points:
+ * - `convertSource` — end-to-end React/TSX → Elementor JSON + report
+ * - `convert` — styled IR → Elementor JSON + report
+ * - `analyzeReactSource` — React/TSX → IR
+ * - `resolveStyles` — IR style resolution
+ *
+ * Lower-level APIs (`convertToNativeElementor`, `convertToElementor`, …)
+ * remain available and backward-compatible.
  */
 
 export {
@@ -83,6 +85,11 @@ export {
 } from "./report";
 
 export { convert, type ConvertOptions } from "./convert";
+export {
+  convertSource,
+  ConvertSourceOptionsSchema,
+  type ConvertSourceOptions,
+} from "./convert-source";
 
 export {
   parseReactSource,
@@ -136,5 +143,8 @@ export {
 export {
   validateElementorDocument,
   canonicalizeElementorJson,
+  flattenDecisions,
+  toElementorElement,
   type EmitValidationResult,
+  type ElementorElementDraft,
 } from "./emit";

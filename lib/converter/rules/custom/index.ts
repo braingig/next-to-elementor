@@ -8,11 +8,13 @@ import {
 import { convertIrNode } from "../native/widgets/container";
 import type {
   ElementorDocument,
-  ElementorElement,
   NativeConversionResult,
-  NativeNodeDecision,
 } from "../native/types";
-import { validateElementorDocument } from "../../emit/validate";
+import {
+  flattenDecisions,
+  toElementorElement,
+  validateElementorDocument,
+} from "../../emit";
 import { convertCustomFallback } from "./convert";
 import type { NativeEmit } from "../native/widgets/leaf";
 
@@ -37,53 +39,6 @@ export function convertIrNodeWithFallback(
   }
 
   return native;
-}
-
-function flattenDecisions(decision: NativeNodeDecision): NativeNodeDecision[] {
-  const out = [decision];
-  for (const child of decision.children ?? []) {
-    out.push(...flattenDecisions(child));
-  }
-  return out;
-}
-
-function toElementorElement(emit: {
-  id: string;
-  elType: "container" | "widget";
-  widgetType?: string;
-  settings: Record<string, unknown>;
-  elements: Array<{
-    id: string;
-    elType: "container" | "widget";
-    widgetType?: string;
-    settings: Record<string, unknown>;
-    elements: Array<unknown>;
-  }>;
-}): ElementorElement {
-  return {
-    id: emit.id,
-    elType: emit.elType,
-    ...(emit.widgetType ? { widgetType: emit.widgetType } : {}),
-    ...(emit.elType === "container" ? { isInner: false } : {}),
-    settings: emit.settings,
-    elements: emit.elements.map((child) =>
-      toElementorElement(
-        child as {
-          id: string;
-          elType: "container" | "widget";
-          widgetType?: string;
-          settings: Record<string, unknown>;
-          elements: Array<{
-            id: string;
-            elType: "container" | "widget";
-            widgetType?: string;
-            settings: Record<string, unknown>;
-            elements: Array<unknown>;
-          }>;
-        },
-      ),
-    ),
-  };
 }
 
 /**

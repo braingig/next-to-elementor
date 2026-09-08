@@ -97,4 +97,5 @@ Conceptual output:
 - Visual regression testing (later)
 - Silent approximation of unsupported nodes
 
-Phase 7 adds the structured conversion report via `convert()` — see [phase-7.md](./phase-7.md).
+Phase 7 adds the structured conversion report via `convert()` — see [phase-7.md](./phase-7.md).  
+Phase 8 adds the end-to-end orchestrator `convertSource()` — see [phase-8.md](./phase-8.md).

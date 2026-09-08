@@ -147,3 +147,5 @@ a **warning** diagnostic is recorded and outcome becomes at best `partial`.
 - Executing user code
 - Elementor Pro support
 - New conversion strategies beyond native → custom → unsupported
+
+Phase 8 orchestrates this report through `convertSource()` — see [phase-8.md](./phase-8.md).

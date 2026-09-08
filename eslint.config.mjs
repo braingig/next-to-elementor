@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored Elementor Free source used for capability verification only.
     "elementor/**",
+    // Converter fixtures are data inputs (may be intentionally invalid).
+    "tests/converter/fixtures/**",
   ]),
 ]);
 

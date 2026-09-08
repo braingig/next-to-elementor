@@ -1,0 +1,4 @@
+/* Extra CSS applied via element selector (no unknown utility classNames). */
+h2 {
+  text-transform: none;
+}
