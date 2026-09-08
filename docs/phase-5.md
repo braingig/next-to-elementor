@@ -15,7 +15,7 @@ Styled IR
   → classic JSON emit + compliance validation
 ```
 
-No Pro widgets/controls. No Atomic V4. No custom HTML fallback (Phase 6).
+No Pro widgets/controls. No Atomic V4. Custom HTML fallback is Phase 6 (`convertToElementor`).
 
 ## API
 

@@ -2,10 +2,15 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { UnsupportedReasonCode } from "../../types/decisions";
 
-/** Phase 5 native conversion strategy (fallback deferred to Phase 6). */
+/**
+ * Conversion strategy:
+ * - native / needs-fallback / unsupported — Phase 5 native layer
+ * - custom — Phase 6 node-scoped Free HTML fallback (after needs-fallback)
+ */
 export const NativeStrategySchema = z.enum([
   "native",
   "needs-fallback",
+  "custom",
   "unsupported",
 ]);
 export type NativeStrategy = z.infer<typeof NativeStrategySchema>;

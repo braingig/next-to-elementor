@@ -16,7 +16,7 @@ export type NativeElementDraft = {
 
 export type NativeEmit = {
   decision: NativeNodeDecision;
-  /** Present only when strategy === native */
+  /** Present when strategy is `native` or Phase 6 `custom` */
   element?: NativeElementDraft;
 };
 

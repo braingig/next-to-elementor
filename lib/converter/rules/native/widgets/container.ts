@@ -16,19 +16,23 @@ import {
 } from "./leaf";
 import { elementorIdFromIrId } from "../types";
 
+/** Child converter hook — Phase 6 injects native→custom→unsupported. */
+export type IrNodeConverter = (
+  node: IrNode,
+  catalog: ElementorFreeCatalog,
+) => NativeEmit;
+
 function convertChildren(
   nodes: IrNode[],
   catalog: ElementorFreeCatalog,
+  convertChild: IrNodeConverter,
 ): { emits: NativeEmit[]; decisions: NativeEmit["decision"][] } {
   const emits: NativeEmit[] = [];
   const decisions: NativeEmit["decision"][] = [];
   for (const child of nodes) {
-    const emit = convertIrNode(child, catalog);
+    const emit = convertChild(child, catalog);
     emits.push(emit);
     decisions.push(emit.decision);
-    if (emit.decision.children) {
-      // already nested in decision
-    }
   }
   return { emits, decisions };
 }
@@ -36,6 +40,7 @@ function convertChildren(
 export function convertContainerLike(
   node: IrNode & { kind: "container" | "group" },
   catalog: ElementorFreeCatalog,
+  convertChild: IrNodeConverter = convertIrNode,
 ): NativeEmit {
   const blocked = ensureWidget(catalog, "container", node);
   if (blocked) return blocked;
@@ -72,8 +77,12 @@ export function convertContainerLike(
     settings.html_tag = node.props.as === "div" ? "div" : node.props.as;
   }
 
-  const { emits, decisions } = convertChildren(node.children, catalog);
-  const nativeChildren = emits
+  const { emits, decisions } = convertChildren(
+    node.children,
+    catalog,
+    convertChild,
+  );
+  const emittedChildren = emits
     .map((e) => e.element)
     .filter((el): el is NonNullable<typeof el> => Boolean(el));
 
@@ -91,7 +100,7 @@ export function convertContainerLike(
       id: elementorIdFromIrId(node.id),
       elType: "container",
       settings,
-      elements: nativeChildren,
+      elements: emittedChildren,
     },
   };
 }
@@ -99,6 +108,7 @@ export function convertContainerLike(
 export function convertIrNode(
   node: IrNode,
   catalog: ElementorFreeCatalog,
+  convertChild: IrNodeConverter = convertIrNode,
 ): NativeEmit {
   if (node.kind === "unsupported") {
     return nonNative(
@@ -116,7 +126,7 @@ export function convertIrNode(
   switch (node.kind) {
     case "container":
     case "group":
-      return convertContainerLike(node, catalog);
+      return convertContainerLike(node, catalog, convertChild);
     case "heading":
       return convertHeading(node, catalog);
     case "text":

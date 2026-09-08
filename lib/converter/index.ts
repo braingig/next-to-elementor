@@ -4,6 +4,8 @@
  * Phase 0: IR / report / decision contracts.
  * Phase 1: Elementor Free capability catalog (no conversion engine).
  * Phase 2: IR schema + normalization + fixture corpus (no JSX/Elementor conversion).
+ * Phase 5: Native Free conversion (`convertToNativeElementor`).
+ * Phase 6: Node-scoped custom HTML fallback (`convertToElementor`).
  */
 
 export {
@@ -99,9 +101,18 @@ export {
 
 export {
   convertToNativeElementor,
+  convertToElementor,
+  convertIrNodeWithFallback,
+  convertCustomFallback,
+  serializeIrNodeHtml,
+  serializeScopedCss,
+  escapeHtmlAttr,
+  escapeHtmlText,
+  findUnsafeCustomPatterns,
   elementorIdFromIrId,
   NativeStrategySchema,
   type ConvertToNativeOptions,
+  type ConvertToElementorOptions,
   type NativeStrategy,
   type NativeNodeDecision,
   type NativeConversionResult,

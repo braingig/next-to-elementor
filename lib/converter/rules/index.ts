@@ -1,6 +1,18 @@
 /**
- * Conversion rules (Phase 5+).
- * Native Free conversion only in Phase 5 — custom fallback is Phase 6.
+ * Conversion rules.
+ * Phase 5: native Free conversion (`./native`)
+ * Phase 6: node-scoped custom HTML fallback (`./custom`)
  */
 
 export * from "./native";
+export {
+  convertToElementor,
+  convertIrNodeWithFallback,
+  convertCustomFallback,
+  serializeIrNodeHtml,
+  serializeScopedCss,
+  escapeHtmlAttr,
+  escapeHtmlText,
+  findUnsafeCustomPatterns,
+  type ConvertToElementorOptions,
+} from "./custom";
