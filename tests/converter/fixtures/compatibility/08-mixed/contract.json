@@ -1,0 +1,202 @@
+{
+  "id": "08-mixed",
+  "elementorTarget": "4.2.4",
+  "runtimeImport": "BLOCKED",
+  "staticValidation": "STATIC PASS",
+  "conversionOutcome": "partial",
+  "expectedWidgetTypes": [
+    "container",
+    "heading",
+    "text-editor",
+    "button"
+  ],
+  "widgetsSeen": [
+    "button",
+    "container",
+    "heading",
+    "text-editor"
+  ],
+  "responsiveSuffixesSeen": [
+    "_mobile",
+    "_tablet"
+  ],
+  "freeCompliancePassed": true,
+  "unsupportedDecisions": [],
+  "notes": "Mixed Tailwind + CSS + inline",
+  "generatedDocument": {
+    "version": "0.4",
+    "title": "08-mixed",
+    "type": "page",
+    "content": [
+      {
+        "id": "d8273e2",
+        "elType": "container",
+        "isInner": false,
+        "settings": {
+          "container_type": "flex",
+          "flex_direction": "column",
+          "flex_gap": {
+            "unit": "rem",
+            "column": "1",
+            "row": "1",
+            "isLinked": true
+          },
+          "padding": {
+            "unit": "rem",
+            "top": "2",
+            "right": "2",
+            "bottom": "2",
+            "left": "2",
+            "isLinked": true
+          },
+          "background_background": "classic",
+          "background_color": "#f8fafc",
+          "flex_direction_tablet": "row",
+          "padding_mobile": {
+            "unit": "rem",
+            "top": "0",
+            "right": "1",
+            "bottom": "0",
+            "left": "1",
+            "isLinked": false
+          },
+          "content_width": "full",
+          "html_tag": "section"
+        },
+        "elements": [
+          {
+            "id": "40b3eab",
+            "elType": "container",
+            "isInner": false,
+            "settings": {
+              "padding": {
+                "unit": "rem",
+                "top": "1.5",
+                "right": "1.5",
+                "bottom": "1.5",
+                "left": "1.5",
+                "isLinked": true
+              },
+              "background_background": "classic",
+              "background_color": "#ffffff",
+              "border_border": "solid",
+              "border_width": {
+                "unit": "px",
+                "top": "1",
+                "right": "1",
+                "bottom": "1",
+                "left": "1",
+                "isLinked": true
+              },
+              "border_color": "#e2e8f0",
+              "border_radius": {
+                "unit": "rem",
+                "top": "0.75",
+                "right": "0.75",
+                "bottom": "0.75",
+                "left": "0.75",
+                "isLinked": true
+              },
+              "container_type": "flex",
+              "content_width": "full",
+              "flex_direction": "column",
+              "html_tag": "div"
+            },
+            "elements": [
+              {
+                "id": "4024347",
+                "elType": "widget",
+                "widgetType": "heading",
+                "settings": {
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 1.5
+                  },
+                  "typography_font_weight": "700",
+                  "title": "Mixed sources",
+                  "header_size": "h2",
+                  "title_color": "#0f172a"
+                },
+                "elements": []
+              },
+              {
+                "id": "26c2ce2",
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settings": {
+                  "_margin": {
+                    "unit": "rem",
+                    "top": "0.75",
+                    "right": "0",
+                    "bottom": "0",
+                    "left": "0",
+                    "isLinked": false
+                  },
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 0.875
+                  },
+                  "editor": "Tailwind utilities, stylesheet rules, and inline styles on one section.",
+                  "text_color": "#475569"
+                },
+                "elements": []
+              },
+              {
+                "id": "f3342a7",
+                "elType": "widget",
+                "widgetType": "button",
+                "settings": {
+                  "_padding": {
+                    "unit": "rem",
+                    "top": "0.5",
+                    "right": "1",
+                    "bottom": "0.5",
+                    "left": "1",
+                    "isLinked": false
+                  },
+                  "_margin": {
+                    "unit": "rem",
+                    "top": "1",
+                    "right": "0",
+                    "bottom": "0",
+                    "left": "0",
+                    "isLinked": false
+                  },
+                  "background_background": "classic",
+                  "background_color": "#0f172a",
+                  "border_radius": {
+                    "unit": "rem",
+                    "top": "0.375",
+                    "right": "0.375",
+                    "bottom": "0.375",
+                    "left": "0.375",
+                    "isLinked": true
+                  },
+                  "text": "Continue",
+                  "link": {
+                    "url": "/mix",
+                    "is_external": "",
+                    "nofollow": "",
+                    "custom_attributes": ""
+                  },
+                  "button_type": "",
+                  "button_text_color": "#ffffff"
+                },
+                "elements": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reportSummary": {
+    "totalNodes": 5,
+    "nativeCount": 5,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 1,
+    "errorCount": 0,
+    "message": "5 nodes, 5 native, 0 custom, 0 unsupported"
+  }
+}

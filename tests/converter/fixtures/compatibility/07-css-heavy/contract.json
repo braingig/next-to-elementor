@@ -1,0 +1,170 @@
+{
+  "id": "07-css-heavy",
+  "elementorTarget": "4.2.4",
+  "runtimeImport": "BLOCKED",
+  "staticValidation": "STATIC PASS",
+  "conversionOutcome": "complete",
+  "expectedWidgetTypes": [
+    "container",
+    "heading",
+    "text-editor",
+    "button"
+  ],
+  "widgetsSeen": [
+    "button",
+    "container",
+    "heading",
+    "text-editor"
+  ],
+  "responsiveSuffixesSeen": [
+    "_mobile",
+    "_tablet"
+  ],
+  "freeCompliancePassed": true,
+  "unsupportedDecisions": [],
+  "notes": "CSS-heavy section",
+  "generatedDocument": {
+    "version": "0.4",
+    "title": "07-css-heavy",
+    "type": "page",
+    "content": [
+      {
+        "id": "d8273e2",
+        "elType": "container",
+        "isInner": false,
+        "settings": {
+          "container_type": "flex",
+          "flex_direction": "column",
+          "padding": {
+            "unit": "rem",
+            "top": "4",
+            "right": "1.5",
+            "bottom": "4",
+            "left": "1.5",
+            "isLinked": false
+          },
+          "background_background": "classic",
+          "background_color": "#0f766e",
+          "padding_tablet": {
+            "unit": "rem",
+            "top": "5",
+            "right": "2",
+            "bottom": "5",
+            "left": "2",
+            "isLinked": false
+          },
+          "padding_mobile": {
+            "unit": "rem",
+            "top": "2.5",
+            "right": "1",
+            "bottom": "2.5",
+            "left": "1",
+            "isLinked": false
+          },
+          "content_width": "full",
+          "html_tag": "section"
+        },
+        "elements": [
+          {
+            "id": "40b3eab",
+            "elType": "container",
+            "isInner": false,
+            "settings": {
+              "container_type": "flex",
+              "flex_direction": "column",
+              "flex_gap": {
+                "unit": "rem",
+                "column": "1",
+                "row": "1",
+                "isLinked": true
+              },
+              "content_width": "full",
+              "html_tag": "div"
+            },
+            "elements": [
+              {
+                "id": "4024347",
+                "elType": "widget",
+                "widgetType": "heading",
+                "settings": {
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 1.875
+                  },
+                  "typography_font_weight": "700",
+                  "typography_font_size_mobile": {
+                    "unit": "rem",
+                    "size": 1.5
+                  },
+                  "title": "CSS-driven layout",
+                  "header_size": "h2",
+                  "title_color": "#ffffff"
+                },
+                "elements": []
+              },
+              {
+                "id": "26c2ce2",
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settings": {
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 1
+                  },
+                  "editor": "Styles come from external CSS with class and descendant selectors plus media queries.",
+                  "text_color": "#ccfbf1"
+                },
+                "elements": []
+              },
+              {
+                "id": "f3342a7",
+                "elType": "widget",
+                "widgetType": "button",
+                "settings": {
+                  "_padding": {
+                    "unit": "rem",
+                    "top": "0.75",
+                    "right": "1.25",
+                    "bottom": "0.75",
+                    "left": "1.25",
+                    "isLinked": false
+                  },
+                  "background_background": "classic",
+                  "background_color": "#ffffff",
+                  "border_radius": {
+                    "unit": "rem",
+                    "top": "0.5",
+                    "right": "0.5",
+                    "bottom": "0.5",
+                    "left": "0.5",
+                    "isLinked": true
+                  },
+                  "typography_font_weight": "600",
+                  "text": "Learn more",
+                  "link": {
+                    "url": "/learn",
+                    "is_external": "",
+                    "nofollow": "",
+                    "custom_attributes": ""
+                  },
+                  "button_type": "",
+                  "button_text_color": "#0f766e"
+                },
+                "elements": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reportSummary": {
+    "totalNodes": 5,
+    "nativeCount": 5,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "5 nodes, 5 native, 0 custom, 0 unsupported"
+  }
+}

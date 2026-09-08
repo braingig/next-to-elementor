@@ -47,6 +47,7 @@ if (result.outcome === "complete") {
 | [phase-7.md](./phase-7.md) / [report.md](./report.md) | Report + unsupported |
 | [phase-8.md](./phase-8.md) | End-to-end `convertSource` |
 | [phase-9.md](./phase-9.md) | Real-world fixtures + accuracy validation |
+| [phase-10.md](./phase-10.md) | Elementor Free 4.2.4 static/runtime compat |
 | [conversion-rules.md](./conversion-rules.md) | Decision order |
 | [unsupported-policy.md](./unsupported-policy.md) | Reason codes |
 

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:elementor": "vitest run tests/converter/compat-elementor.test.ts"
   },
   "dependencies": {
     "@babel/parser": "^8.0.4",

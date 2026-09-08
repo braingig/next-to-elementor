@@ -1,0 +1,151 @@
+{
+  "id": "03-cta",
+  "elementorTarget": "4.2.4",
+  "runtimeImport": "BLOCKED",
+  "staticValidation": "STATIC PASS",
+  "conversionOutcome": "complete",
+  "expectedWidgetTypes": [
+    "container",
+    "heading",
+    "text-editor",
+    "button"
+  ],
+  "widgetsSeen": [
+    "button",
+    "container",
+    "heading",
+    "text-editor"
+  ],
+  "responsiveSuffixesSeen": [
+    "_tablet"
+  ],
+  "freeCompliancePassed": true,
+  "unsupportedDecisions": [],
+  "notes": "CTA background + button",
+  "generatedDocument": {
+    "version": "0.4",
+    "title": "03-cta",
+    "type": "page",
+    "content": [
+      {
+        "id": "d8273e2",
+        "elType": "container",
+        "isInner": false,
+        "settings": {
+          "container_type": "flex",
+          "flex_direction": "column",
+          "flex_align_items": "center",
+          "flex_gap": {
+            "unit": "rem",
+            "column": "1.5",
+            "row": "1.5",
+            "isLinked": true
+          },
+          "padding": {
+            "unit": "rem",
+            "top": "5",
+            "right": "1.5",
+            "bottom": "5",
+            "left": "1.5",
+            "isLinked": false
+          },
+          "background_background": "classic",
+          "background_color": "#0f766e",
+          "padding_tablet": {
+            "unit": "rem",
+            "top": "6",
+            "right": "0",
+            "bottom": "6",
+            "left": "0",
+            "isLinked": false
+          },
+          "content_width": "full",
+          "html_tag": "section"
+        },
+        "elements": [
+          {
+            "id": "40b3eab",
+            "elType": "widget",
+            "widgetType": "heading",
+            "settings": {
+              "typography_font_size": {
+                "unit": "rem",
+                "size": 1.875
+              },
+              "typography_font_weight": "700",
+              "align": "center",
+              "typography_font_size_tablet": {
+                "unit": "rem",
+                "size": 2.25
+              },
+              "title": "Ready to ship your next section?",
+              "header_size": "h2",
+              "title_color": "#ffffff"
+            },
+            "elements": []
+          },
+          {
+            "id": "4024347",
+            "elType": "widget",
+            "widgetType": "text-editor",
+            "settings": {
+              "typography_font_size": {
+                "unit": "rem",
+                "size": 1
+              },
+              "align": "center",
+              "editor": "Start with Free-native widgets and keep custom fallbacks scoped to individual nodes.",
+              "text_color": "#ffffff"
+            },
+            "elements": []
+          },
+          {
+            "id": "26c2ce2",
+            "elType": "widget",
+            "widgetType": "button",
+            "settings": {
+              "_padding": {
+                "unit": "rem",
+                "top": "0.75",
+                "right": "1.5",
+                "bottom": "0.75",
+                "left": "1.5",
+                "isLinked": false
+              },
+              "background_background": "classic",
+              "background_color": "#ffffff",
+              "border_radius": {
+                "unit": "rem",
+                "top": "0.5",
+                "right": "0.5",
+                "bottom": "0.5",
+                "left": "0.5",
+                "isLinked": true
+              },
+              "typography_font_weight": "600",
+              "text": "Start free",
+              "link": {
+                "url": "/signup",
+                "is_external": "",
+                "nofollow": "",
+                "custom_attributes": ""
+              },
+              "button_type": "",
+              "button_text_color": "#0f766e"
+            },
+            "elements": []
+          }
+        ]
+      }
+    ]
+  },
+  "reportSummary": {
+    "totalNodes": 4,
+    "nativeCount": 4,
+    "customCount": 0,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "4 nodes, 4 native, 0 custom, 0 unsupported"
+  }
+}

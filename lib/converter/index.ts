@@ -1,11 +1,12 @@
 /**
  * Converter library public surface.
  *
- * Preferred Phase 8 entry points:
+ * Preferred entry points:
  * - `convertSource` — end-to-end React/TSX → Elementor JSON + report
  * - `convert` — styled IR → Elementor JSON + report
- * - `analyzeReactSource` — React/TSX → IR
- * - `resolveStyles` — IR style resolution
+ * - `analyzeReactSource` / `resolveStyles` — lower pipeline stages
+ *
+ * Phase 10: `compat/` static Elementor Free 4.2.4 checks (runtime import BLOCKED here).
  *
  * Lower-level APIs (`convertToNativeElementor`, `convertToElementor`, …)
  * remain available and backward-compatible.
@@ -148,3 +149,22 @@ export {
   type EmitValidationResult,
   type ElementorElementDraft,
 } from "./emit";
+
+export {
+  REQUIRED_ELEMENTOR_FREE_VERSION,
+  resolveElementorFree424SourceRoot,
+  readElementorVersion,
+  probeRuntimeEnvironment,
+  buildElementorSourceInventory,
+  extractGetName,
+  extractAddControlIds,
+  MVP_WIDGETS,
+  validateStaticElementorCompatibility,
+  scanProContamination,
+  getRuntimeImportStatus,
+  type ElementorSourceInventory,
+  type StaticCompatResult,
+  type StaticCompatViolation,
+  type RuntimeImportStatus,
+  type RuntimeEnvironmentStatus,
+} from "./compat";

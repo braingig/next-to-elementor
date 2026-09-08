@@ -1,0 +1,233 @@
+{
+  "id": "01-hero",
+  "elementorTarget": "4.2.4",
+  "runtimeImport": "BLOCKED",
+  "staticValidation": "STATIC PASS",
+  "conversionOutcome": "complete",
+  "expectedWidgetTypes": [
+    "container",
+    "heading",
+    "text-editor",
+    "button",
+    "image",
+    "html"
+  ],
+  "widgetsSeen": [
+    "button",
+    "container",
+    "heading",
+    "html",
+    "image",
+    "text-editor"
+  ],
+  "responsiveSuffixesSeen": [
+    "_tablet"
+  ],
+  "freeCompliancePassed": true,
+  "unsupportedDecisions": [],
+  "notes": "Hero with native CTA + custom docs link",
+  "generatedDocument": {
+    "version": "0.4",
+    "title": "01-hero",
+    "type": "page",
+    "content": [
+      {
+        "id": "d8273e2",
+        "elType": "container",
+        "isInner": false,
+        "settings": {
+          "container_type": "flex",
+          "flex_direction": "column",
+          "flex_align_items": "center",
+          "flex_gap": {
+            "unit": "rem",
+            "column": "1.5",
+            "row": "1.5",
+            "isLinked": true
+          },
+          "padding": {
+            "unit": "rem",
+            "top": "4",
+            "right": "1.5",
+            "bottom": "4",
+            "left": "1.5",
+            "isLinked": false
+          },
+          "flex_direction_tablet": "row",
+          "flex_align_items_tablet": "start",
+          "padding_tablet": {
+            "unit": "rem",
+            "top": "6",
+            "right": "0",
+            "bottom": "6",
+            "left": "0",
+            "isLinked": false
+          },
+          "content_width": "full",
+          "html_tag": "section"
+        },
+        "elements": [
+          {
+            "id": "40b3eab",
+            "elType": "container",
+            "isInner": false,
+            "settings": {
+              "container_type": "flex",
+              "flex_direction": "column",
+              "flex_gap": {
+                "unit": "rem",
+                "column": "1",
+                "row": "1",
+                "isLinked": true
+              },
+              "content_width": "full",
+              "html_tag": "div"
+            },
+            "elements": [
+              {
+                "id": "4024347",
+                "elType": "widget",
+                "widgetType": "heading",
+                "settings": {
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 2.25
+                  },
+                  "typography_font_weight": "700",
+                  "typography_font_size_tablet": {
+                    "unit": "rem",
+                    "size": 3
+                  },
+                  "title": "Build pages faster",
+                  "header_size": "h1",
+                  "title_color": "#0f172a"
+                },
+                "elements": []
+              },
+              {
+                "id": "26c2ce2",
+                "elType": "widget",
+                "widgetType": "text-editor",
+                "settings": {
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 1.125
+                  },
+                  "editor": "Convert carefully structured React sections into Elementor Free layouts.",
+                  "text_color": "#475569"
+                },
+                "elements": []
+              },
+              {
+                "id": "f3342a7",
+                "elType": "container",
+                "isInner": false,
+                "settings": {
+                  "container_type": "flex",
+                  "flex_direction": "row",
+                  "flex_gap": {
+                    "unit": "rem",
+                    "column": "0.75",
+                    "row": "0.75",
+                    "isLinked": true
+                  },
+                  "content_width": "full",
+                  "html_tag": "div"
+                },
+                "elements": [
+                  {
+                    "id": "7c0575c",
+                    "elType": "widget",
+                    "widgetType": "button",
+                    "settings": {
+                      "_padding": {
+                        "unit": "rem",
+                        "top": "0.75",
+                        "right": "1.25",
+                        "bottom": "0.75",
+                        "left": "1.25",
+                        "isLinked": false
+                      },
+                      "background_background": "classic",
+                      "background_color": "#0d9488",
+                      "border_radius": {
+                        "unit": "rem",
+                        "top": "0.5",
+                        "right": "0.5",
+                        "bottom": "0.5",
+                        "left": "0.5",
+                        "isLinked": true
+                      },
+                      "typography_font_weight": "600",
+                      "text": "Get started",
+                      "link": {
+                        "url": "/start",
+                        "is_external": "",
+                        "nofollow": "",
+                        "custom_attributes": ""
+                      },
+                      "button_type": "",
+                      "button_text_color": "#ffffff"
+                    },
+                    "elements": []
+                  },
+                  {
+                    "id": "548b56b",
+                    "elType": "widget",
+                    "widgetType": "html",
+                    "settings": {
+                      "html": "<a class=\"font-medium nte-fb-548b56b px-5 py-3 text-teal-700\" href=\"/docs\">Read docs</a><style>.nte-fb-548b56b{padding-top:0.75rem;padding-right:1.25rem;padding-bottom:0.75rem;padding-left:1.25rem;font-weight:500;color:#0f766e}</style>"
+                    },
+                    "elements": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "1b66b5f",
+            "elType": "widget",
+            "widgetType": "image",
+            "settings": {
+              "width": {
+                "unit": "%",
+                "size": 100
+              },
+              "_element_custom_width": {
+                "unit": "%",
+                "size": 100
+              },
+              "_border_radius": {
+                "unit": "rem",
+                "top": "0.75",
+                "right": "0.75",
+                "bottom": "0.75",
+                "left": "0.75",
+                "isLinked": true
+              },
+              "image": {
+                "url": "https://cdn.example.com/hero.png",
+                "id": "",
+                "alt": "Product preview",
+                "source": "url"
+              },
+              "image_size": "full",
+              "caption_source": "none",
+              "link_to": "none"
+            },
+            "elements": []
+          }
+        ]
+      }
+    ]
+  },
+  "reportSummary": {
+    "totalNodes": 8,
+    "nativeCount": 7,
+    "customCount": 1,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "8 nodes, 7 native, 1 custom, 0 unsupported"
+  }
+}

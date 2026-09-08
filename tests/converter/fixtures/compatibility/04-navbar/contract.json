@@ -1,0 +1,168 @@
+{
+  "id": "04-navbar",
+  "elementorTarget": "4.2.4",
+  "runtimeImport": "BLOCKED",
+  "staticValidation": "STATIC PASS",
+  "conversionOutcome": "complete",
+  "expectedWidgetTypes": [
+    "container",
+    "image",
+    "html",
+    "button"
+  ],
+  "widgetsSeen": [
+    "button",
+    "container",
+    "html",
+    "image"
+  ],
+  "responsiveSuffixesSeen": [],
+  "freeCompliancePassed": true,
+  "unsupportedDecisions": [],
+  "notes": "Native image/button + custom links; parent stays container",
+  "generatedDocument": {
+    "version": "0.4",
+    "title": "04-navbar",
+    "type": "page",
+    "content": [
+      {
+        "id": "d8273e2",
+        "elType": "container",
+        "isInner": false,
+        "settings": {
+          "container_type": "flex",
+          "flex_direction": "row",
+          "flex_justify_content": "space-between",
+          "flex_align_items": "center",
+          "padding": {
+            "unit": "rem",
+            "top": "1",
+            "right": "1.5",
+            "bottom": "1",
+            "left": "1.5",
+            "isLinked": false
+          },
+          "border_border": "solid",
+          "border_width": {
+            "unit": "px",
+            "top": "0",
+            "right": "0",
+            "bottom": "1",
+            "left": "0",
+            "isLinked": false
+          },
+          "border_color": "#e2e8f0",
+          "content_width": "full",
+          "html_tag": "header"
+        },
+        "elements": [
+          {
+            "id": "40b3eab",
+            "elType": "widget",
+            "widgetType": "image",
+            "settings": {
+              "image": {
+                "url": "https://cdn.example.com/logo.svg",
+                "id": "",
+                "alt": "Brand",
+                "source": "url"
+              },
+              "image_size": "full",
+              "caption_source": "none",
+              "link_to": "none"
+            },
+            "elements": []
+          },
+          {
+            "id": "4024347",
+            "elType": "container",
+            "isInner": false,
+            "settings": {
+              "container_type": "flex",
+              "flex_direction": "row",
+              "flex_align_items": "center",
+              "flex_gap": {
+                "unit": "rem",
+                "column": "1.5",
+                "row": "1.5",
+                "isLinked": true
+              },
+              "content_width": "full",
+              "html_tag": "nav"
+            },
+            "elements": [
+              {
+                "id": "26c2ce2",
+                "elType": "widget",
+                "widgetType": "html",
+                "settings": {
+                  "html": "<a class=\"nte-fb-26c2ce2 text-slate-700 text-sm\" href=\"/product\">Product</a><style>.nte-fb-26c2ce2{font-size:0.875rem;color:#334155}</style>"
+                },
+                "elements": []
+              },
+              {
+                "id": "7c0575c",
+                "elType": "widget",
+                "widgetType": "html",
+                "settings": {
+                  "html": "<a class=\"nte-fb-7c0575c text-slate-700 text-sm\" href=\"/pricing\">Pricing</a><style>.nte-fb-7c0575c{font-size:0.875rem;color:#334155}</style>"
+                },
+                "elements": []
+              },
+              {
+                "id": "548b56b",
+                "elType": "widget",
+                "widgetType": "html",
+                "settings": {
+                  "html": "<a class=\"nte-fb-548b56b text-slate-700 text-sm\" href=\"/docs\">Docs</a><style>.nte-fb-548b56b{font-size:0.875rem;color:#334155}</style>"
+                },
+                "elements": []
+              },
+              {
+                "id": "1b66b5f",
+                "elType": "widget",
+                "widgetType": "button",
+                "settings": {
+                  "_padding": {
+                    "unit": "rem",
+                    "top": "0.5",
+                    "right": "1",
+                    "bottom": "0.5",
+                    "left": "1",
+                    "isLinked": false
+                  },
+                  "background_background": "classic",
+                  "background_color": "#0f172a",
+                  "border_radius": {
+                    "unit": "rem",
+                    "top": "0.375",
+                    "right": "0.375",
+                    "bottom": "0.375",
+                    "left": "0.375",
+                    "isLinked": true
+                  },
+                  "typography_font_size": {
+                    "unit": "rem",
+                    "size": 0.875
+                  },
+                  "text": "Open menu",
+                  "button_text_color": "#ffffff"
+                },
+                "elements": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reportSummary": {
+    "totalNodes": 7,
+    "nativeCount": 4,
+    "customCount": 3,
+    "unsupportedCount": 0,
+    "warningCount": 0,
+    "errorCount": 0,
+    "message": "7 nodes, 4 native, 3 custom, 0 unsupported"
+  }
+}
