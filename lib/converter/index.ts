@@ -96,3 +96,22 @@ export {
   type ResolveStylesOptions,
   type ResolveStylesResult,
 } from "./styles";
+
+export {
+  convertToNativeElementor,
+  elementorIdFromIrId,
+  NativeStrategySchema,
+  type ConvertToNativeOptions,
+  type NativeStrategy,
+  type NativeNodeDecision,
+  type NativeConversionResult,
+  type ElementorDocument,
+  type ElementorElement,
+  type ElementorSettings,
+} from "./rules";
+
+export {
+  validateElementorDocument,
+  canonicalizeElementorJson,
+  type EmitValidationResult,
+} from "./emit";
