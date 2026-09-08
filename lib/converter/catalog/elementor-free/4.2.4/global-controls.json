@@ -1,0 +1,220 @@
+[
+  {
+    "id": "_margin",
+    "valueTypes": ["object"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "DIMENSIONS",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_padding",
+    "valueTypes": ["object"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "DIMENSIONS",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_element_width",
+    "valueTypes": ["enum", "string"],
+    "enumValues": ["", "inherit", "auto", "initial", "custom"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "SELECT",
+    "verificationStatus": "partial",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4",
+    "notes": "Enum values not exhaustively re-copied from PHP options in Phase 1; presence verified."
+  },
+  {
+    "id": "_element_custom_width",
+    "valueTypes": ["object"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "SLIDER",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_position",
+    "valueTypes": ["enum", "string"],
+    "enumValues": ["", "absolute", "fixed"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SELECT",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_z_index",
+    "valueTypes": ["object", "number"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "NUMBER",
+    "verificationStatus": "partial",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_element_id",
+    "valueTypes": ["string"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "TEXT",
+    "defaultValue": "",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_css_classes",
+    "valueTypes": ["string"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "TEXT",
+    "defaultValue": "",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4",
+    "notes": "CSS classes string only — not Custom CSS."
+  },
+  {
+    "id": "_animation",
+    "valueTypes": ["string"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "ANIMATION",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4",
+    "notes": "Entrance animation. Scrolling effects remain Pro-denylisted."
+  },
+  {
+    "id": "animation_duration",
+    "valueTypes": ["string", "enum"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SELECT",
+    "verificationStatus": "partial",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_animation_delay",
+    "valueTypes": ["object", "number"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "NUMBER",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "_border_radius",
+    "valueTypes": ["object"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "DIMENSIONS",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/widgets/common-base.php@4.2.4"
+  },
+  {
+    "id": "hide_desktop",
+    "valueTypes": ["string", "boolean"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SWITCHER",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/base/element-base.php add_hidden_device_controls()@4.2.4",
+    "notes": "Generated as hide_{breakpoint}; desktop/tablet/mobile are default active breakpoints."
+  },
+  {
+    "id": "hide_tablet",
+    "valueTypes": ["string", "boolean"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SWITCHER",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/base/element-base.php add_hidden_device_controls()@4.2.4"
+  },
+  {
+    "id": "hide_mobile",
+    "valueTypes": ["string", "boolean"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SWITCHER",
+    "verificationStatus": "verified",
+    "sourceRef": "includes/base/element-base.php add_hidden_device_controls()@4.2.4"
+  },
+  {
+    "id": "_background_background",
+    "valueTypes": ["enum", "string"],
+    "enumValues": ["classic", "gradient", "video", "slideshow"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "CHOOSE",
+    "verificationStatus": "partial",
+    "sourceRef": "Group_Control_Background name=_background @ common-base.php + includes/controls/groups/background.php@4.2.4",
+    "notes": "Group-expanded key. Video/slideshow backgrounds are Free-capable in Core but may be out of MVP conversion scope."
+  },
+  {
+    "id": "_background_color",
+    "valueTypes": ["string"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "COLOR",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Background name=_background @4.2.4"
+  },
+  {
+    "id": "_background_image",
+    "valueTypes": ["object"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "MEDIA",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Background name=_background @4.2.4"
+  },
+  {
+    "id": "_border_border",
+    "valueTypes": ["string", "enum"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SELECT",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Border name=_border @4.2.4"
+  },
+  {
+    "id": "_border_width",
+    "valueTypes": ["object"],
+    "responsive": true,
+    "tier": "free",
+    "controlType": "DIMENSIONS",
+    "verificationStatus": "partial",
+    "sourceRef": "Group_Control_Border name=_border @4.2.4",
+    "notes": "Border width is typically responsive in Elementor group usage; confirm per emit tests later."
+  },
+  {
+    "id": "_border_color",
+    "valueTypes": ["string"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "COLOR",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Border name=_border @4.2.4"
+  },
+  {
+    "id": "_box_shadow_box_shadow",
+    "valueTypes": ["object"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "BOX_SHADOW",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Box_Shadow name=_box_shadow @4.2.4"
+  },
+  {
+    "id": "_box_shadow_box_shadow_position",
+    "valueTypes": ["string", "enum"],
+    "responsive": false,
+    "tier": "free",
+    "controlType": "SELECT",
+    "verificationStatus": "verified",
+    "sourceRef": "Group_Control_Box_Shadow name=_box_shadow @4.2.4"
+  }
+]

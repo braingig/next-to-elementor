@@ -1,0 +1,32 @@
+{
+  "id": "spacer",
+  "elType": "widget",
+  "title": "Spacer",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "spacer"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/spacer.php@4.2.4",
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "space",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "defaultValue": {
+        "size": 50
+      },
+      "sourceRef": "includes/widgets/spacer.php@4.2.4"
+    }
+  ],
+  "responsiveControls": [
+    "space"
+  ]
+}

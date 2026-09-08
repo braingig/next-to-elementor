@@ -1,0 +1,314 @@
+[
+  {
+    "id": "form",
+    "kind": "widget",
+    "reason": "Elementor Pro Form widget — not available in Free Core.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "slides",
+    "kind": "widget",
+    "reason": "Elementor Pro Slides widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "posts",
+    "kind": "widget",
+    "reason": "Elementor Pro Posts widget / dynamic listing.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "portfolio",
+    "kind": "widget",
+    "reason": "Elementor Pro Portfolio widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "nav-menu",
+    "kind": "widget",
+    "reason": "Elementor Pro Nav Menu widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "lottie",
+    "kind": "widget",
+    "reason": "Elementor Pro Lottie widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "animated-headline",
+    "kind": "widget",
+    "reason": "Elementor Pro Animated Headline widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "price-table",
+    "kind": "widget",
+    "reason": "Elementor Pro Price Table widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "price-list",
+    "kind": "widget",
+    "reason": "Elementor Pro Price List widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "flip-box",
+    "kind": "widget",
+    "reason": "Elementor Pro Flip Box widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "call-to-action",
+    "kind": "widget",
+    "reason": "Elementor Pro Call to Action widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "media-carousel",
+    "kind": "widget",
+    "reason": "Elementor Pro Media Carousel widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "testimonial-carousel",
+    "kind": "widget",
+    "reason": "Elementor Pro Testimonial Carousel widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "reviews",
+    "kind": "widget",
+    "reason": "Elementor Pro Reviews widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "table-of-contents",
+    "kind": "widget",
+    "reason": "Elementor Pro Table of Contents widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "countdown",
+    "kind": "widget",
+    "reason": "Elementor Pro Countdown widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "share-buttons",
+    "kind": "widget",
+    "reason": "Elementor Pro Share Buttons widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "blockquote",
+    "kind": "widget",
+    "reason": "Elementor Pro Blockquote widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "login",
+    "kind": "widget",
+    "reason": "Elementor Pro Login widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "sitemap",
+    "kind": "widget",
+    "reason": "Elementor Pro Sitemap widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "hotspot",
+    "kind": "widget",
+    "reason": "Elementor Pro Hotspot widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "code-highlight",
+    "kind": "widget",
+    "reason": "Elementor Pro Code Highlight widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "video-playlist",
+    "kind": "widget",
+    "reason": "Elementor Pro Video Playlist widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "progress-tracker",
+    "kind": "widget",
+    "reason": "Elementor Pro Progress Tracker widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "gallery",
+    "kind": "widget",
+    "reason": "Elementor Pro Gallery widget (distinct from Free image-gallery).",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "template",
+    "kind": "widget",
+    "reason": "Elementor Pro Template widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "loop-grid",
+    "kind": "widget",
+    "reason": "Elementor Pro Loop Grid / Theme Builder listing.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "loop-carousel",
+    "kind": "widget",
+    "reason": "Elementor Pro Loop Carousel.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "mega-menu",
+    "kind": "widget",
+    "reason": "Elementor Pro Mega Menu / Menu widget.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "off-canvas",
+    "kind": "widget",
+    "reason": "Not present in the verified Elementor Free 4.2.4 source tree; reject / out of MVP scope. Do not claim Pro-only — simply do not emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/tree/4.2.4"
+  },
+  {
+    "id": "custom_css",
+    "kind": "control",
+    "reason": "Element-level Custom CSS is Pro. Free Core only registers a teaser control (custom_css_pro).",
+    "elementorDocRef": "https://elementor.com/help/how-to-add-custom-css/"
+  },
+  {
+    "id": "custom_css_pro",
+    "kind": "control",
+    "reason": "Free teaser RAW_HTML control — not a real CSS setting; never emit as conversion output.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "_css_code",
+    "kind": "control",
+    "reason": "Alternate/historical Custom CSS setting key — Pro-only; reject if encountered.",
+    "elementorDocRef": "https://elementor.com/help/custom-css-in-elementor/"
+  },
+  {
+    "id": "_attributes",
+    "kind": "control",
+    "reason": "Custom HTML attributes are Pro. Free Core only registers teaser custom_attributes_pro.",
+    "elementorDocRef": "https://elementor.com/help/advanced-tab/"
+  },
+  {
+    "id": "custom_attributes_pro",
+    "kind": "control",
+    "reason": "Free teaser Attributes control — not a real attributes setting; never emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "display_conditions_pro",
+    "kind": "control",
+    "reason": "Free-side Pro promotion/teaser control — not a real Display Conditions setting; never emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "sticky_pro",
+    "kind": "control",
+    "reason": "Free-side Pro promotion/teaser control — not a real Sticky setting; never emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "scrolling_effects_pro",
+    "kind": "control",
+    "reason": "Free-side Pro promotion/teaser control — not a real Scrolling Effects setting; never emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "mouse_effects_pro",
+    "kind": "control",
+    "reason": "Free-side Pro promotion/teaser control — not a real Mouse Effects setting; never emit.",
+    "elementorDocRef": "https://github.com/elementor/elementor/blob/4.2.4/includes/managers/controls.php"
+  },
+  {
+    "id": "scrolling-effects",
+    "kind": "feature",
+    "reason": "Scrolling Effects are Pro-only per official Advanced tab / Pro vs Free docs.",
+    "elementorDocRef": "https://elementor.com/help/advanced-tab/"
+  },
+  {
+    "id": "sticky",
+    "kind": "feature",
+    "reason": "Sticky positioning / sticky effects are Pro motion features for Free-first MVP denylist.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "popup",
+    "kind": "feature",
+    "reason": "Popup Builder is Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "theme-builder",
+    "kind": "feature",
+    "reason": "Theme Builder (header/footer/single/archive) is Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "dynamic-tags",
+    "kind": "feature",
+    "reason": "Dynamic tags / CMS-driven values are not safe for Free static conversion path. Reject dynamic value objects.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "__dynamic__",
+    "kind": "control",
+    "reason": "Elementor stores dynamic tag bindings under __dynamic__; reject for Free static MVP.",
+    "elementorDocRef": "https://developers.elementor.com/docs/dynamic-tags/"
+  },
+  {
+    "id": "global-widget",
+    "kind": "feature",
+    "reason": "Global Widget is Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "custom-fonts",
+    "kind": "feature",
+    "reason": "Custom fonts upload is Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "custom-code",
+    "kind": "feature",
+    "reason": "Custom Code snippets are Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "display-conditions",
+    "kind": "feature",
+    "reason": "Display Conditions are Pro-only.",
+    "elementorDocRef": "https://elementor.com/help/elementor-pro-vs-free/"
+  },
+  {
+    "id": "section",
+    "kind": "feature",
+    "reason": "MVP layout policy is container-only; do not emit legacy section elements.",
+    "elementorDocRef": "https://elementor.com/help/what-is-a-container/"
+  },
+  {
+    "id": "column",
+    "kind": "feature",
+    "reason": "MVP layout policy is container-only; do not emit legacy column elements.",
+    "elementorDocRef": "https://elementor.com/help/what-is-a-container/"
+  },
+  {
+    "id": "atomic-elements",
+    "kind": "feature",
+    "reason": "Atomic Editor V4 elements are out of MVP emission scope (classic JSON only).",
+    "elementorDocRef": "https://elementor.com/products/website-builder/v4-faq/"
+  }
+]

@@ -1,0 +1,359 @@
+{
+  "id": "image",
+  "elType": "widget",
+  "title": "Image",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "image"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/image.php@4.2.4",
+  "limitations": [
+    "Lightbox/open_lightbox behavior depends on Elementor lightbox settings; keep simple src/alt/link for MVP."
+  ],
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "image",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "MEDIA",
+      "sourceRef": "includes/widgets/image.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "image_size",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Image_Size name=image @4.2.4",
+      "notes": "Image size group shares name image; expands to image_size / image_custom_dimension."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "image_custom_dimension",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "IMAGE_DIMENSIONS",
+      "sourceRef": "Group_Control_Image_Size name=image @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "caption_source",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "none",
+        "attachment",
+        "custom"
+      ],
+      "defaultValue": "none"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "caption",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT",
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link_to",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "none",
+        "file",
+        "custom"
+      ],
+      "defaultValue": "none"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "URL"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "open_lightbox",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "default",
+        "yes",
+        "no"
+      ],
+      "defaultValue": "default"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "space",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "notes": "Max-width related spacing control in image widget."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "height",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "object-fit",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "fill",
+        "cover",
+        "contain",
+        "scale-down"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "object-position",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "opacity",
+      "valueTypes": [
+        "object",
+        "number"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_animation",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "HOVER_ANIMATION"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "image_border_radius",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "image_border_border",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Border name=image_border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "image_border_width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS",
+      "sourceRef": "Group_Control_Border name=image_border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "image_border_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Border name=image_border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "image_box_shadow_box_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "BOX_SHADOW",
+      "sourceRef": "Group_Control_Box_Shadow name=image_box_shadow @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_filters_blur",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Css_Filter name=css_filters @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_filters_brightness",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Css_Filter name=css_filters @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_filters_contrast",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Css_Filter name=css_filters @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_filters_saturate",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Css_Filter name=css_filters @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_filters_hue",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Css_Filter name=css_filters @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "caption_align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "notes": "Caption text color."
+    }
+  ],
+  "responsiveControls": [
+    "align",
+    "width",
+    "space",
+    "height",
+    "object-fit",
+    "object-position",
+    "image_border_radius",
+    "caption_align"
+  ]
+}

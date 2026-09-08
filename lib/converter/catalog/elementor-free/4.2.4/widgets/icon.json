@@ -1,0 +1,201 @@
+{
+  "id": "icon",
+  "elType": "widget",
+  "title": "Icon",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "icon"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/icon.php@4.2.4",
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "selected_icon",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "ICONS",
+      "sourceRef": "includes/widgets/icon.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "view",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "default",
+        "stacked",
+        "framed"
+      ],
+      "defaultValue": "default",
+      "notes": "Stored default is the option key \"default\" (includes/widgets/icon.php@4.2.4)."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "shape",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "circle",
+        "square",
+        "rounded"
+      ],
+      "defaultValue": "circle",
+      "notes": "Condition: view !== \"default\" (Elementor PHP: 'view!' => 'default')."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "URL"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "defaultValue": "center"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "primary_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "secondary_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_primary_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_secondary_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_animation",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "HOVER_ANIMATION"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "size",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "fit_to_size",
+      "valueTypes": [
+        "string",
+        "boolean"
+      ],
+      "controlType": "SWITCHER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "icon_padding",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "rotate",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "border_width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "border_radius",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    }
+  ],
+  "responsiveControls": [
+    "align",
+    "size",
+    "rotate",
+    "border_radius"
+  ]
+}

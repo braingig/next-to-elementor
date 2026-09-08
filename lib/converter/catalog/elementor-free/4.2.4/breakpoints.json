@@ -1,0 +1,17 @@
+[
+  {
+    "id": "desktop",
+    "mapsFromIr": ["lg", "xl", "2xl"],
+    "notes": "Default / base settings keys (no suffix). Exact px thresholds are site-kit configurable; not hard-pinned here."
+  },
+  {
+    "id": "tablet",
+    "mapsFromIr": ["md"],
+    "notes": "Settings suffix _tablet. Default Elementor breakpoint; maxWidth is site-configurable."
+  },
+  {
+    "id": "mobile",
+    "mapsFromIr": ["sm"],
+    "notes": "Settings suffix _mobile. Default Elementor breakpoint; maxWidth is site-configurable."
+  }
+]

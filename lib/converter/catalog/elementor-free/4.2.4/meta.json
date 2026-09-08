@@ -1,0 +1,13 @@
+{
+  "elementorTarget": "4.2.4",
+  "elementorDocumentVersion": "0.4",
+  "emissionModel": "classic-json",
+  "layoutPolicy": "container-only",
+  "catalogSchemaVersion": "0.1.0",
+  "source": {
+    "repo": "elementor/elementor",
+    "tag": "4.2.4",
+    "inspectedAt": "2026-09-07"
+  },
+  "notes": "MVP Free catalog for classic container/widget JSON. Control lists are curated from Free 4.2.4 PHP sources; not exhaustive for every group sub-control edge case. See unverified.json."
+}

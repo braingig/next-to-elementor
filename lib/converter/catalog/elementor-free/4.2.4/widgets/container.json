@@ -1,0 +1,522 @@
+{
+  "id": "container",
+  "elType": "container",
+  "title": "Container",
+  "tier": "free",
+  "supportsChildren": true,
+  "inheritsGlobalControls": false,
+  "irKinds": [
+    "container",
+    "group"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/elements/container.php@4.2.4",
+  "limitations": [
+    "MVP emits Flex/Grid containers only (no legacy section/column).",
+    "Grid sub-controls are verified at group-field level; complex grid spans marked partial."
+  ],
+  "notes": "Layout root for classic JSON. No widgetType field when emitting.",
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "container_type",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "flex",
+        "grid"
+      ],
+      "defaultValue": "flex",
+      "sourceRef": "includes/elements/container.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "content_width",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "boxed",
+        "full"
+      ],
+      "defaultValue": "boxed"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "notes": "Registered via array_merge helper; presence verified, default args complex."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "boxed_width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "min_height",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "overflow",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "hidden",
+        "auto"
+      ],
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "html_tag",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "div",
+        "header",
+        "footer",
+        "main",
+        "article",
+        "section",
+        "aside",
+        "nav",
+        "a"
+      ],
+      "notes": "Options verified in PHP; empty means default."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "URL",
+      "notes": "Used when html_tag is a."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "flex_direction",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "",
+        "row",
+        "column",
+        "row-reverse",
+        "column-reverse"
+      ],
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4",
+      "notes": "Expanded from flex group field direction."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "flex_justify_content",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "flex_align_items",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "flex_gap",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "GAPS",
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "flex_wrap",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "",
+        "nowrap",
+        "wrap"
+      ],
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "flex_align_content",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Flex_Container name=flex @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "grid_columns_grid",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "grid_rows_grid",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "grid_gaps",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "GAPS",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "grid_auto_flow",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "grid_justify_items",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "grid_align_items",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Grid_Container name=grid @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "background_background",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "classic",
+        "gradient",
+        "video",
+        "slideshow"
+      ],
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "background_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "background_image",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "MEDIA",
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "border_border",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "border_width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "border_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "border_radius",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "box_shadow_box_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "BOX_SHADOW",
+      "sourceRef": "Group_Control_Box_Shadow name=box_shadow @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "margin",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "padding",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "position",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "absolute",
+        "fixed"
+      ],
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "z_index",
+      "valueTypes": [
+        "number",
+        "object"
+      ],
+      "controlType": "NUMBER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "_element_id",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT",
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "css_classes",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT",
+      "defaultValue": "",
+      "notes": "Container uses css_classes (no leading underscore), unlike widget common _css_classes."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "animation",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "ANIMATION"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hide_desktop",
+      "valueTypes": [
+        "string",
+        "boolean"
+      ],
+      "controlType": "SWITCHER",
+      "sourceRef": "add_hidden_device_controls @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hide_tablet",
+      "valueTypes": [
+        "string",
+        "boolean"
+      ],
+      "controlType": "SWITCHER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hide_mobile",
+      "valueTypes": [
+        "string",
+        "boolean"
+      ],
+      "controlType": "SWITCHER"
+    }
+  ],
+  "responsiveControls": [
+    "width",
+    "boxed_width",
+    "min_height",
+    "flex_direction",
+    "flex_justify_content",
+    "flex_align_items",
+    "flex_gap",
+    "flex_wrap",
+    "flex_align_content",
+    "grid_columns_grid",
+    "grid_rows_grid",
+    "grid_gaps",
+    "grid_justify_items",
+    "grid_align_items",
+    "border_width",
+    "border_radius",
+    "margin",
+    "padding",
+    "z_index",
+    "animation"
+  ]
+}

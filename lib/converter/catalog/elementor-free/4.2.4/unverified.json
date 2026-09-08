@@ -1,0 +1,47 @@
+[
+  {
+    "id": "transform-controls",
+    "scope": "common-base / container advanced",
+    "reason": "Transform section control IDs in Free 4.2.4 were not exhaustively catalogued in Phase 1. Do not emit transform settings until verified."
+  },
+  {
+    "id": "mask-controls",
+    "scope": "common-base masking section",
+    "reason": "Mask controls (_mask_*) exist in Free common-base but full condition matrix not curated for MVP emit."
+  },
+  {
+    "id": "divider-pattern-controls",
+    "scope": "widget divider",
+    "reason": "Divider pattern_* / look=line_text / icon variants beyond solid style are only partially catalogued."
+  },
+  {
+    "id": "background-video-slideshow-settings",
+    "scope": "Group_Control_Background",
+    "reason": "Video/slideshow background sub-keys exist in Free group PHP but are out of MVP native conversion scope; treat as unsupported/custom unless later verified for emit."
+  },
+  {
+    "id": "typography-popover-starter",
+    "scope": "Group_Control_Typography",
+    "reason": "Popover starter key naming (e.g. typography_typography) not re-verified field-by-field beyond init_fields font_* keys."
+  },
+  {
+    "id": "css-filter-full-matrix",
+    "scope": "image css_filters group",
+    "reason": "css_filters_* expanded keys catalogued from group field names; hover group and interaction with image states need emit-time golden verification."
+  },
+  {
+    "id": "extra-breakpoints",
+    "scope": "responsive",
+    "reason": "widescreen/laptop/tablet_extra/mobile_extra suffixes are supported by Elementor Core when enabled; MVP catalog only models desktop/tablet/mobile defaults."
+  },
+  {
+    "id": "nested-free-widgets",
+    "scope": "modules/nested-*",
+    "reason": "nested-accordion and nested-tabs are Free modules but intentionally excluded from MVP native set."
+  },
+  {
+    "id": "live-free-export-golden",
+    "scope": "json export",
+    "reason": "No live WordPress Free 4.2.4 template export golden file checked into the repo yet."
+  }
+]

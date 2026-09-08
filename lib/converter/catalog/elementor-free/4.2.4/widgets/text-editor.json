@@ -1,0 +1,196 @@
+{
+  "id": "text-editor",
+  "elType": "widget",
+  "title": "Text Editor",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "text"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/text-editor.php@4.2.4",
+  "limitations": [
+    "Drop cap styling is catalogued as partial; prefer plain editor HTML for MVP accuracy."
+  ],
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "editor",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "WYSIWYG",
+      "sourceRef": "includes/widgets/text-editor.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "drop_cap",
+      "valueTypes": [
+        "string",
+        "boolean"
+      ],
+      "controlType": "SWITCHER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "text_columns",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "column_gap",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "",
+        "start",
+        "center",
+        "end",
+        "justify"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "paragraph_spacing",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link_hover_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_family",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "FONT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_font_size",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_weight",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_line_height",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_shadow_text_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "TEXT_SHADOW",
+      "sourceRef": "Group_Control_Text_Shadow name=text_shadow @4.2.4"
+    }
+  ],
+  "responsiveControls": [
+    "text_columns",
+    "column_gap",
+    "align",
+    "paragraph_spacing",
+    "typography_font_size",
+    "typography_line_height"
+  ]
+}

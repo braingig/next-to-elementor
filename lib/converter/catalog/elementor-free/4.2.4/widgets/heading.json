@@ -1,0 +1,286 @@
+{
+  "id": "heading",
+  "elType": "widget",
+  "title": "Heading",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "heading"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/heading.php@4.2.4",
+  "limitations": [
+    "Dynamic title bindings (__dynamic__) are denylisted for Free static path."
+  ],
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "title",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXTAREA",
+      "defaultValue": "Add Your Heading Text Here",
+      "sourceRef": "includes/widgets/heading.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "URL"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "size",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "default",
+        "small",
+        "medium",
+        "large",
+        "xl",
+        "xxl"
+      ],
+      "defaultValue": "default"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "header_size",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "div",
+        "span",
+        "p"
+      ],
+      "defaultValue": "h2"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "",
+        "start",
+        "center",
+        "end",
+        "justify"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "title_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "title_hover_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "title_hover_color_transition_duration",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "blend_mode",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_family",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "FONT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_font_size",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4",
+      "notes": "font_size is typically responsive in typography group."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_weight",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_text_transform",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_style",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_text_decoration",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_line_height",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_letter_spacing",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_word_spacing",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_shadow_text_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "TEXT_SHADOW",
+      "sourceRef": "Group_Control_Text_Shadow name=text_shadow @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "text_stroke_text_stroke",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Text_Stroke name=text_stroke @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_stroke_stroke_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Text_Stroke name=text_stroke @4.2.4"
+    }
+  ],
+  "responsiveControls": [
+    "align",
+    "typography_font_size",
+    "typography_line_height",
+    "typography_letter_spacing",
+    "typography_word_spacing"
+  ]
+}

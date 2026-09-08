@@ -1,0 +1,376 @@
+{
+  "id": "button",
+  "elType": "widget",
+  "title": "Button",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "button",
+    "link"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/button.php + includes/widgets/traits/button-trait.php@4.2.4",
+  "limitations": [
+    "Controls come from Button_Trait; button.php itself only wires the trait."
+  ],
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_type",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "defaultValue": "",
+      "sourceRef": "includes/widgets/traits/button-trait.php@4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT",
+      "defaultValue": "Click here"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "link",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "URL",
+      "defaultValue": {
+        "url": "#"
+      }
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "size",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "defaultValue": "sm"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "selected_icon",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "ICONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "icon_align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "row",
+        "row-reverse"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "icon_indent",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_css_id",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT",
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "",
+        "left",
+        "center",
+        "right",
+        "justify"
+      ]
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "content_align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_text_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "defaultValue": ""
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "background_background",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "classic",
+        "gradient"
+      ],
+      "sourceRef": "Group_Control_Background name=background (classic/gradient only) @4.2.4",
+      "notes": "Button trait excludes image from background group."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "background_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "button_background_hover_background",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "sourceRef": "Group_Control_Background name=button_background_hover @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "button_background_hover_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Background name=button_background_hover @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_hover_border_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_hover_transition_duration",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "hover_animation",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "HOVER_ANIMATION"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "border_border",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "border_width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "border_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Border name=border @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "border_radius",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "text_padding",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "DIMENSIONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_family",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "FONT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_font_size",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "typography_font_weight",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "button_box_shadow_box_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "BOX_SHADOW",
+      "sourceRef": "Group_Control_Box_Shadow name=button_box_shadow @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_shadow_text_shadow",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "TEXT_SHADOW",
+      "sourceRef": "Group_Control_Text_Shadow name=text_shadow @4.2.4"
+    }
+  ],
+  "responsiveControls": [
+    "align",
+    "content_align",
+    "border_radius",
+    "text_padding",
+    "typography_font_size"
+  ]
+}

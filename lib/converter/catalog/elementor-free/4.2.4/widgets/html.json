@@ -1,0 +1,33 @@
+{
+  "id": "html",
+  "elType": "widget",
+  "title": "HTML",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "html-embed"
+  ],
+  "status": "supported",
+  "sourceRef": "includes/widgets/html.php@4.2.4",
+  "limitations": [
+    "Primary Free custom-fallback vehicle for node-scoped HTML/CSS/JS.",
+    "Unsafe script patterns remain subject to unsupported-policy (unsafe-custom)."
+  ],
+  "notes": "Control id is html (CODE).",
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "html",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "CODE",
+      "defaultValue": "",
+      "sourceRef": "includes/widgets/html.php@4.2.4"
+    }
+  ],
+  "responsiveControls": []
+}

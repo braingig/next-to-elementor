@@ -1,0 +1,177 @@
+{
+  "id": "divider",
+  "elType": "widget",
+  "title": "Divider",
+  "tier": "free",
+  "supportsChildren": false,
+  "inheritsGlobalControls": true,
+  "irKinds": [
+    "divider"
+  ],
+  "status": "partial",
+  "sourceRef": "includes/widgets/divider.php@4.2.4",
+  "limitations": [
+    "Pattern/text/icon divider looks are only partially catalogued.",
+    "Prefer style=solid line for deterministic MVP native mapping."
+  ],
+  "controls": [
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "style",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "defaultValue": "solid",
+      "sourceRef": "includes/widgets/divider.php@4.2.4",
+      "notes": "Many style options exist; solid verified as default."
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "width",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "align",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "look",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "defaultValue": "line"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "TEXT"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "html_tag",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "div",
+        "span",
+        "p"
+      ],
+      "defaultValue": "span"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "icon",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "ICONS"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "weight",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "gap",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "text_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": false,
+      "id": "typography_font_family",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "FONT",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "partial",
+      "responsive": true,
+      "id": "typography_font_size",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "Group_Control_Typography name=typography @4.2.4"
+    }
+  ],
+  "responsiveControls": [
+    "width",
+    "align",
+    "gap",
+    "typography_font_size"
+  ]
+}
