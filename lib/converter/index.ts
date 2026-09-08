@@ -83,3 +83,16 @@ export {
   type AnalyzeReactResult,
   type ReactSourceLanguage,
 } from "./parse";
+
+export {
+  resolveStyles,
+  ResolveStylesOptionsSchema,
+  STYLE_MERGE_PRECEDENCE,
+  resolveTailwindClasses,
+  resolveTailwindUtility,
+  parseCssSources,
+  resolveInlineStyleRaw,
+  mergeIrStyles,
+  type ResolveStylesOptions,
+  type ResolveStylesResult,
+} from "./styles";
