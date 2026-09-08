@@ -163,7 +163,7 @@ export function convertIrNode(
         node,
         "unsupported",
         `Unknown IR kind cannot be converted natively.`,
-        "other",
+        "unsupported-node-kind",
       );
   }
 }

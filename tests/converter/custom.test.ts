@@ -277,15 +277,15 @@ describe("Phase 6 custom fallback", () => {
         (d) =>
           d.irKind === "link" &&
           d.strategy === "unsupported" &&
-          d.reasonCode === "unsafe-custom",
+          d.reasonCode === "unsafe-url",
       ),
     ).toBe(true);
   });
 
   it("marks script-bearing embeds unsafe when forced through custom", () => {
     expect(
-      findUnsafeCustomPatterns({ html: '<div onclick="x()">x</div>' }),
-    ).toMatch(/event-handler/i);
+      findUnsafeCustomPatterns({ html: '<div onclick="x()">x</div>' })?.code,
+    ).toBe("unsafe-html");
   });
 
   it("serializes HTML deterministically", () => {

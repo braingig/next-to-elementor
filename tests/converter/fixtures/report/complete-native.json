@@ -1,0 +1,72 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceLanguage": "tsx",
+    "sourceName": "complete-native"
+  },
+  "root": {
+    "id": "root",
+    "kind": "container",
+    "props": {
+      "as": "section"
+    },
+    "style": {
+      "layout": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "16px"
+      }
+    },
+    "provenance": {
+      "sourcePath": "fixtures/Hero.tsx",
+      "htmlTag": "section",
+      "classNames": [],
+      "attributes": {},
+      "loc": {
+        "line": 1,
+        "column": 0
+      }
+    },
+    "children": [
+      {
+        "id": "h1",
+        "kind": "heading",
+        "props": {
+          "level": 1,
+          "text": "Hello"
+        },
+        "provenance": {
+          "sourcePath": "fixtures/Hero.tsx",
+          "htmlTag": "h1",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 2,
+            "column": 2
+          }
+        },
+        "children": []
+      },
+      {
+        "id": "btn",
+        "kind": "button",
+        "props": {
+          "text": "Go",
+          "href": "/go"
+        },
+        "provenance": {
+          "sourcePath": "fixtures/Hero.tsx",
+          "htmlTag": "a",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 3,
+            "column": 2
+          }
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

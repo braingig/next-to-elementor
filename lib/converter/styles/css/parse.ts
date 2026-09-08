@@ -119,7 +119,7 @@ export function parseCssSources(sources: string[]): ParsedCss {
             });
             if (skippedReason) {
               diagnostics.push({
-                code: "unknown-css",
+                code: "unsupported-css",
                 message: `Selector not applied (${skippedReason}): ${selector}`,
               });
             }
@@ -139,7 +139,7 @@ export function parseCssSources(sources: string[]): ParsedCss {
             visit(at.nodes ?? [], bp);
           } else if (at.name === "supports" || at.name === "layer" || at.name === "container") {
             diagnostics.push({
-              code: "unknown-css",
+              code: "unsupported-css",
               message: `@${at.name} rules are not applied in MVP style resolution.`,
             });
           }

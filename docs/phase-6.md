@@ -96,3 +96,5 @@ Conceptual output:
 - Repo-wide processing or AI conversion
 - Visual regression testing (later)
 - Silent approximation of unsupported nodes
+
+Phase 7 adds the structured conversion report via `convert()` — see [phase-7.md](./phase-7.md).

@@ -6,6 +6,7 @@
  * Phase 2: IR schema + normalization + fixture corpus (no JSX/Elementor conversion).
  * Phase 5: Native Free conversion (`convertToNativeElementor`).
  * Phase 6: Node-scoped custom HTML fallback (`convertToElementor`).
+ * Phase 7: Unsupported handling + conversion report (`convert`).
  */
 
 export {
@@ -68,9 +69,20 @@ export {
 export {
   ConversionReportSchema,
   ConversionResultSchema,
+  buildConversionReport,
+  buildConversionResult,
+  canonicalizeConversionReport,
+  decisionsCoveringIrTree,
+  deriveOutcome,
+  normalizeReasonCode,
+  reasonCodeForCustomFailure,
   type ConversionReport,
   type ConversionResult,
-} from "./report/schema";
+  type ReportDiagnostic,
+  type ReportNodeEntry,
+} from "./report";
+
+export { convert, type ConvertOptions } from "./convert";
 
 export {
   parseReactSource,

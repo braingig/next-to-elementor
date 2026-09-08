@@ -50,7 +50,7 @@ function applyCssToNode(
     for (const item of unresolvedVars) {
       diagnostics.push({
         severity: "warning",
-        code: "unknown-css",
+        code: "unresolved-style",
         message: `Custom property could not be resolved: ${item}`,
         nodeId: ctx.node.id,
       });
@@ -59,7 +59,7 @@ function applyCssToNode(
     for (const prop of unresolved) {
       diagnostics.push({
         severity: "info",
-        code: "unknown-css",
+        code: "unsupported-css",
         message: `CSS property not mapped into IrStyle: ${prop}`,
         nodeId: ctx.node.id,
       });
@@ -110,7 +110,7 @@ function resolveNode(
     for (const prop of inline.unresolved) {
       diagnostics.push({
         severity: "info",
-        code: "unknown-css",
+        code: "unsupported-css",
         message: `Inline CSS property not mapped into IrStyle: ${prop}`,
         nodeId: node.id,
       });

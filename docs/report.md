@@ -1,7 +1,11 @@
 # Conversion Report & Pipeline Result
 
-Status: Phase 0 contract  
-Schema: `lib/converter/report/schema.ts`
+Status: Phase 7 (implemented)  
+Schema: `lib/converter/report/schema.ts`  
+Builder: `lib/converter/report/build.ts`  
+API: `convert()` in `lib/converter/convert.ts`
+
+See also: [phase-7.md](./phase-7.md), [unsupported-policy.md](./unsupported-policy.md).
 
 ## Goals
 
@@ -13,11 +17,11 @@ The report is a first-class deliverable alongside Elementor JSON.
 
 ```ts
 ConversionResult {
-  outcome: "success" | "partial" | "failed"
+  outcome: "complete" | "partial" | "failed"
   catalogVersion: string          // catalog.version used
   elementorTarget: string         // catalog.elementorTarget used
   irVersion: string               // IR schema version
-  elementorJson: unknown | null   // null when failed; shape fixed in Phase 9
+  elementorJson: unknown | null   // null when failed
   report: ConversionReport
 }
 ```
@@ -26,21 +30,21 @@ ConversionResult {
 
 | Outcome | `elementorJson` | Typical cause |
 |---|---|---|
-| `success` | present | All nodes native/custom; no unsupported gaps |
-| `partial` | present | JSON usable, but unsupported nodes/gaps recorded |
+| `complete` | present | All nodes native/custom; no warning/error diagnostics |
+| `partial` | present | Unsupported nodes and/or accuracy warnings/errors |
 | `failed` | `null` | Cannot produce valid Free JSON |
 
-Exact thresholds for `success` vs `partial` (e.g. warnings-only) remain: **any `unsupported` decision ⇒ at best `partial`**.
+**Any `unsupported` decision ⇒ at best `partial`.**  
+**Any warning/error diagnostic ⇒ at best `partial`.**
 
 ## `ConversionReport`
 
 | Field | Meaning |
 |---|---|
 | `summary` | Counts and short status |
-| `nodes` | Per-node decision entries |
-| `diagnostics` | Pipeline-wide warnings/errors (unknown classes, parse issues, …) |
+| `nodes` | Per-node decision entries (**every IR node**) |
+| `diagnostics` | Aggregated parse/style/conversion diagnostics |
 | `freeCompliance` | Pro-scan / catalog gate results |
-| `timings` | optional; omitted in Phase 0 usage |
 
 ### `summary`
 
@@ -59,26 +63,20 @@ Exact thresholds for `success` vs `partial` (e.g. warnings-only) remain: **any `
 | `nodeId` | IR node id |
 | `irKind` | IR kind |
 | `decision` | `native` \| `custom` \| `unsupported` |
-| `widgetType` | Elementor widget/container type when native/custom emit chosen; optional |
-| `reasonCode` | Required when `unsupported`; optional otherwise for fallback rationale |
+| `widgetType` | Elementor widget/container type when emitted |
+| `reasonCode` | Required when `unsupported` |
 | `message` | Human explanation |
-| `provenance` | Optional shortened source info |
+| `provenance` | Optional shortened source info (never invented) |
 
 ### `diagnostics[]`
 
-Same spirit as IR diagnostics: `severity`, `code`, `message`, optional `nodeId` / `loc`.
+`severity`, `code`, `message`, optional `nodeId` / `loc`.
 
 ### `freeCompliance`
 
 | Field | Meaning |
 |---|---|
 | `passed` | boolean |
-| `violations` | list of `{ id, kind, message }` denylist/catalog violations |
+| `violations` | list of `{ id, kind, message }` |
 
-If `passed` is false, outcome must be `failed` (or emit must refuse JSON). This is a hard gate.
-
-## Non-goals for Phase 0
-
-- Generating reports from real conversions
-- UI rendering of reports
-- Persisting reports to a database
+If `passed` is false, outcome must be `failed`.

@@ -17,7 +17,9 @@ function hrefOf(node: IrNode): string | undefined {
   return node.provenance?.attributes?.href;
 }
 
-function collectUnsafeFromTree(node: IrNode): string | undefined {
+function collectUnsafeFromTree(
+  node: IrNode,
+): ReturnType<typeof findUnsafeCustomPatterns> {
   const local = findUnsafeCustomPatterns({
     html:
       node.kind === "html-embed"
@@ -78,8 +80,8 @@ export function convertCustomFallback(
         nodeId: node.id,
         irKind: node.kind,
         strategy: "unsupported",
-        reasonCode: "unsafe-custom",
-        message: unsafe,
+        reasonCode: unsafe.code,
+        message: unsafe.message,
       },
     };
   }
@@ -96,7 +98,7 @@ export function convertCustomFallback(
         nodeId: node.id,
         irKind: node.kind,
         strategy: "unsupported",
-        reasonCode: "validation-error",
+        reasonCode: "custom-fallback-unavailable",
         message: "Failed to serialize IR node to HTML for custom fallback.",
       },
     };
@@ -109,8 +111,8 @@ export function convertCustomFallback(
         nodeId: node.id,
         irKind: node.kind,
         strategy: "unsupported",
-        reasonCode: "unsafe-custom",
-        message: postUnsafe,
+        reasonCode: postUnsafe.code,
+        message: postUnsafe.message,
       },
     };
   }

@@ -26,8 +26,8 @@ Pipeline-level outcomes (entire conversion):
 
 | Outcome | Meaning |
 |---|---|
-| `success` | All nodes are `native` or `custom`; JSON produced |
-| `partial` | JSON produced, but one or more nodes are `unsupported` (or dropped with explicit report entries) |
+| `complete` | All nodes are `native` or `custom`; JSON produced; no warning/error accuracy gaps |
+| `partial` | JSON produced, but one or more nodes are `unsupported` and/or accuracy warnings/errors |
 | `failed` | No usable JSON (parse failure, validation failure, empty input, hard Free violation during emit, etc.) |
 
 ## Ordered decision procedure (mandatory)
@@ -104,15 +104,14 @@ Custom fallback must:
 
 - Be scoped to the node (or minimal subtree required for that node’s accuracy)
 - Use Free-allowed embed mechanisms (typically HTML widget)
-- Avoid executing untrusted patterns later phases will reject (inline script policy TBD in Phase 7; Phase 0 records that unsafe script → `unsupported`)
+- Avoid executing untrusted patterns (inline script / unsafe URLs → `unsupported` with `unsafe-html` / `unsafe-url`)
 
-## Mapping ownership (later phases)
+## Mapping ownership
 
 | Phase | Responsibility |
 |---|---|
-| 6 | Native rule tables |
-| 7 | Custom fallback emitters |
-| 8 | Unsupported + report |
-| 9 | JSON emit + Pro scan |
+| 5 | Native Free rule tables |
+| 6 | Custom fallback emitters |
+| 7 | Unsupported handling + conversion report (`convert`) |
 
-Phase 0 only freezes the policy above.
+Phase 0 freezes the policy; Phase 7 implements the report.

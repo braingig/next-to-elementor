@@ -8,22 +8,37 @@ export const ConversionDecisionSchema = z.enum([
 ]);
 export type ConversionDecision = z.infer<typeof ConversionDecisionSchema>;
 
-/** Whole-pipeline outcome. */
+/**
+ * Whole-pipeline accuracy status (Phase 7).
+ * Lower-level native APIs may still use `"success"` as a synonym for complete
+ * representation without a full report.
+ */
 export const ConversionOutcomeSchema = z.enum([
-  "success",
+  "complete",
   "partial",
   "failed",
 ]);
 export type ConversionOutcome = z.infer<typeof ConversionOutcomeSchema>;
 
 /**
- * Stable unsupported reason codes.
- * See docs/unsupported-policy.md.
+ * Stable unsupported / accuracy reason codes.
+ * See docs/unsupported-policy.md and docs/phase-7.md.
  */
 export const UnsupportedReasonCodeSchema = z.enum([
+  // Phase 7 preferred codes
+  "unsupported-node-kind",
   "dynamic-content",
   "dynamic-children",
   "unknown-component",
+  "unsupported-css",
+  "unresolved-style",
+  "unsafe-html",
+  "unsafe-url",
+  "unsupported-interaction",
+  "insufficient-source-information",
+  "native-mapping-unavailable",
+  "custom-fallback-unavailable",
+  // Retained codes (parse / style / legacy emitters)
   "unknown-tailwind-class",
   "unknown-css",
   "animation-unsupported",

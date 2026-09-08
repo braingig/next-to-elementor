@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceLanguage": "tsx",
+    "sourceName": "failed-root"
+  },
+  "root": {
+    "id": "bad",
+    "kind": "unsupported",
+    "props": {
+      "reasonCode": "parse-error",
+      "message": "Root could not be analyzed."
+    },
+    "provenance": {
+      "classNames": [],
+      "attributes": {},
+      "loc": {
+        "line": 1,
+        "column": 0
+      }
+    },
+    "children": []
+  },
+  "diagnostics": [
+    {
+      "severity": "error",
+      "code": "parse-error",
+      "message": "Root could not be analyzed.",
+      "nodeId": "bad"
+    }
+  ]
+}

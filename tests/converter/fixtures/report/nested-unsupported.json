@@ -1,0 +1,77 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceLanguage": "tsx",
+    "sourceName": "nested-unsupported"
+  },
+  "root": {
+    "id": "outer",
+    "kind": "container",
+    "props": {},
+    "provenance": {
+      "htmlTag": "div",
+      "classNames": [],
+      "attributes": {},
+      "loc": {
+        "line": 1,
+        "column": 0
+      }
+    },
+    "children": [
+      {
+        "id": "inner",
+        "kind": "container",
+        "props": {},
+        "provenance": {
+          "htmlTag": "div",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 2,
+            "column": 2
+          }
+        },
+        "children": [
+          {
+            "id": "h",
+            "kind": "heading",
+            "props": {
+              "level": 3,
+              "text": "Nested"
+            },
+            "provenance": {
+              "htmlTag": "h3",
+              "classNames": [],
+              "attributes": {},
+              "loc": {
+                "line": 3,
+                "column": 4
+              }
+            },
+            "children": []
+          },
+          {
+            "id": "unk",
+            "kind": "unsupported",
+            "props": {
+              "reasonCode": "unknown-component",
+              "message": "Unknown component <FancyThing />.",
+              "originalSummary": "<FancyThing />"
+            },
+            "provenance": {
+              "componentName": "FancyThing",
+              "classNames": [],
+              "attributes": {},
+              "loc": {
+                "line": 4,
+                "column": 4
+              }
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}

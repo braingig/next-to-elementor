@@ -1,6 +1,6 @@
 # Unsupported Policy
 
-Status: Phase 0 contract  
+Status: Phase 7  
 Reason codes: `lib/converter/types/decisions.ts` (`UnsupportedReasonCode`)
 
 ## Rule
@@ -9,55 +9,62 @@ If behavior cannot be reproduced accurately with Elementor Free **or** node-scop
 
 Do **not**:
 
-- Silently drop the node
+- Silently drop the node from the **report**
 - Silently approximate (“close enough” visual guess)
 - Promote the entire section to custom code to hide the gap
 - Emit Elementor Pro widgets as a shortcut
+- Emit fake Elementor widgets as stand-ins for unsupported nodes
 
-## Reason codes
+Unsupported nodes are omitted from Elementor JSON and recorded in the report.
 
-Stable machine codes for reports and IR `unsupported` nodes:
+## Preferred reason codes (Phase 7)
 
 | Code | When to use |
 |---|---|
+| `unsupported-node-kind` | IR kind has no converter path |
 | `dynamic-content` | Values depend on runtime data, hooks, fetches, or non-static expressions |
 | `dynamic-children` | Children produced by `.map`, conditionals that cannot be statically expanded |
 | `unknown-component` | Third-party/local React component with no static HTML equivalent in MVP |
-| `unknown-tailwind-class` | Tailwind class not in curated map and not otherwise resolved (may be warning if node still convertible; upgrade to unsupported when class is load-bearing for accuracy) |
-| `unknown-css` | Critical CSS cannot be interpreted |
-| `animation-unsupported` | Animation/interaction cannot be faithfully reproduced in Free or safe custom JS |
-| `interaction-unsupported` | Complex interaction (drag, parallax, custom JS behavior) beyond MVP custom policy |
-| `layout-unsupported` | Layout model cannot be expressed accurately (e.g. exotic grid/absolute compositions) |
-| `asset-unresolved` | Required image/font/asset cannot be resolved to a usable URL/path |
-| `svg-complex` | SVG/graphic too complex for icon/image/html policy |
-| `form-unsupported` | Form controls/validation not representable under Free-first MVP rules |
-| `pro-only-feature` | Accurate native path would require Elementor Pro; custom also cannot reproduce |
-| `unsafe-custom` | Custom fallback would require rejected script/pattern |
-| `media-unsupported` | Video/audio/iframe/media behavior beyond MVP emitters |
-| `responsive-unsupported` | Required responsive behavior cannot be mapped faithfully |
-| `semantic-ambiguous` | Cannot determine accurate semantic role without guessing |
-| `parse-error` | Source region failed to parse/analyze |
-| `validation-error` | IR/JSON validation failed for this node |
-| `other` | Escapes; must still include human `message` |
+| `unsupported-css` | CSS cannot be interpreted or mapped accurately |
+| `unresolved-style` | CSS custom property / style token could not be resolved |
+| `unsafe-html` | Custom fallback would require rejected markup / event handlers |
+| `unsafe-url` | Custom fallback would require rejected URL protocol |
+| `unsupported-interaction` | Complex interaction beyond MVP custom policy |
+| `insufficient-source-information` | Incomplete IR / missing conversion coverage |
+| `native-mapping-unavailable` | No accurate Free native mapping |
+| `custom-fallback-unavailable` | Custom HTML path also cannot preserve the node accurately |
+
+## Retained / legacy codes
+
+Still accepted on IR and reports (compatibility):
+
+`unknown-tailwind-class`, `unknown-css`, `animation-unsupported`, `interaction-unsupported`,
+`layout-unsupported`, `asset-unresolved`, `svg-complex`, `form-unsupported`, `pro-only-feature`,
+`unsafe-custom`, `media-unsupported`, `responsive-unsupported`, `semantic-ambiguous`,
+`parse-error`, `validation-error`, `other`
+
+Report builders may normalize some legacy codes to preferred codes (e.g. `unsafe-custom` →
+`unsafe-html` / `unsafe-url`).
 
 ## Severity guidance
 
 | Situation | Typical handling |
 |---|---|
 | Unknown Tailwind class on non-critical decorative property | `warning` diagnostic; continue if remaining styles suffice |
-| Unknown Tailwind class that defines primary layout/visibility | `unsupported` or `custom` only if custom can encode the real CSS meaning |
-| Dynamic `{title}` text | `unsupported` (`dynamic-content`) unless a static literal exists |
+| Unresolved CSS variable | `warning` (`unresolved-style`); outcome at best `partial` |
+| Unmapped CSS on an emitted native node | `warning` (`unsupported-css`); do not claim full accuracy |
+| Dynamic `{title}` text | `unsupported` (`dynamic-content`) |
 | `items.map(...)` list | `unsupported` (`dynamic-children`) in MVP |
-| Pro-only widget desire | Never emit Pro; `custom` if accurate, else `unsupported` (`pro-only-feature`) |
+| Unsafe `javascript:` URL in custom path | `unsupported` (`unsafe-url`) |
 
 ## Reporting requirements
 
-Every unsupported node/gap must include:
+Every unsupported node must include:
 
 - `reasonCode`
 - Human `message`
-- Related `nodeId` when available
-- Optional source `loc` / provenance summary
+- Related `nodeId`
+- Optional source `loc` / provenance summary when available
 
 ## Approximation ban (examples)
 
@@ -65,15 +72,12 @@ Forbidden:
 
 - Mapping a custom carousel to a static single image without reporting loss
 - Replacing a computed gradient animation with a flat background silently
-- Dropping absolute-positioned badges to “simplify” layout without report entries
-- Emitting Pro `forms` / `slides` / `nav-menu` etc. to gain fidelity
+- Dropping absolute-positioned badges without report entries
+- Emitting Pro widgets to gain fidelity
+- Replacing unsupported nodes with empty containers / generic HTML silently
 
 Allowed:
 
 - Choosing `unsupported` and continuing sibling conversion
 - Choosing `custom` when HTML/CSS can honestly reproduce the node
 - Emitting native Free widgets when catalog says the feature set matches
-
-## Extending the taxonomy
-
-New codes may be added in later phases with a schema version bump note in `docs/phase-0.md` / changelog. Prefer adding a specific code over overloading `other`.

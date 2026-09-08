@@ -1,0 +1,108 @@
+{
+  "version": "0.2.0",
+  "meta": {
+    "sourceLanguage": "tsx",
+    "sourceName": "mixed-decisions"
+  },
+  "root": {
+    "id": "root",
+    "kind": "container",
+    "props": {},
+    "provenance": {
+      "sourcePath": "fixtures/Mixed.tsx",
+      "htmlTag": "div",
+      "classNames": [],
+      "attributes": {},
+      "loc": {
+        "line": 1,
+        "column": 0
+      }
+    },
+    "children": [
+      {
+        "id": "h",
+        "kind": "heading",
+        "props": {
+          "level": 2,
+          "text": "Title"
+        },
+        "provenance": {
+          "htmlTag": "h2",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 2,
+            "column": 2
+          }
+        },
+        "children": []
+      },
+      {
+        "id": "l",
+        "kind": "link",
+        "props": {
+          "href": "/docs",
+          "text": "Docs"
+        },
+        "provenance": {
+          "htmlTag": "a",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 3,
+            "column": 2
+          }
+        },
+        "children": []
+      },
+      {
+        "id": "dyn",
+        "kind": "unsupported",
+        "props": {
+          "reasonCode": "dynamic-content",
+          "message": "Dynamic expression cannot be resolved statically.",
+          "originalSummary": "{title}"
+        },
+        "provenance": {
+          "componentName": "Hero",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 4,
+            "column": 2
+          }
+        },
+        "children": []
+      },
+      {
+        "id": "btn",
+        "kind": "button",
+        "props": {
+          "text": "Click"
+        },
+        "provenance": {
+          "htmlTag": "button",
+          "classNames": [],
+          "attributes": {},
+          "loc": {
+            "line": 5,
+            "column": 2
+          }
+        },
+        "children": []
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "code": "dynamic-content",
+      "message": "Expression `{title}` is dynamic.",
+      "nodeId": "dyn",
+      "loc": {
+        "line": 4,
+        "column": 2
+      }
+    }
+  ]
+}

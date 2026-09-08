@@ -115,7 +115,7 @@ export const ConversionResultSchema = z
     if (result.outcome !== "failed" && result.elementorJson === null) {
       ctx.addIssue({
         code: "custom",
-        message: "elementorJson is required when outcome is success or partial",
+        message: "elementorJson is required when outcome is complete or partial",
         path: ["elementorJson"],
       });
     }
@@ -130,13 +130,13 @@ export const ConversionResultSchema = z
       });
     }
     if (
-      result.outcome === "success" &&
+      result.outcome === "complete" &&
       result.report.summary.unsupportedCount > 0
     ) {
       ctx.addIssue({
         code: "custom",
         message:
-          "outcome cannot be success when summary.unsupportedCount is greater than 0",
+          "outcome cannot be complete when summary.unsupportedCount is greater than 0",
         path: ["outcome"],
       });
     }
