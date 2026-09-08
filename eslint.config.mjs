@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "elementor/**",
     // Converter fixtures are data inputs (may be intentionally invalid).
     "tests/converter/fixtures/**",
+    // Phase 11 generated runtime artifacts (HTML/CJS screenshots/reports).
+    "tests/runtime/generated/**",
   ]),
 ]);
 

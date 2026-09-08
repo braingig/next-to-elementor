@@ -50,6 +50,7 @@
           "flex_gap",
           "html_tag",
           "padding",
+          "padding_mobile",
           "padding_tablet"
         ],
         "children": [
@@ -62,6 +63,7 @@
               "title",
               "title_color",
               "typography_font_size",
+              "typography_font_size_mobile",
               "typography_font_size_tablet",
               "typography_font_weight"
             ],

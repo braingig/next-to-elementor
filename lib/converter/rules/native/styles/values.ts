@@ -189,3 +189,74 @@ export function mapFlexAlign(value: string | undefined): string | undefined {
   };
   return map[value] ?? undefined;
 }
+
+/**
+ * Parse a CSS box-shadow into Elementor BOX_SHADOW control shape.
+ * Uses the first shadow only. Returns null when the value cannot be parsed safely.
+ */
+export function toBoxShadow(
+  value: string | undefined,
+): Record<string, unknown> | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "none") {
+    return {
+      horizontal: 0,
+      vertical: 0,
+      blur: 0,
+      spread: 0,
+      color: "transparent",
+    };
+  }
+
+  // Take first shadow (ignore multi-layer for Free control fidelity)
+  const first = trimmed.split(/,(?![^(]*\))/)[0]?.trim();
+  if (!first) return null;
+
+  const inset = /\binset\b/i.test(first);
+  const withoutInset = first.replace(/\binset\b/gi, "").trim();
+
+  // Color may be rgba()/rgb()/hsl()/#hex or named at start or end
+  let color = "rgba(0, 0, 0, 0.1)";
+  let rest = withoutInset;
+  const colorMatch =
+    withoutInset.match(
+      /(rgba?\([^)]+\)|hsla?\([^)]+\)|#[0-9a-fA-F]{3,8})\s*$/,
+    ) ??
+    withoutInset.match(
+      /^(rgba?\([^)]+\)|hsla?\([^)]+\)|#[0-9a-fA-F]{3,8})\s+/,
+    );
+  if (colorMatch) {
+    color = colorMatch[1]!;
+    rest = withoutInset.replace(colorMatch[0], "").trim();
+  } else {
+    const named = withoutInset.match(
+      /\b(black|white|transparent|currentColor)\b/i,
+    );
+    if (named) {
+      color = named[1]!.toLowerCase();
+      rest = withoutInset.replace(named[0], "").trim();
+    }
+  }
+
+  const lengths = rest
+    .split(/\s+/)
+    .map((p) => parseCssLength(p))
+    .filter((p): p is CssLength => Boolean(p));
+
+  if (lengths.length < 2) return null;
+
+  const horizontal = lengths[0]!.size;
+  const vertical = lengths[1]!.size;
+  const blur = lengths[2]?.size ?? 0;
+  const spread = lengths[3]?.size ?? 0;
+
+  void inset; // position control is separate; outline/inset handled by caller if needed
+  return {
+    horizontal,
+    vertical,
+    blur,
+    spread,
+    color,
+  };
+}

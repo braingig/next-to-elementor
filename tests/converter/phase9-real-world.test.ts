@@ -222,19 +222,19 @@ describe("Phase 9 accuracy audits", () => {
     ).toBe(false);
   });
 
-  it("box-shadow style loss is reported (no silent approximation)", () => {
+  it("box-shadow maps to Free controls when catalog supports it", () => {
     const result = convertSource({
       source: readFileSync(join(ROOT, "05-pricing/source.tsx"), "utf8"),
       language: "tsx",
       catalog,
     });
-    expect(result.outcome).toBe("partial");
     expect(
       result.report.diagnostics.some(
         (d) =>
           d.code === "unsupported-css" && d.message.includes("box-shadow"),
       ),
-    ).toBe(true);
+    ).toBe(false);
+    expect(["complete", "partial"]).toContain(result.outcome);
   });
 
   it("navbar keeps native siblings while links are custom (node-scoped)", () => {

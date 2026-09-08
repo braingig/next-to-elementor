@@ -115,11 +115,13 @@ describe("Phase 10 Elementor Free 4.2.4 compatibility", () => {
     expect(source.root.includes("Downloads/elementor") || process.env.ELEMENTOR_FREE_4_2_4_PATH).toBeTruthy();
   });
 
-  it("runtime import validation is explicitly BLOCKED in this environment", () => {
-    expect(runtime.status).toBe("BLOCKED");
+  it("runtime import is never a fabricated PASS without execution", () => {
+    // Phase 11: BLOCKED until harness setup, READY when environment.json exists.
+    // Actual RUNTIME_PASS/FAIL comes only from npm run test:elementor:runtime.
+    expect(["BLOCKED", "READY"]).toContain(runtime.status);
     expect(runtime.executed).toBe(false);
     expect(runtime.elementorVersion).toBe("4.2.4");
-    expect(runtime.reasons.length).toBeGreaterThan(0);
+    expect(runtime.status === "READY" || runtime.reasons.length > 0).toBe(true);
   });
 
   it("source inventory lists MVP Free widgets + container + tablet/mobile breakpoints", () => {
@@ -310,7 +312,9 @@ describe("Phase 10 Elementor Free 4.2.4 compatibility", () => {
     expect(scanProContamination(bogus).length).toBeGreaterThan(0);
   });
 
-  it("round-trip runtime check is BLOCKED (not fabricated)", () => {
-    expect(getRuntimeImportStatus().status).toBe("BLOCKED");
+  it("round-trip runtime check is not fabricated as PASS", () => {
+    const status = getRuntimeImportStatus();
+    expect(status.status).not.toBe("PASS");
+    expect(status.executed).toBe(false);
   });
 });

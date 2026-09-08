@@ -3,7 +3,7 @@
   "elementorTarget": "4.2.4",
   "runtimeImport": "BLOCKED",
   "staticValidation": "STATIC PASS",
-  "conversionOutcome": "partial",
+  "conversionOutcome": "complete",
   "expectedWidgetTypes": [
     "container",
     "heading",
@@ -139,6 +139,13 @@
                     "bottom": "1",
                     "left": "1",
                     "isLinked": true
+                  },
+                  "box_shadow_box_shadow": {
+                    "horizontal": 0,
+                    "vertical": 4,
+                    "blur": 6,
+                    "spread": -1,
+                    "color": "rgb(0 0 0 / 0.1)"
                   },
                   "content_width": "full",
                   "html_tag": "article"
@@ -286,6 +293,13 @@
                     "left": "1",
                     "isLinked": true
                   },
+                  "box_shadow_box_shadow": {
+                    "horizontal": 0,
+                    "vertical": 10,
+                    "blur": 15,
+                    "spread": -3,
+                    "color": "rgb(0 0 0 / 0.1)"
+                  },
                   "content_width": "full",
                   "html_tag": "article"
                 },
@@ -397,7 +411,7 @@
     "nativeCount": 15,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 2,
+    "warningCount": 0,
     "errorCount": 0,
     "message": "15 nodes, 15 native, 0 custom, 0 unsupported"
   }

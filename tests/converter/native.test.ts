@@ -312,12 +312,16 @@ describe("convertToNativeElementor Phase 5", () => {
       { catalog },
     );
     const s = result.document!.content[0]!.settings;
-    expect(s.flex_direction).toBe("row");
+    // Mobile-first IR → Elementor desktop-first: highest override (md) is desktop;
+    // base row is preserved on mobile.
+    expect(s.flex_direction).toBe("column");
     expect(s.flex_direction_tablet).toBe("column");
-    expect(s.flex_direction_mobile).toBe("column");
-    expect(s.padding).toMatchObject({ top: "32" });
+    expect(s.flex_direction_mobile).toBe("row");
+    expect(s.padding).toMatchObject({ top: "24" });
     expect(s.padding_tablet).toMatchObject({ top: "24" });
-    expect(s.padding_mobile).toMatchObject({ top: "16" });
+    expect(s.padding_mobile).toMatchObject({ top: "32" });
+    // sm padding 16 applies between sm and md; Elementor has no sm tier — not invented.
+    expect(s.padding_mobile).not.toMatchObject({ top: "16" });
   });
 
   it("defers IR link (no silent button conversion)", () => {

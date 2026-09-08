@@ -2,6 +2,6 @@
   "id": "05-pricing",
   "title": "Pricing / card section",
   "category": "pricing",
-  "expectedOutcomes": ["partial"],
-  "notes": "Nested cards with border/radius/shadow. Shadow resolves into IrStyle but is not mapped to Free native box_shadow controls — expect unsupported-css warnings (honest partial)."
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "Nested cards with border/radius/shadow. Shadow maps to Free box_shadow controls when present on the widget."
 }

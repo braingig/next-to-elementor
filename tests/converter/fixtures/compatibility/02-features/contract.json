@@ -179,7 +179,7 @@
                     "elements": []
                   },
                   {
-                    "id": "8474f7b",
+                    "id": "548b56b",
                     "elType": "widget",
                     "widgetType": "heading",
                     "settings": {
@@ -195,7 +195,7 @@
                     "elements": []
                   },
                   {
-                    "id": "1b66b5f",
+                    "id": "8474f7b",
                     "elType": "widget",
                     "widgetType": "text-editor",
                     "settings": {
@@ -211,7 +211,7 @@
                 ]
               },
               {
-                "id": "185538a",
+                "id": "1b66b5f",
                 "elType": "container",
                 "isInner": false,
                 "settings": {
@@ -256,7 +256,7 @@
                 },
                 "elements": [
                   {
-                    "id": "cabe425",
+                    "id": "185538a",
                     "elType": "widget",
                     "widgetType": "icon",
                     "settings": {
@@ -269,7 +269,7 @@
                     "elements": []
                   },
                   {
-                    "id": "e92ef3e",
+                    "id": "cabe425",
                     "elType": "widget",
                     "widgetType": "heading",
                     "settings": {
@@ -285,7 +285,7 @@
                     "elements": []
                   },
                   {
-                    "id": "f713285",
+                    "id": "179a5ca",
                     "elType": "widget",
                     "widgetType": "text-editor",
                     "settings": {
@@ -301,7 +301,7 @@
                 ]
               },
               {
-                "id": "35e4ec4",
+                "id": "e92ef3e",
                 "elType": "container",
                 "isInner": false,
                 "settings": {
@@ -346,7 +346,7 @@
                 },
                 "elements": [
                   {
-                    "id": "e4aa4eb",
+                    "id": "f713285",
                     "elType": "widget",
                     "widgetType": "icon",
                     "settings": {
@@ -359,7 +359,7 @@
                     "elements": []
                   },
                   {
-                    "id": "bdd888e",
+                    "id": "35e4ec4",
                     "elType": "widget",
                     "widgetType": "heading",
                     "settings": {
@@ -375,7 +375,7 @@
                     "elements": []
                   },
                   {
-                    "id": "a7aa80e",
+                    "id": "e4aa4eb",
                     "elType": "widget",
                     "widgetType": "text-editor",
                     "settings": {
@@ -401,7 +401,7 @@
     "nativeCount": 17,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 6,
+    "warningCount": 3,
     "errorCount": 0,
     "message": "17 nodes, 17 native, 0 custom, 0 unsupported"
   }

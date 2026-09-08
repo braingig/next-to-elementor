@@ -47,4 +47,4 @@ if (result.outcome === "complete") {
 - Decision order: native → custom → unsupported
 - No Pro, no AI, no user-code execution, no repo scanning
 
-Specs: `/docs` (`phase-0.md` … `phase-10.md`).
+Specs: `/docs` (`phase-0.md` … `phase-12.md`).

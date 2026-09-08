@@ -1,7 +1,9 @@
 import type { IrNode, IrStyle } from "../ir/schema";
 import type { ReportDiagnostic } from "./schema";
 import { irBreakpointToSuffix } from "../rules/native/styles/map-style";
+import { toBoxShadow } from "../rules/native/styles/values";
 import type { ElementorFreeCatalog } from "../catalog/schema";
+import { canUseControl } from "../catalog/compliance";
 
 /**
  * Warn when a native/custom node still carries style facts that were not
@@ -11,13 +13,14 @@ export function collectStyleAccuracyDiagnostics(
   node: IrNode,
   strategy: "native" | "custom",
   catalog: ElementorFreeCatalog,
+  widgetType?: string,
 ): ReportDiagnostic[] {
   const out: ReportDiagnostic[] = [];
   const style = node.style;
   if (!style) return out;
 
   if (strategy === "native") {
-    pushNativeStyleLoss(node.id, style, out);
+    pushNativeStyleLoss(node.id, style, out, catalog, widgetType);
     if (style.responsive) {
       for (const bp of Object.keys(style.responsive)) {
         if (irBreakpointToSuffix(catalog, bp) === null) {
@@ -29,7 +32,14 @@ export function collectStyleAccuracyDiagnostics(
             ...(node.provenance?.loc ? { loc: node.provenance.loc } : {}),
           });
         }
-        pushNativeStyleLoss(node.id, style.responsive[bp], out, bp);
+        pushNativeStyleLoss(
+          node.id,
+          style.responsive[bp],
+          out,
+          catalog,
+          widgetType,
+          bp,
+        );
       }
     }
   }
@@ -37,10 +47,26 @@ export function collectStyleAccuracyDiagnostics(
   return out;
 }
 
+function widgetHasBoxShadowControl(
+  catalog: ElementorFreeCatalog,
+  widgetType?: string,
+): boolean {
+  if (!widgetType) return false;
+  const ids = [
+    "box_shadow_box_shadow",
+    "button_box_shadow_box_shadow",
+    "image_box_shadow_box_shadow",
+    "_box_shadow_box_shadow",
+  ];
+  return ids.some((id) => canUseControl(catalog, widgetType, id));
+}
+
 function pushNativeStyleLoss(
   nodeId: string,
   style: IrStyle | undefined,
   out: ReportDiagnostic[],
+  catalog: ElementorFreeCatalog,
+  widgetType?: string,
   bp?: string,
 ): void {
   if (!style) return;
@@ -55,12 +81,17 @@ function pushNativeStyleLoss(
     });
   }
   if (style.effects?.boxShadow) {
-    out.push({
-      severity: "warning",
-      code: "unsupported-css",
-      message: `box-shadow was not mapped to a Free native control${suffix}.`,
-      nodeId,
-    });
+    const parsed = toBoxShadow(style.effects.boxShadow);
+    const canMap =
+      parsed != null && widgetHasBoxShadowControl(catalog, widgetType);
+    if (!canMap) {
+      out.push({
+        severity: "warning",
+        code: "unsupported-css",
+        message: `box-shadow was not mapped to a Free native control${suffix}.`,
+        nodeId,
+      });
+    }
   }
   if (style.background?.image) {
     out.push({
@@ -71,12 +102,30 @@ function pushNativeStyleLoss(
     });
   }
   if (style.typography?.letterSpacing) {
-    out.push({
-      severity: "warning",
-      code: "unsupported-css",
-      message: `letter-spacing was not mapped to a Free native control${suffix}.`,
-      nodeId,
-    });
+    const canMap =
+      Boolean(widgetType) &&
+      canUseControl(catalog, widgetType!, "typography_letter_spacing");
+    if (!canMap) {
+      out.push({
+        severity: "warning",
+        code: "unsupported-css",
+        message: `letter-spacing was not mapped to a Free native control${suffix}.`,
+        nodeId,
+      });
+    }
+  }
+  if (style.typography?.lineHeight) {
+    const canMap =
+      Boolean(widgetType) &&
+      canUseControl(catalog, widgetType!, "typography_line_height");
+    if (!canMap) {
+      out.push({
+        severity: "warning",
+        code: "unsupported-css",
+        message: `line-height was not mapped to a Free native control${suffix}.`,
+        nodeId,
+      });
+    }
   }
   if (style.typography?.textDecoration) {
     out.push({

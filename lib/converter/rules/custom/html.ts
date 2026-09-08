@@ -123,13 +123,40 @@ function leafText(node: IrNode): string | undefined {
 
 function serializeNode(node: IrNode, scopeClass?: string): string {
   if (node.kind === "html-embed") {
+    const tag = (node.provenance?.htmlTag ?? "div").toLowerCase();
     const attrs = buildAttributes(node, scopeClass);
-    return `${renderOpenTag("div", attrs)}${node.props.html}</div>`;
+    if (node.children.length > 0) {
+      const inner = node.children.map((c) => serializeNode(c)).join("");
+      if (voidTag(tag)) {
+        return renderOpenTag(tag, attrs);
+      }
+      return `${renderOpenTag(tag, attrs)}${inner}</${tag}>`;
+    }
+    // Prefer preserved markup when present; avoid wrapping empty stubs twice.
+    if (node.props.html && !/^<[a-z][\w-]*><\/[a-z][\w-]*>$/i.test(node.props.html.trim())) {
+      return node.props.html;
+    }
+    if (voidTag(tag)) {
+      return renderOpenTag(tag, attrs);
+    }
+    return `${renderOpenTag(tag, attrs)}${node.props.html ?? ""}</${tag}>`;
   }
 
   if (node.kind === "icon" && node.props.svg) {
     const attrs = buildAttributes(node, scopeClass);
-    return `${renderOpenTag("span", attrs)}${node.props.svg}</span>`;
+    // Real SVG markup is already a complete element — don't wrap in a way that nests invalidly.
+    const svg = node.props.svg.trim();
+    if (svg.startsWith("<svg")) {
+      // Merge scope class onto the svg root when possible.
+      if (scopeClass && !/\sclass=/.test(svg)) {
+        return svg.replace(/^<svg\b/, `<svg class="${escapeHtmlAttr(scopeClass)}"`);
+      }
+      if (scopeClass) {
+        return `${renderOpenTag("span", { class: scopeClass })}${svg}</span>`;
+      }
+      return svg;
+    }
+    return `${renderOpenTag("span", attrs)}${svg}</span>`;
   }
 
   if (node.kind === "icon" && node.props.src) {

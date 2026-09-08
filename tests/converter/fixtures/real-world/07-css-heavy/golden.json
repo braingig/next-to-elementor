@@ -60,6 +60,7 @@
           {
             "elType": "container",
             "settingKeys": [
+              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
@@ -86,7 +87,8 @@
                 "settingKeys": [
                   "editor",
                   "text_color",
-                  "typography_font_size"
+                  "typography_font_size",
+                  "typography_line_height"
                 ],
                 "children": []
               },

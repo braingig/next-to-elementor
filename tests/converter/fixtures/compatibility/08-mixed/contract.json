@@ -3,7 +3,7 @@
   "elementorTarget": "4.2.4",
   "runtimeImport": "BLOCKED",
   "staticValidation": "STATIC PASS",
-  "conversionOutcome": "partial",
+  "conversionOutcome": "complete",
   "expectedWidgetTypes": [
     "container",
     "heading",
@@ -113,6 +113,10 @@
                     "size": 1.5
                   },
                   "typography_font_weight": "700",
+                  "typography_letter_spacing": {
+                    "unit": "em",
+                    "size": -0.02
+                  },
                   "title": "Mixed sources",
                   "header_size": "h2",
                   "title_color": "#0f172a"
@@ -135,6 +139,10 @@
                   "typography_font_size": {
                     "unit": "rem",
                     "size": 0.875
+                  },
+                  "typography_line_height": {
+                    "unit": "px",
+                    "size": 1.5
                   },
                   "editor": "Tailwind utilities, stylesheet rules, and inline styles on one section.",
                   "text_color": "#475569"
@@ -195,7 +203,7 @@
     "nativeCount": 5,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 1,
+    "warningCount": 0,
     "errorCount": 0,
     "message": "5 nodes, 5 native, 0 custom, 0 unsupported"
   }

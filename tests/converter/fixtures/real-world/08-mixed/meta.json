@@ -2,6 +2,6 @@
   "id": "08-mixed",
   "title": "Mixed Tailwind + CSS + inline",
   "category": "mixed",
-  "expectedOutcomes": ["partial"],
-  "notes": "letterSpacing inline is not mapped natively → unsupported-css warning. Custom CSS class names may also warn as unknown-tailwind-class."
+  "expectedOutcomes": ["complete", "partial"],
+  "notes": "letterSpacing maps to Free typography_letter_spacing on heading when available. Custom CSS class names may still warn as unknown-tailwind-class."
 }

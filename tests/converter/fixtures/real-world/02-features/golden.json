@@ -6,7 +6,7 @@
     "nativeCount": 17,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 6,
+    "warningCount": 3,
     "errorCount": 0,
     "message": "17 nodes, 17 native, 0 custom, 0 unsupported"
   },
@@ -22,11 +22,6 @@
       "widgetType": "container"
     },
     {
-      "irKind": "container",
-      "decision": "native",
-      "widgetType": "container"
-    },
-    {
       "irKind": "icon",
       "decision": "native",
       "widgetType": "icon"
@@ -95,21 +90,14 @@
       "irKind": "text",
       "decision": "native",
       "widgetType": "text-editor"
+    },
+    {
+      "irKind": "container",
+      "decision": "native",
+      "widgetType": "container"
     }
   ],
   "diagnosticCodes": [
-    {
-      "severity": "warning",
-      "code": "semantic-ambiguous"
-    },
-    {
-      "severity": "warning",
-      "code": "semantic-ambiguous"
-    },
-    {
-      "severity": "warning",
-      "code": "semantic-ambiguous"
-    },
     {
       "severity": "warning",
       "code": "semantic-ambiguous"
@@ -180,6 +168,7 @@
               "container_type",
               "content_width",
               "flex_direction",
+              "flex_direction_mobile",
               "flex_direction_tablet",
               "flex_gap",
               "html_tag"

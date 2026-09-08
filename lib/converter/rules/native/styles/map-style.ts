@@ -6,17 +6,43 @@ import {
   mapAlign,
   mapFlexAlign,
   mapFlexJustify,
+  toBoxShadow,
   toDimensions,
   toDimensionsFromSides,
   toGaps,
   toSlider,
 } from "./values";
 
+/** Tailwind / IR mobile-first breakpoint order (smallest → largest). */
+const IR_BP_ORDER = ["sm", "md", "lg", "xl", "2xl"] as const;
+
+type StyleGroup = keyof Pick<
+  IrStyle,
+  | "box"
+  | "layout"
+  | "typography"
+  | "background"
+  | "border"
+  | "position"
+  | "effects"
+>;
+
+const STYLE_GROUPS: StyleGroup[] = [
+  "box",
+  "layout",
+  "typography",
+  "background",
+  "border",
+  "position",
+  "effects",
+];
+
 /**
  * Map IR responsive keys to Elementor suffixes using catalog breakpoints.
- * - base / lg / xl / 2xl → desktop (no suffix)
+ * Used for capability checks / diagnostics — emission uses mobile-first cascade.
+ * - lg / xl / 2xl → desktop (no suffix)
  * - md → _tablet
- * - sm → _mobile
+ * - sm → recognized (cascade handles polarity; not applied as raw _mobile)
  */
 export function irBreakpointToSuffix(
   catalog: ElementorFreeCatalog,
@@ -64,6 +90,97 @@ export type StyleMapContext = {
   backgroundPrefix?: "" | "_";
 };
 
+type CascadedTiers = {
+  desktop: IrStyle;
+  tablet?: IrStyle;
+  mobile?: IrStyle;
+};
+
+/**
+ * Convert mobile-first IR styles into Elementor desktop-first tiers.
+ *
+ * - Desktop (unsuffixed) ← highest breakpoint override, else base
+ * - Tablet (_tablet) ← explicit `md` override when present
+ * - Mobile (_mobile) ← base, only when that property has a responsive override
+ */
+export function cascadeMobileFirstToElementorTiers(style: IrStyle): CascadedTiers {
+  const desktop: IrStyle = {};
+  const tablet: IrStyle = {};
+  const mobile: IrStyle = {};
+  let hasTablet = false;
+  let hasMobile = false;
+
+  for (const group of STYLE_GROUPS) {
+    const baseGroup = style[group] as Record<string, unknown> | undefined;
+    const keys = new Set<string>();
+    if (baseGroup) {
+      for (const k of Object.keys(baseGroup)) keys.add(k);
+    }
+    for (const bp of IR_BP_ORDER) {
+      const partial = style.responsive?.[bp]?.[group] as
+        | Record<string, unknown>
+        | undefined;
+      if (partial) {
+        for (const k of Object.keys(partial)) keys.add(k);
+      }
+    }
+
+    if (keys.size === 0) continue;
+
+    const deskGroup: Record<string, unknown> = {};
+    const tabGroup: Record<string, unknown> = {};
+    const mobGroup: Record<string, unknown> = {};
+
+    for (const key of keys) {
+      const baseVal = baseGroup?.[key];
+      const overrides: Partial<Record<(typeof IR_BP_ORDER)[number], unknown>> =
+        {};
+      for (const bp of IR_BP_ORDER) {
+        const v = (
+          style.responsive?.[bp]?.[group] as Record<string, unknown> | undefined
+        )?.[key];
+        if (v !== undefined) overrides[bp] = v;
+      }
+
+      const overrideBps = IR_BP_ORDER.filter((bp) => overrides[bp] !== undefined);
+
+      if (overrideBps.length === 0) {
+        if (baseVal !== undefined) deskGroup[key] = baseVal;
+        continue;
+      }
+
+      const highest = overrideBps[overrideBps.length - 1]!;
+      deskGroup[key] = overrides[highest];
+
+      if (overrides.md !== undefined) {
+        tabGroup[key] = overrides.md;
+        hasTablet = true;
+      }
+
+      if (baseVal !== undefined) {
+        mobGroup[key] = baseVal;
+        hasMobile = true;
+      }
+    }
+
+    if (Object.keys(deskGroup).length > 0) {
+      desktop[group] = deskGroup as never;
+    }
+    if (Object.keys(tabGroup).length > 0) {
+      tablet[group] = tabGroup as never;
+    }
+    if (Object.keys(mobGroup).length > 0) {
+      mobile[group] = mobGroup as never;
+    }
+  }
+
+  return {
+    desktop,
+    ...(hasTablet ? { tablet } : {}),
+    ...(hasMobile ? { mobile } : {}),
+  };
+}
+
 /**
  * Apply a single IrStyle slice (base or one breakpoint) into settings.
  */
@@ -88,6 +205,9 @@ export function applyIrStyleSlice(
   }
   if (style.layout?.flexDirection) {
     allow("flex_direction", style.layout.flexDirection);
+  } else if (style.layout?.display === "flex" && suffix === "") {
+    // CSS / Tailwind `display: flex` defaults to row — never invent column.
+    allow("flex_direction", "row");
   }
   if (style.layout?.justifyContent) {
     allow("flex_justify_content", mapFlexJustify(style.layout.justifyContent));
@@ -137,6 +257,11 @@ export function applyIrStyleSlice(
   if (style.box?.width) {
     allow("width", toSlider(style.box.width));
     allow("_element_custom_width", toSlider(style.box.width));
+  }
+  if (style.box?.maxWidth) {
+    // Free Container: boxed content width + boxed_width slider
+    allow("content_width", "boxed", false);
+    allow("boxed_width", toSlider(style.box.maxWidth));
   }
   if (style.box?.minHeight) {
     allow("min_height", toSlider(style.box.minHeight));
@@ -192,7 +317,17 @@ export function applyIrStyleSlice(
   if (style.typography?.textTransform) {
     allow("typography_text_transform", style.typography.textTransform, false);
   }
+  if (style.typography?.lineHeight) {
+    allow("typography_line_height", toSlider(style.typography.lineHeight));
+  }
+  if (style.typography?.letterSpacing) {
+    allow(
+      "typography_letter_spacing",
+      toSlider(style.typography.letterSpacing),
+    );
+  }
   if (style.typography?.textAlign) {
+    // Catalog-gated: heading/button expose `align`; Free container has no text-align control.
     allow("align", mapAlign(style.typography.textAlign));
   }
 
@@ -210,10 +345,21 @@ export function applyIrStyleSlice(
     // not always in catalog for every widget — only set if allowed
     allow("opacity", style.effects.opacity, false);
   }
+  if (style.effects?.boxShadow) {
+    const shadow = toBoxShadow(style.effects.boxShadow);
+    if (shadow) {
+      // Widget-specific Group_Control_Box_Shadow ids (catalog-gated via allow)
+      allow("box_shadow_box_shadow", shadow, false);
+      allow("button_box_shadow_box_shadow", shadow, false);
+      allow("image_box_shadow_box_shadow", shadow, false);
+      allow("_box_shadow_box_shadow", shadow, false);
+    }
+  }
 }
 
 /**
  * Map full IrStyle including responsive overrides into Elementor settings.
+ * IR responsive keys are mobile-first; Elementor suffixes are desktop-first.
  */
 export function mapIrStyleToSettings(
   style: IrStyle | undefined,
@@ -222,14 +368,13 @@ export function mapIrStyleToSettings(
   const settings: ElementorSettings = {};
   if (!style) return settings;
 
-  applyIrStyleSlice(style, ctx, settings, "");
-
-  if (style.responsive) {
-    for (const [bp, partial] of Object.entries(style.responsive)) {
-      const suffix = irBreakpointToSuffix(ctx.catalog, bp);
-      if (suffix === null) continue;
-      applyIrStyleSlice(partial, ctx, settings, suffix);
-    }
+  const tiers = cascadeMobileFirstToElementorTiers(style);
+  applyIrStyleSlice(tiers.desktop, ctx, settings, "");
+  if (tiers.tablet) {
+    applyIrStyleSlice(tiers.tablet, ctx, settings, "_tablet");
+  }
+  if (tiers.mobile) {
+    applyIrStyleSlice(tiers.mobile, ctx, settings, "_mobile");
   }
 
   return settings;

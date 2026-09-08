@@ -25,6 +25,7 @@ import {
   extractStaticBoolean,
   extractStaticPrimitive,
 } from "./static-value";
+import { serializeStaticJsxElement } from "./serialize-jsx";
 
 function getJsxElementName(node: JSXElement): string | null {
   const name = node.openingElement.name;
@@ -403,8 +404,8 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
     mapped.kind === "list-item" ||
     mapped.kind === "html-embed" ||
     mapped.kind === "button" ||
-    mapped.kind === "link" ||
-    mapped.kind === "icon";
+    mapped.kind === "link";
+  // SVG/icon: do not expand <path> etc. into separate IR nodes — serialize markup instead.
 
   const childIr = needsChildTree ? convertChildren(ctx, childrenNodes) : [];
 
@@ -594,15 +595,17 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
         children: [],
       };
     case "icon": {
-      // Only accept simple svg with no script-like complexity marker
-      if (childIr.some((c) => c.kind === "unsupported")) {
+      const svgMarkup = serializeStaticJsxElement(node);
+      if (svgMarkup == null) {
         return unsupportedNode(ctx, {
           reasonCode: "svg-complex",
-          message: "SVG contains unsupported dynamic content.",
+          message:
+            "SVG contains dynamic or non-static content and cannot be preserved accurately.",
           provenance,
           loc,
         });
       }
+      const named = attrs.attributes["data-icon"];
       return uncertainNode(
         ctx,
         {
@@ -610,17 +613,17 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
           kind: "icon",
           status: "ok",
           props: {
-            ...(attrs.attributes["data-icon"]
-              ? { name: attrs.attributes["data-icon"] }
-              : {}),
-            svg: "<svg />",
+            ...(named ? { name: named } : {}),
+            svg: svgMarkup,
           },
           style: {},
           provenance,
-          notes: ["svg-as-icon"],
+          notes: named ? ["svg-named-icon"] : ["svg-as-custom-html"],
           children: [],
         },
-        "SVG mapped to icon provisionally; full SVG payload resolution is deferred.",
+        named
+          ? "SVG provides a named icon hint; native Icon may be used when the name is recognized."
+          : "Inline SVG preserved as markup for custom HTML fallback (no invented icon name).",
         "semantic-ambiguous",
       );
     }

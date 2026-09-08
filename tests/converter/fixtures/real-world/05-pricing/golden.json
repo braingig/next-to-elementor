@@ -1,12 +1,12 @@
 {
   "id": "05-pricing",
-  "outcome": "partial",
+  "outcome": "complete",
   "summary": {
     "totalNodes": 15,
     "nativeCount": 15,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 2,
+    "warningCount": 0,
     "errorCount": 0,
     "message": "15 nodes, 15 native, 0 custom, 0 unsupported"
   },
@@ -87,16 +87,7 @@
       "widgetType": "button"
     }
   ],
-  "diagnosticCodes": [
-    {
-      "severity": "warning",
-      "code": "unsupported-css"
-    },
-    {
-      "severity": "warning",
-      "code": "unsupported-css"
-    }
-  ],
+  "diagnosticCodes": [],
   "freeCompliancePassed": true,
   "tree": {
     "version": "0.4",
@@ -129,9 +120,11 @@
           {
             "elType": "container",
             "settingKeys": [
+              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
+              "flex_direction_mobile",
               "flex_direction_tablet",
               "flex_gap",
               "html_tag",
@@ -147,6 +140,7 @@
                   "border_color",
                   "border_radius",
                   "border_width",
+                  "box_shadow_box_shadow",
                   "container_type",
                   "content_width",
                   "flex_direction",
@@ -229,6 +223,7 @@
                   "border_color",
                   "border_radius",
                   "border_width",
+                  "box_shadow_box_shadow",
                   "container_type",
                   "content_width",
                   "flex_direction",

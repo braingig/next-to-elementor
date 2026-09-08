@@ -1,0 +1,68 @@
+# Phase 11 — minimal WordPress + Elementor Free 4.2.4 runtime harness.
+# Elementor Free 4.2.4 must be bind-mounted from ELEMENTOR_FREE_4_2_4_PATH
+# (default: /Users/nusratnova/Downloads/elementor). Never use in-repo ./elementor (4.2.1).
+
+name: n2e-elementor-runtime
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - n2e_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  wordpress:
+    image: wordpress:6.8.2-php8.2-apache
+    ports:
+      - "${N2E_WP_PORT:-9080}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      - n2e_wp_data:/var/www/html
+      - ${ELEMENTOR_FREE_4_2_4_PATH:-/Users/nusratnova/Downloads/elementor}:/var/www/html/wp-content/plugins/elementor:ro
+      - ../scripts:/opt/n2e-scripts:ro
+      - ../../tests/runtime/generated:/opt/n2e-generated
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/ | head -c 1 >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  wpcli:
+    image: wordpress:cli-php8.2
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - n2e_wp_data:/var/www/html
+      - ${ELEMENTOR_FREE_4_2_4_PATH:-/Users/nusratnova/Downloads/elementor}:/var/www/html/wp-content/plugins/elementor:ro
+      - ../scripts:/opt/n2e-scripts:ro
+      - ../../tests/runtime/generated:/opt/n2e-generated
+    depends_on:
+      wordpress:
+        condition: service_healthy
+
+volumes:
+  n2e_db_data:
+  n2e_wp_data:

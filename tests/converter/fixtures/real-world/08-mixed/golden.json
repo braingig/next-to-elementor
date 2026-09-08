@@ -1,12 +1,12 @@
 {
   "id": "08-mixed",
-  "outcome": "partial",
+  "outcome": "complete",
   "summary": {
     "totalNodes": 5,
     "nativeCount": 5,
     "customCount": 0,
     "unsupportedCount": 0,
-    "warningCount": 1,
+    "warningCount": 0,
     "errorCount": 0,
     "message": "5 nodes, 5 native, 0 custom, 0 unsupported"
   },
@@ -37,12 +37,7 @@
       "widgetType": "button"
     }
   ],
-  "diagnosticCodes": [
-    {
-      "severity": "warning",
-      "code": "unsupported-css"
-    }
-  ],
+  "diagnosticCodes": [],
   "freeCompliancePassed": true,
   "tree": {
     "version": "0.4",
@@ -53,14 +48,15 @@
         "settingKeys": [
           "background_background",
           "background_color",
+          "boxed_width",
           "container_type",
           "content_width",
           "flex_direction",
+          "flex_direction_mobile",
           "flex_direction_tablet",
           "flex_gap",
           "html_tag",
-          "padding",
-          "padding_mobile"
+          "padding"
         ],
         "children": [
           {
@@ -74,7 +70,6 @@
               "border_width",
               "container_type",
               "content_width",
-              "flex_direction",
               "html_tag",
               "padding"
             ],
@@ -87,7 +82,8 @@
                   "title",
                   "title_color",
                   "typography_font_size",
-                  "typography_font_weight"
+                  "typography_font_weight",
+                  "typography_letter_spacing"
                 ],
                 "children": []
               },
@@ -98,7 +94,8 @@
                   "_margin",
                   "editor",
                   "text_color",
-                  "typography_font_size"
+                  "typography_font_size",
+                  "typography_line_height"
                 ],
                 "children": []
               },

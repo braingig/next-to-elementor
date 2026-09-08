@@ -223,7 +223,12 @@ export function buildConversionReport(
         entry.message.startsWith("Included in parent custom HTML fallback");
       if (!isIncluded) {
         diagnostics.push(
-          ...collectStyleAccuracyDiagnostics(node, entry.decision, catalog),
+          ...collectStyleAccuracyDiagnostics(
+            node,
+            entry.decision,
+            catalog,
+            entry.widgetType,
+          ),
         );
       }
     }

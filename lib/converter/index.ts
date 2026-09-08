@@ -131,6 +131,9 @@ export {
   findUnsafeCustomPatterns,
   elementorIdFromIrId,
   NativeStrategySchema,
+  mapIrStyleToSettings,
+  cascadeMobileFirstToElementorTiers,
+  toBoxShadow,
   type ConvertToNativeOptions,
   type ConvertToElementorOptions,
   type NativeStrategy,
@@ -168,3 +171,23 @@ export {
   type RuntimeImportStatus,
   type RuntimeEnvironmentStatus,
 } from "./compat";
+
+export {
+  probePhase11Runtime,
+  runSetup,
+  writeReport,
+  readRuntimeEnv,
+  generateDocumentFromFixture,
+  importDocumentJson,
+  collectWidgets,
+  flattenWidgetTypes,
+  collectResponsiveKeys,
+  findFirstWidget,
+  EXPECTED_NATIVE_TYPES,
+  emptyBlockedReport,
+  wpCli,
+  type RuntimeValidationReport,
+  type FixtureRuntimeResult,
+  type RuntimeStatus,
+  type VisualStatus,
+} from "./runtime";

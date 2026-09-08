@@ -37,6 +37,27 @@ function convertChildren(
   return { emits, decisions };
 }
 
+/**
+ * Leaf Free widgets cannot host Elementor children. If the IR still has
+ * nested nodes, defer to custom HTML so content is preserved and covered.
+ */
+function requireLeafWithoutChildren(
+  node: IrNode,
+  catalog: ElementorFreeCatalog,
+  convertLeaf: () => NativeEmit,
+): NativeEmit {
+  if (node.children.length > 0) {
+    return nonNative(
+      node,
+      "needs-fallback",
+      `IR ${node.kind} has nested children that cannot be represented inside a Free leaf widget; using node-scoped HTML fallback to preserve the subtree.`,
+      "semantic-ambiguous",
+    );
+  }
+  void catalog;
+  return convertLeaf();
+}
+
 export function convertContainerLike(
   node: IrNode & { kind: "container" | "group" },
   catalog: ElementorFreeCatalog,
@@ -62,15 +83,15 @@ export function convertContainerLike(
     backgroundPrefix: "",
   });
 
-  // Default flex container when layout display missing but children present
+  // Default flex container when layout display missing but children present.
+  // Do NOT invent flex_direction: Elementor's unset direction behaves as column
+  // for structural wrappers; explicit `display:flex` without direction emits row
+  // from mapIrStyleToSettings (CSS/Tailwind default).
   if (!settings.container_type) {
     settings.container_type = "flex";
   }
   if (!settings.content_width) {
     settings.content_width = "full";
-  }
-  if (!settings.flex_direction && settings.container_type === "flex") {
-    settings.flex_direction = "column";
   }
 
   if (node.props.as && ["section", "header", "footer", "main", "article", "aside", "nav", "div"].includes(node.props.as)) {
@@ -128,13 +149,21 @@ export function convertIrNode(
     case "group":
       return convertContainerLike(node, catalog, convertChild);
     case "heading":
-      return convertHeading(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertHeading(node, catalog),
+      );
     case "text":
-      return convertText(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertText(node, catalog),
+      );
     case "image":
-      return convertImage(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertImage(node, catalog),
+      );
     case "button":
-      return convertButton(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertButton(node, catalog),
+      );
     case "link":
       return nonNative(
         node,
@@ -143,13 +172,21 @@ export function convertIrNode(
         "semantic-ambiguous",
       );
     case "icon":
-      return convertIcon(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertIcon(node, catalog),
+      );
     case "divider":
-      return convertDivider(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertDivider(node, catalog),
+      );
     case "spacer":
-      return convertSpacerFixed(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertSpacerFixed(node, catalog),
+      );
     case "html-embed":
-      return convertHtmlEmbed(node, catalog);
+      return requireLeafWithoutChildren(node, catalog, () =>
+        convertHtmlEmbed(node, catalog),
+      );
     case "list":
     case "list-item":
       return nonNative(

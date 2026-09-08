@@ -11,3 +11,5 @@ export type {
   ElementorSettings,
 } from "./types";
 export { elementorIdFromIrId, NativeStrategySchema } from "./types";
+export { mapIrStyleToSettings, cascadeMobileFirstToElementorTiers } from "./styles/map-style";
+export { toBoxShadow, toSlider } from "./styles/values";

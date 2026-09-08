@@ -505,7 +505,19 @@ describe("Phase 7 convert() report", () => {
     expect(
       result.report.diagnostics.filter((d) => d.code === "unsupported-css")
         .length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      result.report.diagnostics.some(
+        (d) =>
+          d.code === "unsupported-css" && d.message.includes("transform"),
+      ),
+    ).toBe(true);
+    expect(
+      result.report.diagnostics.some(
+        (d) =>
+          d.code === "unsupported-css" && d.message.includes("box-shadow"),
+      ),
+    ).toBe(false);
     expect(result.outcome).toBe("partial");
   });
 

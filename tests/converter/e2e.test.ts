@@ -77,8 +77,10 @@ describe("Phase 8 convertSource end-to-end", () => {
     assertValidDocument(result.elementorJson, catalog);
     const root = (result.elementorJson as ElementorDocument).content[0]!;
     expect(root.elType).toBe("container");
-    expect(root.settings.flex_direction).toBe("row");
+    // flex-row + md:flex-col (mobile-first) → desktop/tablet column, mobile row
+    expect(root.settings.flex_direction).toBe("column");
     expect(root.settings.flex_direction_tablet).toBe("column");
+    expect(root.settings.flex_direction_mobile).toBe("row");
   });
 
   it("4. nested containers", () => {

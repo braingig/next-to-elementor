@@ -31,18 +31,18 @@ UPDATE_GOLDENS=1 npm test -- --run tests/converter/phase9-real-world.test.ts
 | ID | Section | Typical outcome | Why |
 |---|---|---|---|
 | `01-hero` | Hero | **complete** | Heading, text, CTA button, image, responsive flex; docs link → custom |
-| `02-features` | Feature cards | **partial** | Named SVG icons emit `semantic-ambiguous` (SVG payload still provisional) |
+| `02-features` | Feature cards | **partial** | Named SVG icons emit `semantic-ambiguous` (native FA when `data-icon` present) |
 | `03-cta` | CTA band | **complete** | Background, typography, button, responsive padding |
 | `04-navbar` | Header/nav | **complete** | Image + button native; nav links node-scoped custom |
-| `05-pricing` | Pricing cards | **partial** | `shadow-*` → IrStyle `boxShadow` not mapped to Free native controls → `unsupported-css` |
+| `05-pricing` | Pricing cards | **complete** | `shadow-*` maps to Free `box_shadow` controls when present on the widget |
 | `06-tailwind-heavy` | Tailwind utilities | **partial** | Deliberate `unknown-utility-xyz` → `unknown-tailwind-class` |
 | `07-css-heavy` | External CSS | **complete** | Class/descendant selectors + media queries; CSS class names not mislabeled as Tailwind |
-| `08-mixed` | TW + CSS + inline | **partial** | Inline `letterSpacing` not mapped natively → `unsupported-css` |
+| `08-mixed` | TW + CSS + inline | **complete** | `letterSpacing` maps to Free `typography_letter_spacing` when the widget exposes it |
 
 ### Counts (current goldens)
 
-- **complete:** 4
-- **partial:** 4
+- **complete:** 6
+- **partial:** 2
 - **failed:** 0
 
 Partial is **not** treated as a product failure when the source genuinely includes unsupported or provisional behavior — honesty and determinism are the bar.
@@ -75,9 +75,12 @@ Controls remain catalog-gated (Free 4.2.4 only).
 ## Style / Tailwind validated
 
 - Margin/padding/flex/gap/alignment/typography/color/background/border/radius/responsive
-- Shadow and letter-spacing: **reported**, not silently dropped
-- Known utilities resolve (including `w-1/2`, `border-b`)
-- Unknown utilities → `unknown-tailwind-class`
+- `box-shadow`, `line-height`, and `letter-spacing` map to Free controls when the target widget exposes them; otherwise still reported via style-loss / `unsupported-css`
+- Known utilities resolve (including `w-1/2`, `border-b`, and high-confidence additions such as `p-7`, `gap-14`, `bg-*-50`, `text-6xl`, `leading-*`, `tracking-tight`, `shadow-xl`)
+- Mobile-first IR responsive styles cascade into Elementor desktop-first suffixes (`desktop` ← highest override, `_tablet` ← `md`, `_mobile` ← base)
+- `display:flex` without an explicit direction emits `flex_direction: row` (CSS/Tailwind default)
+- `maxWidth` maps to Free `content_width: boxed` + `boxed_width` when available
+- Unknown utilities → `unknown-tailwind-class` (hover/transform/grid remain unresolved when Free cannot represent them)
 - Stylesheet class hooks are **not** falsely reported as unknown Tailwind
 
 ## Bugs fixed in Phase 9
@@ -90,9 +93,9 @@ Each fix is covered by Phase 9 / styles regression expectations.
 
 ## Deliberately unsupported / limited (not expanded)
 
-- Full SVG markup capture for icons (provisional placeholder; named icons use FA-style native path)
-- Mapping CSS `box-shadow` strings into Elementor `box_shadow` controls
-- Mapping `letter-spacing` / `text-decoration` into Free native typography controls
+- Unnamed SVG icons → node-scoped custom HTML (named/`data-icon` stay native FA)
+- CSS Grid track utilities (`md:grid-cols-*`) when Free cannot represent them faithfully
+- Hover/transform interaction utilities
 - Interactive navbar behavior (menus, click handlers)
 - Full Tailwind JIT / arbitrary plugin ecosystem
 - Pixel-level browser visual regression

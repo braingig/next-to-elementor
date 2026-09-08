@@ -9,7 +9,13 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:elementor": "vitest run tests/converter/compat-elementor.test.ts"
+    "test:elementor": "vitest run tests/converter/compat-elementor.test.ts",
+    "test:elementor:runtime:setup": "bash docker/scripts/setup.sh",
+    "test:elementor:runtime:teardown": "bash docker/scripts/teardown.sh",
+    "test:elementor:runtime": "tsx scripts/run-runtime-validation.ts",
+    "test:visual:source": "node scripts/render-source-fixtures.mjs",
+    "test:visual": "npm run test:visual:source && npx playwright test -c tests/runtime/playwright.config.ts && tsx scripts/merge-visual-report.ts",
+    "test:elementor:all": "npm run test:elementor && npm run test:elementor:runtime && npm run test:visual"
   },
   "dependencies": {
     "@babel/parser": "^8.0.4",
@@ -22,16 +28,22 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/babel__generator": "^7.27.0",
     "@types/babel__traverse": "^7.28.0",
     "@types/node": "^20",
+    "@types/pngjs": "^6.0.5",
     "@types/postcss-import": "^14.0.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }

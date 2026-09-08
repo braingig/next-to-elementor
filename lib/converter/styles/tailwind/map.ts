@@ -14,9 +14,13 @@ const SPACING: Record<string, string> = {
   "4": "1rem",
   "5": "1.25rem",
   "6": "1.5rem",
+  "7": "1.75rem",
   "8": "2rem",
+  "9": "2.25rem",
   "10": "2.5rem",
+  "11": "2.75rem",
   "12": "3rem",
+  "14": "3.5rem",
   "16": "4rem",
   "20": "5rem",
   "24": "6rem",
@@ -57,12 +61,16 @@ const COLORS: Record<string, string> = {
   "yellow-500": "#eab308",
   "green-500": "#22c55e",
   "green-600": "#16a34a",
+  "teal-50": "#f0fdfa",
+  "teal-100": "#ccfbf1",
   "teal-500": "#14b8a6",
   "teal-600": "#0d9488",
   "teal-700": "#0f766e",
+  "blue-50": "#eff6ff",
   "blue-500": "#3b82f6",
   "blue-600": "#2563eb",
   "indigo-500": "#6366f1",
+  "purple-50": "#faf5ff",
   "purple-500": "#a855f7",
   "pink-500": "#ec4899",
 };
@@ -77,6 +85,34 @@ const FONT_SIZE: Record<string, string> = {
   "3xl": "1.875rem",
   "4xl": "2.25rem",
   "5xl": "3rem",
+  "6xl": "3.75rem",
+  "7xl": "4.5rem",
+};
+
+const LINE_HEIGHT: Record<string, string> = {
+  none: "1",
+  tight: "1.25",
+  snug: "1.375",
+  normal: "1.5",
+  relaxed: "1.625",
+  loose: "2",
+  "3": "0.75rem",
+  "4": "1rem",
+  "5": "1.25rem",
+  "6": "1.5rem",
+  "7": "1.75rem",
+  "8": "2rem",
+  "9": "2.25rem",
+  "10": "2.5rem",
+};
+
+const LETTER_SPACING: Record<string, string> = {
+  tighter: "-0.05em",
+  tight: "-0.025em",
+  normal: "0em",
+  wide: "0.025em",
+  wider: "0.05em",
+  widest: "0.1em",
 };
 
 const FONT_WEIGHT: Record<string, string> = {
@@ -256,7 +292,9 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   }
 
   // Typography
-  const textSize = utility.match(/^text-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl)$/);
+  const textSize = utility.match(
+    /^text-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl)$/,
+  );
   if (textSize) {
     return { typography: { fontSize: FONT_SIZE[textSize[1]!] } };
   }
@@ -272,6 +310,14 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   const fw = utility.match(/^font-(.+)$/);
   if (fw && FONT_WEIGHT[fw[1]!]) {
     return { typography: { fontWeight: FONT_WEIGHT[fw[1]!] } };
+  }
+  const leading = utility.match(/^leading-(.+)$/);
+  if (leading && LINE_HEIGHT[leading[1]!]) {
+    return { typography: { lineHeight: LINE_HEIGHT[leading[1]!] } };
+  }
+  const tracking = utility.match(/^tracking-(.+)$/);
+  if (tracking && LETTER_SPACING[tracking[1]!]) {
+    return { typography: { letterSpacing: LETTER_SPACING[tracking[1]!] } };
   }
   if (utility === "italic") return { typography: { fontStyle: "italic" } };
   if (utility === "uppercase") return { typography: { textTransform: "uppercase" } };
@@ -372,6 +418,14 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
       effects: {
         boxShadow:
           "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+      },
+    };
+  }
+  if (utility === "shadow-xl") {
+    return {
+      effects: {
+        boxShadow:
+          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
       },
     };
   }

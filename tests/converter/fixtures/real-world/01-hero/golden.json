@@ -64,18 +64,22 @@
           "container_type",
           "content_width",
           "flex_align_items",
+          "flex_align_items_mobile",
           "flex_align_items_tablet",
           "flex_direction",
+          "flex_direction_mobile",
           "flex_direction_tablet",
           "flex_gap",
           "html_tag",
           "padding",
+          "padding_mobile",
           "padding_tablet"
         ],
         "children": [
           {
             "elType": "container",
             "settingKeys": [
+              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
@@ -91,6 +95,7 @@
                   "title",
                   "title_color",
                   "typography_font_size",
+                  "typography_font_size_mobile",
                   "typography_font_size_tablet",
                   "typography_font_weight"
                 ],
