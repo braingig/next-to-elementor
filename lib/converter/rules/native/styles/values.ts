@@ -30,6 +30,28 @@ export function toSlider(value: string | undefined): Record<string, unknown> | u
 }
 
 /**
+ * Map IR/CSS grid-template-columns facts to Free `grid_columns_grid`
+ * (`{ unit: "fr", size: 1..12 }` only — see Group_Control_Grid_Container).
+ * Returns undefined for unsupported / ambiguous templates (no invention).
+ */
+export function toGridColumns(
+  value: string | undefined,
+): { unit: "fr"; size: number } | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (/^([1-9]|1[0-2])$/.test(trimmed)) {
+    return { unit: "fr", size: Number(trimmed) };
+  }
+  const repeat = trimmed.match(
+    /^repeat\(\s*([1-9]|1[0-2])\s*,\s*(?:minmax\(0,\s*1fr\)|1fr)\s*\)$/i,
+  );
+  if (repeat) {
+    return { unit: "fr", size: Number(repeat[1]) };
+  }
+  return undefined;
+}
+
+/**
  * Elementor DIMENSIONS from a shorthand or equal sides.
  * "20px" → all sides 20; "8px 12px" → top/bottom 8, left/right 12.
  */

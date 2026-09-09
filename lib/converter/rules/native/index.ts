@@ -12,4 +12,8 @@ export type {
 } from "./types";
 export { elementorIdFromIrId, NativeStrategySchema } from "./types";
 export { mapIrStyleToSettings, cascadeMobileFirstToElementorTiers } from "./styles/map-style";
-export { toBoxShadow, toSlider } from "./styles/values";
+export { toBoxShadow, toSlider, toGridColumns } from "./styles/values";
+export {
+  isButtonLikeLink,
+  linkNodeAsButton,
+} from "./widgets/button-like-link";

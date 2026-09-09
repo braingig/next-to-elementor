@@ -324,7 +324,7 @@ describe("convertToNativeElementor Phase 5", () => {
     expect(s.padding_mobile).not.toMatchObject({ top: "16" });
   });
 
-  it("defers IR link (no silent button conversion)", () => {
+  it("defers plain IR link without button chrome (no silent button conversion)", () => {
     const result = convertToNativeElementor(
       doc({
         id: "wrap",

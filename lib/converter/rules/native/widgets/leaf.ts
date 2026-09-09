@@ -75,17 +75,18 @@ export function convertHeading(
     // Prefer plain title; html optional — if present use title text still for native accuracy
   }
 
-  const align = mapAlign(node.style?.typography?.textAlign);
-  if (align) {
-    settings.align =
-      align === "left" ? "start" : align === "right" ? "end" : align;
+  // Heading catalog uses start/end; remap after cascade so responsive
+  // desktop (e.g. lg:text-left) is not overwritten by the base IR value.
+  for (const key of ["align", "align_tablet", "align_mobile"] as const) {
+    const v = settings[key];
+    if (v === "left") settings[key] = "start";
+    else if (v === "right") settings[key] = "end";
   }
 
   if (node.style?.typography?.color) {
     settings.title_color = node.style.typography.color;
   }
 
-  // Drop conflicting align from map if we remapped
   return {
     decision: {
       nodeId: node.id,
@@ -124,11 +125,6 @@ export function convertText(
 
   if (node.style?.typography?.color) {
     settings.text_color = node.style.typography.color;
-  }
-  const align = mapAlign(node.style?.typography?.textAlign);
-  if (align) {
-    settings.align =
-      align === "left" ? "left" : align === "right" ? "right" : align;
   }
 
   return {

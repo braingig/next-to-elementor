@@ -1,5 +1,6 @@
 import type { IrNode } from "../../../ir/schema";
 import type { ElementorFreeCatalog } from "../../../catalog/schema";
+import { canUseControl } from "../../../catalog/compliance";
 import { mapIrStyleToSettings } from "../styles/map-style";
 import type { NativeEmit } from "./leaf";
 import {
@@ -14,6 +15,15 @@ import {
   ensureWidget,
   nonNative,
 } from "./leaf";
+import {
+  isButtonLikeLink,
+  linkNodeAsButton,
+} from "./button-like-link";
+import {
+  shouldPropagateContainerTextAlign,
+  withInheritedParentTextAlign,
+} from "./inherit-text-align";
+import { applyFlexRowChildShrinkWrap, applyFlexRowNowrapDefault } from "./flex-child-width";
 import { elementorIdFromIrId } from "../types";
 
 /** Child converter hook — Phase 6 injects native→custom→unsupported. */
@@ -94,18 +104,35 @@ export function convertContainerLike(
     settings.content_width = "full";
   }
 
+  // CSS/Tailwind flex default is nowrap; Elementor row forces mobile wrap.
+  applyFlexRowNowrapDefault(settings);
+
   if (node.props.as && ["section", "header", "footer", "main", "article", "aside", "nav", "div"].includes(node.props.as)) {
     settings.html_tag = node.props.as === "div" ? "div" : node.props.as;
   }
 
+  // Free Container cannot emit native `align`; CSS text-align would still
+  // inherit to typographic children — mirror that for Heading / Text Editor.
+  const children = shouldPropagateContainerTextAlign(
+    canUseControl(catalog, "container", "align"),
+    node.style,
+  )
+    ? node.children.map((c) => withInheritedParentTextAlign(node.style, c))
+    : node.children;
+
   const { emits, decisions } = convertChildren(
-    node.children,
+    children,
     catalog,
     convertChild,
   );
   const emittedChildren = emits
     .map((e) => e.element)
     .filter((el): el is NonNullable<typeof el> => Boolean(el));
+
+  // Flex-row child containers default to 100% width in Elementor Free CSS;
+  // shrink-wrap clusters that have no explicit IR width so justify-between
+  // bars (navbars) stay horizontal on mobile.
+  applyFlexRowChildShrinkWrap(settings, emittedChildren);
 
   return {
     decision: {
@@ -165,12 +192,7 @@ export function convertIrNode(
         convertButton(node, catalog),
       );
     case "link":
-      return nonNative(
-        node,
-        "needs-fallback",
-        "IR link has no dedicated Free Link widget; converting to Button would change semantics. Deferred to Phase 6.",
-        "semantic-ambiguous",
-      );
+      return convertLinkNode(node, catalog);
     case "icon":
       return requireLeafWithoutChildren(node, catalog, () =>
         convertIcon(node, catalog),
@@ -203,6 +225,37 @@ export function convertIrNode(
         "unsupported-node-kind",
       );
   }
+}
+
+function convertLinkNode(
+  node: IrNode & { kind: "link" },
+  catalog: ElementorFreeCatalog,
+): NativeEmit {
+  if (isButtonLikeLink(node)) {
+    return requireLeafWithoutChildren(node, catalog, () => {
+      const asButton = linkNodeAsButton(node);
+      const emit = convertButton(asButton, catalog);
+      if (emit.decision.strategy === "native") {
+        return {
+          ...emit,
+          decision: {
+            ...emit.decision,
+            irKind: "link",
+            message:
+              "Mapped button-like IR link to Free Button widget (filled/outlined chrome + padding).",
+          },
+        };
+      }
+      return emit;
+    });
+  }
+
+  return nonNative(
+    node,
+    "needs-fallback",
+    "IR link has no dedicated Free Link widget; anchor lacks button-like chrome for a faithful Button mapping.",
+    "semantic-ambiguous",
+  );
 }
 
 function convertSpacerFixed(

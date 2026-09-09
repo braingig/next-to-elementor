@@ -142,6 +142,7 @@
                 "elType": "widget",
                 "widgetType": "heading",
                 "settingKeys": [
+                  "align",
                   "header_size",
                   "title",
                   "title_color",
@@ -154,6 +155,7 @@
                 "elType": "widget",
                 "widgetType": "text-editor",
                 "settingKeys": [
+                  "align",
                   "editor",
                   "text_color",
                   "typography_font_size"
@@ -171,6 +173,8 @@
               "flex_direction_mobile",
               "flex_direction_tablet",
               "flex_gap",
+              "flex_wrap",
+              "flex_wrap_mobile",
               "html_tag"
             ],
             "children": [
@@ -188,7 +192,9 @@
                   "flex_direction",
                   "flex_gap",
                   "html_tag",
-                  "padding"
+                  "padding",
+                  "width",
+                  "width_mobile"
                 ],
                 "children": [
                   {
@@ -238,7 +244,9 @@
                   "flex_direction",
                   "flex_gap",
                   "html_tag",
-                  "padding"
+                  "padding",
+                  "width",
+                  "width_mobile"
                 ],
                 "children": [
                   {
@@ -288,7 +296,9 @@
                   "flex_direction",
                   "flex_gap",
                   "html_tag",
-                  "padding"
+                  "padding",
+                  "width",
+                  "width_mobile"
                 ],
                 "children": [
                   {

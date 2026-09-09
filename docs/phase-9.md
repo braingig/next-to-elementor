@@ -77,10 +77,11 @@ Controls remain catalog-gated (Free 4.2.4 only).
 - Margin/padding/flex/gap/alignment/typography/color/background/border/radius/responsive
 - `box-shadow`, `line-height`, and `letter-spacing` map to Free controls when the target widget exposes them; otherwise still reported via style-loss / `unsupported-css`
 - Known utilities resolve (including `w-1/2`, `border-b`, and high-confidence additions such as `p-7`, `gap-14`, `bg-*-50`, `text-6xl`, `leading-*`, `tracking-tight`, `shadow-xl`)
-- Mobile-first IR responsive styles cascade into Elementor desktop-first suffixes (`desktop` ← highest override, `_tablet` ← `md`, `_mobile` ← base)
+- Mobile-first IR responsive styles cascade into Elementor desktop-first suffixes (`desktop` ← highest override, `_tablet` ← `md` or pre-`lg` base when only `lg+` overrides exist, `_mobile` ← base)
 - `display:flex` without an explicit direction emits `flex_direction: row` (CSS/Tailwind default)
 - `maxWidth` maps to Free `content_width: boxed` + `boxed_width` when available
-- Unknown utilities → `unknown-tailwind-class` (hover/transform/grid remain unresolved when Free cannot represent them)
+- `grid-cols-1`…`grid-cols-12` map to Free `grid_columns_grid` (`fr` tracks); `md:grid-cols-*` cascades with mobile stacked when base has no column count
+- Unknown utilities → `unknown-tailwind-class` (hover/transform / unsupported grid templates remain unresolved)
 - Stylesheet class hooks are **not** falsely reported as unknown Tailwind
 
 ## Bugs fixed in Phase 9
@@ -94,7 +95,7 @@ Each fix is covered by Phase 9 / styles regression expectations.
 ## Deliberately unsupported / limited (not expanded)
 
 - Unnamed SVG icons → node-scoped custom HTML (named/`data-icon` stay native FA)
-- CSS Grid track utilities (`md:grid-cols-*`) when Free cannot represent them faithfully
+- Unsupported grid templates (`grid-cols-none`, `grid-cols-13+`, arbitrary `grid-cols-[…]`) when Free cannot represent them faithfully
 - Hover/transform interaction utilities
 - Interactive navbar behavior (menus, click handlers)
 - Full Tailwind JIT / arbitrary plugin ecosystem

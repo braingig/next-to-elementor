@@ -72,6 +72,7 @@ const COLORS: Record<string, string> = {
   "indigo-500": "#6366f1",
   "purple-50": "#faf5ff",
   "purple-500": "#a855f7",
+  "purple-600": "#9333ea",
   "pink-500": "#ec4899",
 };
 
@@ -171,6 +172,19 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   if (utility === "flex-col") return { layout: { flexDirection: "column" } };
   if (utility === "flex-wrap") return { layout: { flexWrap: "wrap" } };
   if (utility === "flex-nowrap") return { layout: { flexWrap: "nowrap" } };
+  // Free Container overflow control: "" | "hidden" | "auto"
+  if (utility === "overflow-hidden") {
+    return { layout: { overflow: "hidden" } };
+  }
+  if (utility === "overflow-auto") {
+    return { layout: { overflow: "auto" } };
+  }
+
+  // Free Container grid_columns_grid supports 1–12 fr tracks only.
+  const gridCols = utility.match(/^grid-cols-([1-9]|1[0-2])$/);
+  if (gridCols) {
+    return { layout: { gridTemplateColumns: gridCols[1]! } };
+  }
 
   const justify = utility.match(/^justify-(start|end|center|between|around|evenly)$/);
   if (justify) {

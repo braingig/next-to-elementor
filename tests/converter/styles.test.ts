@@ -224,6 +224,24 @@ describe("resolveStyles Phase 4", () => {
     });
   });
 
+  it("resolves overflow-hidden to IR layout.overflow for Free Container", () => {
+    expect(resolveTailwindUtility("overflow-hidden")).toEqual({
+      layout: { overflow: "hidden" },
+    });
+    const { style, unknown } = resolveTailwindClasses([
+      "overflow-hidden",
+      "rounded-2xl",
+    ]);
+    expect(unknown).toEqual([]);
+    expect(style.layout?.overflow).toBe("hidden");
+  });
+
+  it("resolves text-purple-600 via curated color tokens", () => {
+    expect(resolveTailwindUtility("text-purple-600")).toEqual({
+      typography: { color: "#9333ea" },
+    });
+  });
+
   it("resolves inline styles from provenance.inlineStyleRaw", () => {
     const inline = resolveInlineStyleRaw(
       "color:#0f172a;font-size:18px;background-color:#f8fafc;padding:8px 12px",

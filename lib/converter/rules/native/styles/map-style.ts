@@ -10,6 +10,7 @@ import {
   toDimensions,
   toDimensionsFromSides,
   toGaps,
+  toGridColumns,
   toSlider,
 } from "./values";
 
@@ -100,7 +101,9 @@ type CascadedTiers = {
  * Convert mobile-first IR styles into Elementor desktop-first tiers.
  *
  * - Desktop (unsuffixed) ← highest breakpoint override, else base
- * - Tablet (_tablet) ← explicit `md` override when present
+ * - Tablet (_tablet) ← `md` when present; otherwise, when the only larger
+ *   overrides are `lg`/`xl`/`2xl`, keep the pre-lg effective value (base,
+ *   then `sm`) so Elementor tablet does not inherit desktop `lg+` values
  * - Mobile (_mobile) ← base, only when that property has a responsive override
  */
 export function cascadeMobileFirstToElementorTiers(style: IrStyle): CascadedTiers {
@@ -155,6 +158,20 @@ export function cascadeMobileFirstToElementorTiers(style: IrStyle): CascadedTier
       if (overrides.md !== undefined) {
         tabGroup[key] = overrides.md;
         hasTablet = true;
+      } else if (
+        overrides.lg !== undefined ||
+        overrides.xl !== undefined ||
+        overrides["2xl"] !== undefined
+      ) {
+        // No `md:` — Elementor tablet is still below `lg`. Use the value that
+        // applies in the pre-lg band (base, then `sm`) instead of inheriting
+        // the desktop `lg+` override.
+        let tabletVal = baseVal;
+        if (overrides.sm !== undefined) tabletVal = overrides.sm;
+        if (tabletVal !== undefined && tabletVal !== deskGroup[key]) {
+          tabGroup[key] = tabletVal;
+          hasTablet = true;
+        }
       }
 
       if (baseVal !== undefined) {
@@ -208,6 +225,11 @@ export function applyIrStyleSlice(
   } else if (style.layout?.display === "flex" && suffix === "") {
     // CSS / Tailwind `display: flex` defaults to row — never invent column.
     allow("flex_direction", "row");
+  }
+  const gridColumns = toGridColumns(style.layout?.gridTemplateColumns);
+  if (gridColumns) {
+    allow("container_type", "grid", false);
+    allow("grid_columns_grid", gridColumns);
   }
   if (style.layout?.justifyContent) {
     allow("flex_justify_content", mapFlexJustify(style.layout.justifyContent));
@@ -375,6 +397,32 @@ export function mapIrStyleToSettings(
   }
   if (tiers.mobile) {
     applyIrStyleSlice(tiers.mobile, ctx, settings, "_mobile");
+  }
+
+  // CSS/Tailwind grid without base `grid-cols-*` is one column. When columns
+  // only appear at a breakpoint, Elementor would otherwise inherit desktop
+  // columns onto mobile — emit explicit mobile = 1 to preserve stacked base.
+  const baseHadColumns = Boolean(style.layout?.gridTemplateColumns);
+  const responsiveHadColumns = Object.values(style.responsive ?? {}).some(
+    (partial) => Boolean(partial?.layout?.gridTemplateColumns),
+  );
+  if (
+    !baseHadColumns &&
+    responsiveHadColumns &&
+    settings.container_type === "grid" &&
+    settings.grid_columns_grid_mobile === undefined &&
+    (settings.grid_columns_grid !== undefined ||
+      settings.grid_columns_grid_tablet !== undefined)
+  ) {
+    setIfAllowed(
+      ctx.catalog,
+      ctx.widgetId,
+      settings,
+      "grid_columns_grid",
+      { unit: "fr", size: 1 },
+      true,
+      "_mobile",
+    );
   }
 
   return settings;

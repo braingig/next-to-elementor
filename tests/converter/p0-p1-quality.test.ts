@@ -3,6 +3,7 @@ import {
   convertSource,
   loadElementorFreeCatalog,
   mapIrStyleToSettings,
+  resolveTailwindClasses,
   resolveTailwindUtility,
   toBoxShadow,
   type ElementorDocument,
@@ -146,7 +147,11 @@ describe("P1: style + Tailwind accuracy", () => {
       ["tracking-tight", true],
       ["shadow-xl", true],
       ["hover:-translate-y-1", false],
-      ["grid-cols-3", false],
+      ["grid-cols-3", true],
+      ["grid-cols-none", false],
+      ["grid-cols-13", false],
+      ["overflow-hidden", true],
+      ["text-purple-600", true],
     ];
     for (const [cls, ok] of cases) {
       if (cls.includes(":")) {
@@ -155,6 +160,17 @@ describe("P1: style + Tailwind accuracy", () => {
       }
       expect(Boolean(resolveTailwindUtility(cls)), cls).toBe(ok);
     }
+  });
+
+  it("maps overflow-hidden onto Free Container overflow control", () => {
+    const catalog = loadElementorFreeCatalog("4.2.4");
+    const { style } = resolveTailwindClasses(["overflow-hidden", "rounded-2xl"]);
+    const settings = mapIrStyleToSettings(style, {
+      catalog,
+      widgetId: "container",
+      spacingPrefix: "",
+    });
+    expect(settings.overflow).toBe("hidden");
   });
 
   it("maps box-shadow onto container Free control", () => {

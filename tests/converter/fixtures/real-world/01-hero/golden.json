@@ -70,6 +70,8 @@
           "flex_direction_mobile",
           "flex_direction_tablet",
           "flex_gap",
+          "flex_wrap",
+          "flex_wrap_mobile",
           "html_tag",
           "padding",
           "padding_mobile",
@@ -118,6 +120,8 @@
                   "content_width",
                   "flex_direction",
                   "flex_gap",
+                  "flex_wrap",
+                  "flex_wrap_mobile",
                   "html_tag"
                 ],
                 "children": [

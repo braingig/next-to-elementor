@@ -64,6 +64,8 @@
           "flex_align_items",
           "flex_direction",
           "flex_justify_content",
+          "flex_wrap",
+          "flex_wrap_mobile",
           "html_tag",
           "padding"
         ],
@@ -87,7 +89,11 @@
               "flex_align_items",
               "flex_direction",
               "flex_gap",
-              "html_tag"
+              "flex_wrap",
+              "flex_wrap_mobile",
+              "html_tag",
+              "width",
+              "width_mobile"
             ],
             "children": [
               {
