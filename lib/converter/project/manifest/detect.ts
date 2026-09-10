@@ -226,7 +226,14 @@ function pickFramework(args: {
   const hasCra = Boolean(args.deps["react-scripts"]);
   const hasReact = Boolean(args.deps.react);
 
-  if (hasNextDep || hasNextConfig || args.hasApp || args.hasPages) {
+  // A `pages/` folder alone is not enough when Vite is present without Next
+  // indicators — Vite apps commonly use `src/pages` for React Router views.
+  const pagesImpliesNext =
+    args.hasPages && !(hasVite && !hasNextDep && !hasNextConfig);
+  const looksLikeNext =
+    hasNextDep || hasNextConfig || args.hasApp || pagesImpliesNext;
+
+  if (looksLikeNext) {
     const version = args.deps.next;
     if (args.hasApp && args.hasPages) {
       return {

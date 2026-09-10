@@ -248,6 +248,33 @@ describe("project Phase 13b: Vite / CRA / plain React", () => {
     );
   });
 
+  it("does not treat Vite src/pages as Next Pages Router", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          dependencies: { react: "18.0.0", "react-router-dom": "6.0.0" },
+          devDependencies: { vite: "5.0.0" },
+        }),
+        "vite.config.ts": "export default {}",
+        "src/main.tsx": `
+          import { Routes, Route } from "react-router-dom";
+          export default function App() {
+            return (
+              <Routes>
+                <Route path="/" element={null} />
+                <Route path="/about" element={null} />
+              </Routes>
+            );
+          }
+        `,
+        "src/pages/Home.tsx":
+          "export function Home(){return <h1>Home</h1>;}",
+      }),
+    );
+    expect(analysis.manifest.framework).toBe("vite-react");
+    expect(analysis.routes.map((r) => r.path).sort()).toEqual(["/", "/about"]);
+  });
+
   it("discovers createBrowserRouter object paths", () => {
     const analysis = analyzeProjectStructure(
       vfs({

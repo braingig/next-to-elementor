@@ -6,6 +6,7 @@
  * 13c: per-route ConversionUnit → convertSource → ProjectConversionResult
  * 13d: project ZIP APIs + UI
  * 13e: dependency capability registry + thin static adapters
+ * 13f: project fixtures + integration/regression validation
  *
  * Never executes uploaded code. Does not change convertSource / section-input.
  */

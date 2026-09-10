@@ -3,6 +3,8 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { strToU8, zipSync } from "fflate";
 import {
   MAX_PROJECT_UPLOAD_BYTES,
@@ -13,6 +15,7 @@ import {
 import { runConvertRequest } from "@/app/lib/server-convert";
 import { PROJECT_LIMITS, convertProject, extractProjectZip } from "@/lib/converter";
 import { routeDownloadFilename } from "@/app/lib/project-client";
+import { zipFromFixture } from "../converter/fixtures/project/helpers";
 
 function zipFromFiles(files: Record<string, string | Uint8Array>): Uint8Array {
   const encoded: Record<string, Uint8Array> = {};
@@ -188,5 +191,73 @@ describe("Phase 13d project UI helpers", () => {
     expect(typeof mod.ConverterWorkspace).toBe("function");
     const panel = await import("@/app/components/project-zip-panel");
     expect(typeof panel.ProjectZipPanel).toBe("function");
+  });
+});
+
+describe("Phase 13f fixture-backed project API", () => {
+  it("analyzes e2e-kitchen ZIP with expected framework and routes", () => {
+    const zip = zipFromFixture("e2e-kitchen");
+    const { status, payload } = runProjectAnalyze(zip);
+    expect(status).toBe(200);
+    expect(payload.ok).toBe(true);
+    if (!payload.ok) return;
+    expect(payload.analysis.manifest.framework).toBe("next-app");
+    expect(payload.analysis.routes.map((r) => r.path).sort()).toEqual([
+      "/",
+      "/blog/[slug]",
+      "/pricing",
+    ]);
+    expect(
+      payload.analysis.routes.find((r) => r.path === "/blog/[slug]")?.isDynamic,
+    ).toBe(true);
+  });
+
+  it("converts multi-route fixture ZIP with per-route Free documents", () => {
+    const zip = zipFromFixture("next-app-basic");
+    const { status, payload } = runProjectConvert(zip);
+    expect(status).toBe(200);
+    expect(payload.ok).toBe(true);
+    if (!payload.ok) return;
+    expect(payload.result.routes).toHaveLength(2);
+    for (const route of payload.result.routes) {
+      expect(route.conversion.elementorJson).not.toBeNull();
+      expect((route.conversion.elementorJson as { version?: string })?.version).toBe(
+        "0.4",
+      );
+      expect(route.dependencies === undefined || Array.isArray(route.dependencies)).toBe(
+        true,
+      );
+    }
+    expect(JSON.stringify(payload)).not.toMatch(/\/Users\//);
+  });
+
+  it("sanitizes error payloads for malicious ZIP without host paths", () => {
+    const { status, payload } = runProjectAnalyze(strToU8("not-a-zip"));
+    expect(status).toBe(400);
+    expect(payload.ok).toBe(false);
+    if (payload.ok) return;
+    expect(JSON.stringify(payload)).not.toMatch(/\/Users\/|\/home\/|\\\\Users\\\\/);
+  });
+});
+
+describe("Phase 13f Project ZIP UI contracts", () => {
+  it("exposes analyze/convert client helpers and outcome labels", async () => {
+    const client = await import("@/app/lib/project-client");
+    expect(typeof client.requestProjectAnalyze).toBe("function");
+    expect(typeof client.requestProjectConvert).toBe("function");
+    expect(client.routeDownloadFilename("/blog/[slug]")).toBe(
+      "elementor-blog-slug.json",
+    );
+
+    const panelSrc = readFileSync(
+      join(process.cwd(), "app/components/project-zip-panel.tsx"),
+      "utf8",
+    );
+    expect(panelSrc).toContain("Complete");
+    expect(panelSrc).toContain("Partial");
+    expect(panelSrc).toContain("Failed");
+    expect(panelSrc).toContain("requestProjectAnalyze");
+    expect(panelSrc).toContain("requestProjectConvert");
+    expect(panelSrc).toContain("isDynamic");
   });
 });
