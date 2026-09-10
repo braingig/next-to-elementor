@@ -2,7 +2,8 @@
  * Converter library public surface.
  *
  * Preferred entry points:
- * - `convertSource` — end-to-end React/TSX → Elementor JSON + report
+ * - `convertSource` — end-to-end single React/TSX source → Elementor JSON + report
+ * - `convertSectionInput` / `resolveSectionInput` — virtual section folder map → same pipeline
  * - `convert` — styled IR → Elementor JSON + report
  * - `analyzeReactSource` / `resolveStyles` — lower pipeline stages
  *
@@ -91,6 +92,26 @@ export {
   ConvertSourceOptionsSchema,
   type ConvertSourceOptions,
 } from "./convert-source";
+
+export {
+  convertSectionInput,
+  resolveSectionInput,
+  normalizeVirtualFiles,
+  normalizeVirtualPath,
+  resolveEntryPath,
+  resolveImportGraph,
+  resolveModulePath,
+  toConvertSourceOptions,
+  SECTION_INPUT_LIMITS,
+  SectionInputError,
+  type VirtualFiles,
+  type ResolvedSection,
+  type ResolveSectionInputOptions,
+  type ResolveSectionResult,
+  type ConvertSectionInputOptions,
+  type SectionDiagnostic,
+  type DependencyGraph,
+} from "./section-input";
 
 export {
   parseReactSource,

@@ -33,6 +33,9 @@ if (result.outcome === "complete") {
 }
 ```
 
+Folder / multi-file sections (engine-level only; UI/API not wired yet) use
+`convertSectionInput` / `resolveSectionInput` — see [section-input.md](./section-input.md).
+
 > Note: overall status lives on `result.outcome` (`complete` | `partial` | `failed`),
 > not on `result.report`.
 

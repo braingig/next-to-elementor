@@ -13,6 +13,10 @@ import {
 import { collectLocalComponents, findEntryComponent } from "./components";
 import { addDiagnostic, type AnalyzerContext } from "./context";
 import { convertJsxRoot } from "./jsx";
+import {
+  collectStaticArrayBindings,
+  collectStaticObjectBindings,
+} from "./static-array-map";
 
 function mergeKnownComponentSources(
   ctx: AnalyzerContext,
@@ -37,6 +41,13 @@ function mergeKnownComponentSources(
           message: `knownComponentSources[${name}] did not contain an analyzable JSX-returning component.`,
         });
       }
+      // Merge static object literals from the dependency file (e.g. icons map).
+      for (const [objName, fields] of collectStaticObjectBindings(ast)) {
+        ctx.staticObjects.set(objName, fields);
+      }
+      for (const [arrName, elements] of collectStaticArrayBindings(ast)) {
+        ctx.staticArrays.set(arrName, elements);
+      }
     } catch {
       addDiagnostic(ctx, {
         severity: "warning",
@@ -58,6 +69,8 @@ export function analyzeReactAst(
 ): AnalyzeReactResult {
   const opts = AnalyzeReactOptionsSchema.parse(options);
   const localComponents = collectLocalComponents(ast);
+  const staticArrays = collectStaticArrayBindings(ast);
+  const staticObjects = collectStaticObjectBindings(ast);
 
   const ctx: AnalyzerContext = {
     source,
@@ -65,9 +78,12 @@ export function analyzeReactAst(
     sourceName: opts.sourceName,
     componentName: opts.componentName,
     localComponents,
+    staticArrays,
+    staticObjects,
     diagnostics: [],
     idCounter: { value: 0 },
     inlineDepth: 0,
+    propScopes: [],
   };
 
   mergeKnownComponentSources(ctx, opts.knownComponentSources);

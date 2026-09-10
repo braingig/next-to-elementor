@@ -7,6 +7,7 @@ import type {
 import {
   collectJsxAttributes,
   extractStaticPrimitive,
+  type StaticPropEnv,
 } from "./static-value";
 
 /** SVG / HTML void-like tags that should self-close when empty. */
@@ -31,13 +32,16 @@ const SELF_CLOSING = new Set([
  * Returns null if any dynamic expression prevents faithful serialization.
  * Never evaluates user code.
  */
-export function serializeStaticJsxElement(node: JSXElement): string | null {
+export function serializeStaticJsxElement(
+  node: JSXElement,
+  env?: StaticPropEnv,
+): string | null {
   const nameNode = node.openingElement.name;
   if (nameNode.type !== "JSXIdentifier") {
     return null;
   }
   const tag = nameNode.name.toLowerCase();
-  const attrs = collectJsxAttributes(node.openingElement.attributes);
+  const attrs = collectJsxAttributes(node.openingElement.attributes, env);
   if (attrs.dynamicAttrReasons.length > 0) {
     return null;
   }
@@ -51,14 +55,11 @@ export function serializeStaticJsxElement(node: JSXElement): string | null {
     seen.add(htmlKey);
     attrParts.push(` ${htmlKey}="${escapeXml(raw)}"`);
   }
-  if (
-    attrs.classNames.length > 0 &&
-    !seen.has("class")
-  ) {
+  if (attrs.classNames.length > 0 && !seen.has("class")) {
     attrParts.push(` class="${escapeXml(attrs.classNames.join(" "))}"`);
   }
 
-  const inner = serializeStaticJsxChildren(node.children);
+  const inner = serializeStaticJsxChildren(node.children, env);
   if (inner === null) return null;
 
   if (
@@ -71,7 +72,10 @@ export function serializeStaticJsxElement(node: JSXElement): string | null {
   return `<${tag}${attrParts.join("")}>${inner}</${tag}>`;
 }
 
-function serializeStaticJsxChildren(children: Node[]): string | null {
+function serializeStaticJsxChildren(
+  children: Node[],
+  env?: StaticPropEnv,
+): string | null {
   let out = "";
   for (const child of children) {
     if (child.type === "JSXText") {
@@ -81,19 +85,19 @@ function serializeStaticJsxChildren(children: Node[]): string | null {
     if (child.type === "JSXExpressionContainer") {
       const expr = child.expression;
       if (expr.type === "JSXEmptyExpression") continue;
-      const prim = extractStaticPrimitive(expr);
+      const prim = extractStaticPrimitive(expr, env);
       if (!prim.ok) return null;
       out += prim.value == null ? "" : escapeXml(String(prim.value));
       continue;
     }
     if (child.type === "JSXElement") {
-      const html = serializeStaticJsxElement(child);
+      const html = serializeStaticJsxElement(child, env);
       if (html === null) return null;
       out += html;
       continue;
     }
     if (child.type === "JSXFragment") {
-      const html = serializeStaticJsxFragment(child);
+      const html = serializeStaticJsxFragment(child, env);
       if (html === null) return null;
       out += html;
       continue;
@@ -103,8 +107,11 @@ function serializeStaticJsxChildren(children: Node[]): string | null {
   return out;
 }
 
-function serializeStaticJsxFragment(node: JSXFragment): string | null {
-  return serializeStaticJsxChildren(node.children);
+function serializeStaticJsxFragment(
+  node: JSXFragment,
+  env?: StaticPropEnv,
+): string | null {
+  return serializeStaticJsxChildren(node.children, env);
 }
 
 function escapeXml(value: string): string {

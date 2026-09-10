@@ -1,7 +1,31 @@
 import type { ConversionResult } from "@/lib/converter";
 import type { ConvertApiResponse } from "@/app/lib/server-convert";
 
-export type ConvertClientInput = {
+export type ConvertClientSingleFileInput = {
+  mode?: "file";
+  source: string;
+  css?: string;
+  language?: "tsx" | "jsx" | "auto";
+  title?: string;
+};
+
+export type ConvertClientFolderInput = {
+  mode: "folder";
+  files: Record<string, string>;
+  entryPath?: string;
+  componentName?: string;
+  sectionName?: string;
+  css?: string;
+  language?: "tsx" | "jsx" | "auto";
+  title?: string;
+};
+
+export type ConvertClientInput =
+  | ConvertClientSingleFileInput
+  | ConvertClientFolderInput;
+
+/** @deprecated Use ConvertClientSingleFileInput / ConvertClientInput */
+export type ConvertClientInputLegacy = {
   source: string;
   css?: string;
   language?: "tsx" | "jsx" | "auto";
@@ -10,11 +34,40 @@ export type ConvertClientInput = {
 
 export type ConvertClientResult =
   | { ok: true; result: ConversionResult }
-  | { ok: false; error: string; status?: number; details?: unknown };
+  | {
+      ok: false;
+      error: string;
+      status?: number;
+      details?: unknown;
+      code?: string;
+      diagnostics?: unknown;
+      candidates?: string[];
+    };
+
+function buildRequestBody(input: ConvertClientInput): Record<string, unknown> {
+  if (input.mode === "folder") {
+    return {
+      files: input.files,
+      ...(input.entryPath ? { entryPath: input.entryPath } : {}),
+      ...(input.componentName ? { componentName: input.componentName } : {}),
+      ...(input.sectionName ? { sectionName: input.sectionName } : {}),
+      ...(input.css !== undefined ? { css: input.css } : {}),
+      ...(input.language ? { language: input.language } : {}),
+      ...(input.title ? { title: input.title } : {}),
+    };
+  }
+
+  return {
+    source: input.source,
+    ...(input.css !== undefined ? { css: input.css } : {}),
+    ...(input.language ? { language: input.language } : {}),
+    ...(input.title ? { title: input.title } : {}),
+  };
+}
 
 /**
  * Browser-side caller for POST /api/convert.
- * Does not import Node-only converter modules.
+ * Does not import Node-only converter modules (catalog / fs).
  */
 export async function requestConvert(
   input: ConvertClientInput,
@@ -22,12 +75,7 @@ export async function requestConvert(
   const res = await fetch("/api/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      source: input.source,
-      ...(input.css !== undefined ? { css: input.css } : {}),
-      ...(input.language ? { language: input.language } : {}),
-      ...(input.title ? { title: input.title } : {}),
-    }),
+    body: JSON.stringify(buildRequestBody(input)),
   });
 
   let payload: ConvertApiResponse | null = null;
@@ -47,6 +95,9 @@ export async function requestConvert(
       error: payload.error,
       status: res.status,
       details: "details" in payload ? payload.details : undefined,
+      code: "code" in payload ? payload.code : undefined,
+      diagnostics: "diagnostics" in payload ? payload.diagnostics : undefined,
+      candidates: "candidates" in payload ? payload.candidates : undefined,
     };
   }
 

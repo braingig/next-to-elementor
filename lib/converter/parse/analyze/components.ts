@@ -9,35 +9,46 @@ import type {
   JSXFragment,
 } from "@babel/types";
 import type { LocalComponentDef } from "./context";
+import {
+  analyzeComponentParams,
+  paramNamesFromBinding,
+} from "./bind-props";
 
 type FnLike = FunctionDeclaration | ArrowFunctionExpression | FunctionExpression;
-
-function getParamNames(fn: FnLike): string[] {
-  return fn.params.map((p) => {
-    if (p.type === "Identifier") {
-      return p.name;
-    }
-    return "";
-  }).filter(Boolean);
-}
 
 function findReturnedJsx(fn: FnLike): Expression | JSXElement | JSXFragment | null {
   if (fn.body.type === "JSXElement" || fn.body.type === "JSXFragment") {
     return fn.body;
   }
+  // Arrow expression body: `() => cond ? <A/> : <B/>`
+  if (fn.body.type === "ConditionalExpression") {
+    const c = unwrapParen(fn.body.consequent);
+    const a = unwrapParen(fn.body.alternate);
+    if (
+      (c.type === "JSXElement" || c.type === "JSXFragment") &&
+      (a.type === "JSXElement" || a.type === "JSXFragment")
+    ) {
+      return fn.body;
+    }
+  }
   if (fn.body.type === "BlockStatement") {
     for (const stmt of fn.body.body) {
       if (stmt.type === "ReturnStatement" && stmt.argument) {
-        if (
-          stmt.argument.type === "JSXElement" ||
-          stmt.argument.type === "JSXFragment" ||
-          stmt.argument.type === "ParenthesizedExpression"
-        ) {
-          let arg: Expression = stmt.argument;
-          while (arg.type === "ParenthesizedExpression") {
-            arg = arg.expression;
-          }
-          if (arg.type === "JSXElement" || arg.type === "JSXFragment") {
+        let arg: Expression = stmt.argument;
+        while (arg.type === "ParenthesizedExpression") {
+          arg = arg.expression;
+        }
+        if (arg.type === "JSXElement" || arg.type === "JSXFragment") {
+          return arg;
+        }
+        // Allow `return cond ? <A/> : <B/>` so static prop-bound booleans can choose a branch.
+        if (arg.type === "ConditionalExpression") {
+          const c = unwrapParen(arg.consequent);
+          const a = unwrapParen(arg.alternate);
+          if (
+            (c.type === "JSXElement" || c.type === "JSXFragment") &&
+            (a.type === "JSXElement" || a.type === "JSXFragment")
+          ) {
             return arg;
           }
         }
@@ -45,6 +56,28 @@ function findReturnedJsx(fn: FnLike): Expression | JSXElement | JSXFragment | nu
     }
   }
   return null;
+}
+
+function unwrapParen(expr: Expression): Expression {
+  let cur = expr;
+  while (cur.type === "ParenthesizedExpression") {
+    cur = cur.expression;
+  }
+  return cur;
+}
+
+function toLocalDef(
+  name: string,
+  fn: FnLike,
+  jsxRoot: Expression | JSXElement | JSXFragment,
+): LocalComponentDef {
+  const paramBinding = analyzeComponentParams(fn);
+  return {
+    name,
+    paramNames: paramNamesFromBinding(paramBinding),
+    paramBinding,
+    jsxRoot,
+  };
 }
 
 /**
@@ -59,11 +92,7 @@ export function collectLocalComponents(ast: File): Map<string, LocalComponentDef
       if (!path.node.id) return;
       const jsxRoot = findReturnedJsx(path.node);
       if (!jsxRoot) return;
-      map.set(path.node.id.name, {
-        name: path.node.id.name,
-        paramNames: getParamNames(path.node),
-        jsxRoot,
-      });
+      map.set(path.node.id.name, toLocalDef(path.node.id.name, path.node, jsxRoot));
     },
     VariableDeclarator(path) {
       if (path.node.id.type !== "Identifier") return;
@@ -77,11 +106,7 @@ export function collectLocalComponents(ast: File): Map<string, LocalComponentDef
       }
       const jsxRoot = findReturnedJsx(init);
       if (!jsxRoot) return;
-      map.set(path.node.id.name, {
-        name: path.node.id.name,
-        paramNames: getParamNames(init),
-        jsxRoot,
-      });
+      map.set(path.node.id.name, toLocalDef(path.node.id.name, init, jsxRoot));
     },
   });
 
@@ -119,25 +144,28 @@ export function findEntryComponent(
       ) {
         const jsxRoot = findReturnedJsx(decl);
         if (jsxRoot) {
-          defaultName = decl.type === "FunctionDeclaration" && decl.id
-            ? decl.id.name
-            : "__default__";
+          defaultName =
+            decl.type === "FunctionDeclaration" && decl.id
+              ? decl.id.name
+              : "__default__";
           if (!locals.has(defaultName)) {
-            locals.set(defaultName, {
-              name: defaultName,
-              paramNames: getParamNames(decl),
-              jsxRoot,
-            });
+            locals.set(defaultName, toLocalDef(defaultName, decl, jsxRoot));
           }
         }
       }
     },
     ExportNamedDeclaration(path) {
-      if (path.node.declaration?.type === "FunctionDeclaration" && path.node.declaration.id) {
+      if (
+        path.node.declaration?.type === "FunctionDeclaration" &&
+        path.node.declaration.id
+      ) {
         namedExports.add(path.node.declaration.id.name);
       }
       for (const spec of path.node.specifiers) {
-        if (spec.type === "ExportSpecifier" && spec.exported.type === "Identifier") {
+        if (
+          spec.type === "ExportSpecifier" &&
+          spec.exported.type === "Identifier"
+        ) {
           namedExports.add(spec.exported.name);
         }
       }
@@ -158,7 +186,6 @@ export function findEntryComponent(
     return { name: defaultName, isDefault: true, jsxRoot: def.jsxRoot };
   }
 
-  // First local component (deterministic: sorted names)
   const names = [...locals.keys()].sort();
   const first = names[0];
   if (first) {
@@ -166,7 +193,6 @@ export function findEntryComponent(
     return { name: first, isDefault: false, jsxRoot: def.jsxRoot };
   }
 
-  // Top-level JSX expression statement fallback
   let topJsx: JSXElement | JSXFragment | null = null;
   for (const stmt of ast.program.body) {
     if (

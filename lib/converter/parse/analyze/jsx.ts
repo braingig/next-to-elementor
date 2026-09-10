@@ -10,11 +10,20 @@ import {
   addDiagnostic,
   emptyProvenance,
   locFromBabel,
+  lookupJsxChildren,
+  lookupJsxChildrenMember,
+  lookupPropBinding,
+  lookupPropsMember,
+  lookupStaticObjectField,
   nextId,
   uncertainNode,
   unsupportedNode,
   type AnalyzerContext,
 } from "./context";
+import {
+  attachJsxChildrenToScope,
+  bindStaticPropsFromUsage,
+} from "./bind-props";
 import {
   isFragmentName,
   isIntrinsicHtmlTag,
@@ -24,8 +33,20 @@ import {
   collectJsxAttributes,
   extractStaticBoolean,
   extractStaticPrimitive,
+  type StaticPropEnv,
 } from "./static-value";
 import { serializeStaticJsxElement } from "./serialize-jsx";
+import { convertStaticArrayMap } from "./static-array-map";
+
+function propEnvFromCtx(ctx: AnalyzerContext): StaticPropEnv {
+  return {
+    lookupIdentifier: (name) => lookupPropBinding(ctx, name),
+    lookupMember: (objectName, propName) =>
+      lookupPropsMember(ctx, objectName, propName),
+    lookupComputedMember: (objectName, key) =>
+      lookupStaticObjectField(ctx, objectName, key),
+  };
+}
 
 function getJsxElementName(node: JSXElement): string | null {
   const name = node.openingElement.name;
@@ -49,6 +70,7 @@ function getJsxElementName(node: JSXElement): string | null {
 
 function textFromJsxChildren(
   children: Node[],
+  env?: StaticPropEnv,
 ): { text: string; hasDynamic: boolean } {
   let text = "";
   let hasDynamic = false;
@@ -60,7 +82,7 @@ function textFromJsxChildren(
     if (child.type === "JSXExpressionContainer") {
       const expr = child.expression;
       if (expr.type === "JSXEmptyExpression") continue;
-      const prim = extractStaticPrimitive(expr);
+      const prim = extractStaticPrimitive(expr, env);
       if (prim.ok) {
         text += prim.value == null ? "" : String(prim.value);
       } else {
@@ -113,7 +135,7 @@ function convertExpression(ctx: AnalyzerContext, node: Node): IrNode {
     return convertLogicalAnd(ctx, node);
   }
   if (node.type === "LogicalExpression" && node.operator === "||") {
-    const leftBool = extractStaticBoolean(node.left);
+    const leftBool = extractStaticBoolean(node.left, propEnvFromCtx(ctx));
     if (leftBool.ok) {
       return convertExpression(ctx, leftBool.value ? node.left : node.right);
     }
@@ -124,24 +146,93 @@ function convertExpression(ctx: AnalyzerContext, node: Node): IrNode {
       loc: locFromBabel(node),
     });
   }
+  if (node.type === "LogicalExpression" && node.operator === "??") {
+    // Prefer primitive resolution (object lookup + fallback); otherwise unsupported.
+    const prim = extractStaticPrimitive(node, propEnvFromCtx(ctx));
+    if (prim.ok) {
+      return {
+        id: nextId(ctx),
+        kind: "text",
+        status: "ok",
+        props: { text: prim.value == null ? "" : String(prim.value) },
+        style: {},
+        provenance: emptyProvenance({
+          sourcePath: ctx.sourcePath,
+          loc: locFromBabel(node),
+        }),
+        notes: ["static-nullish-coalesce"],
+        children: [],
+      };
+    }
+    return unsupportedNode(ctx, {
+      reasonCode: "dynamic-content",
+      message:
+        "Nullish coalescing (??) could not be resolved statically (dynamic left or fallback).",
+      originalSummary: "a ?? b",
+      loc: locFromBabel(node),
+    });
+  }
+  if (node.type === "Identifier") {
+    const kids = lookupJsxChildren(ctx, node.name);
+    if (kids) {
+      const childIr = convertChildren(ctx, kids);
+      if (childIr.length === 1) {
+        return childIr[0]!;
+      }
+      return {
+        id: nextId(ctx),
+        kind: "group",
+        status: "ok",
+        props: {},
+        style: {},
+        provenance: emptyProvenance({
+          sourcePath: ctx.sourcePath,
+          loc: locFromBabel(node),
+        }),
+        notes: ["jsx-children-prop"],
+        children: childIr,
+      };
+    }
+  }
+  if (
+    node.type === "MemberExpression" &&
+    !node.computed &&
+    node.object.type === "Identifier" &&
+    node.property.type === "Identifier"
+  ) {
+    const kids = lookupJsxChildrenMember(
+      ctx,
+      node.object.name,
+      node.property.name,
+    );
+    if (kids) {
+      const childIr = convertChildren(ctx, kids);
+      if (childIr.length === 1) {
+        return childIr[0]!;
+      }
+      return {
+        id: nextId(ctx),
+        kind: "group",
+        status: "ok",
+        props: {},
+        style: {},
+        provenance: emptyProvenance({
+          sourcePath: ctx.sourcePath,
+          loc: locFromBabel(node),
+        }),
+        notes: ["jsx-children-prop"],
+        children: childIr,
+      };
+    }
+  }
   if (node.type === "ArrayExpression") {
     return convertArrayExpression(ctx, node);
   }
   if (node.type === "CallExpression") {
-    // Array.map(...) → dynamic children
-    if (
-      node.callee.type === "MemberExpression" &&
-      !node.callee.computed &&
-      node.callee.property.type === "Identifier" &&
-      node.callee.property.name === "map"
-    ) {
-      return unsupportedNode(ctx, {
-        reasonCode: "dynamic-children",
-        message:
-          "Array.map() children cannot be expanded without executing user code.",
-        originalSummary: ".map(...)",
-        loc: locFromBabel(node),
-      });
+    // Static Array.map(...) expansion (Phase E) — never executes the callback.
+    const mapped = convertStaticArrayMap(ctx, node, convertExpression);
+    if (mapped) {
+      return mapped;
     }
     return unsupportedNode(ctx, {
       reasonCode: "dynamic-content",
@@ -163,7 +254,7 @@ function convertConditional(
   ctx: AnalyzerContext,
   node: import("@babel/types").ConditionalExpression,
 ): IrNode {
-  const test = extractStaticBoolean(node.test);
+  const test = extractStaticBoolean(node.test, propEnvFromCtx(ctx));
   if (test.ok) {
     return convertExpression(ctx, test.value ? node.consequent : node.alternate);
   }
@@ -180,7 +271,7 @@ function convertLogicalAnd(
   ctx: AnalyzerContext,
   node: import("@babel/types").LogicalExpression,
 ): IrNode {
-  const left = extractStaticBoolean(node.left);
+  const left = extractStaticBoolean(node.left, propEnvFromCtx(ctx));
   if (left.ok) {
     if (!left.value) {
       // Render nothing — represent as empty group
@@ -296,7 +387,7 @@ function convertChildren(
     if (child.type === "JSXExpressionContainer") {
       const expr = child.expression;
       if (expr.type === "JSXEmptyExpression") continue;
-      const prim = extractStaticPrimitive(expr);
+      const prim = extractStaticPrimitive(expr, propEnvFromCtx(ctx));
       if (prim.ok) {
         pendingText += prim.value == null ? "" : String(prim.value);
         continue;
@@ -361,7 +452,10 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
     return convertCustomComponent(ctx, node, name);
   }
 
-  const attrs = collectJsxAttributes(node.openingElement.attributes);
+  const attrs = collectJsxAttributes(
+    node.openingElement.attributes,
+    propEnvFromCtx(ctx),
+  );
   const childrenNodes = node.children;
   const isEmpty =
     !hasElementChildren(childrenNodes) &&
@@ -411,7 +505,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
 
   switch (mapped.kind) {
     case "heading": {
-      const { text, hasDynamic } = textFromJsxChildren(childrenNodes);
+      const { text, hasDynamic } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
       if (hasElementChildren(childrenNodes)) {
         const nestedChildren = convertChildren(ctx, childrenNodes);
         return uncertainNode(
@@ -459,7 +553,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
       };
     }
     case "text": {
-      const { text, hasDynamic } = textFromJsxChildren(childrenNodes);
+      const { text, hasDynamic } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
       if (hasElementChildren(childrenNodes) || hasDynamic) {
         const nestedChildren = convertChildren(ctx, childrenNodes);
         return {
@@ -518,7 +612,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
       };
     }
     case "button": {
-      const { text } = textFromJsxChildren(childrenNodes);
+      const { text } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
       const href = attrs.attributes.href;
       return {
         id,
@@ -537,7 +631,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
       };
     }
     case "link": {
-      const { text } = textFromJsxChildren(childrenNodes);
+      const { text } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
       const href = attrs.attributes.href;
       if (!href) {
         return uncertainNode(
@@ -595,7 +689,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
         children: [],
       };
     case "icon": {
-      const svgMarkup = serializeStaticJsxElement(node);
+      const svgMarkup = serializeStaticJsxElement(node, propEnvFromCtx(ctx));
       if (svgMarkup == null) {
         return unsupportedNode(ctx, {
           reasonCode: "svg-complex",
@@ -640,7 +734,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
       };
     }
     case "list-item": {
-      const { text } = textFromJsxChildren(childrenNodes);
+      const { text } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
       return {
         id,
         kind: "list-item",
@@ -681,7 +775,7 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
         children: childIr.length
           ? childIr
           : (() => {
-              const { text } = textFromJsxChildren(childrenNodes);
+              const { text } = textFromJsxChildren(childrenNodes, propEnvFromCtx(ctx));
               return text
                 ? [
                     {
@@ -733,11 +827,37 @@ function convertCustomComponent(
   }
 
   if (local && ctx.inlineDepth < 5) {
-    // Static structural inline of same-file component JSX — no prop execution.
-    const attrs = collectJsxAttributes(node.openingElement.attributes);
+    // Static structural inline + static prop substitution — no code execution.
+    const bound = bindStaticPropsFromUsage({
+      componentName: name,
+      paramBinding: local.paramBinding,
+      attributes: node.openingElement.attributes,
+      resolveOuter: (n) => extractStaticPrimitive(n, propEnvFromCtx(ctx)),
+    });
+    for (const d of bound.diagnostics) {
+      addDiagnostic(ctx, { ...d, loc });
+    }
+
+    const { childrenBound } = attachJsxChildrenToScope({
+      scope: bound.scope,
+      paramBinding: local.paramBinding,
+      usageChildren: node.children,
+      resolveOuter: (n) => extractStaticPrimitive(n, propEnvFromCtx(ctx)),
+    });
+
+    const attrs = collectJsxAttributes(
+      node.openingElement.attributes,
+      propEnvFromCtx(ctx),
+    );
+    ctx.propScopes.push(bound.scope);
     ctx.inlineDepth += 1;
-    const inlined = convertExpression(ctx, local.jsxRoot);
-    ctx.inlineDepth -= 1;
+    let inlined: IrNode;
+    try {
+      inlined = convertExpression(ctx, local.jsxRoot);
+    } finally {
+      ctx.inlineDepth -= 1;
+      ctx.propScopes.pop();
+    }
 
     const wrapped: IrNode = {
       ...inlined,
@@ -762,17 +882,32 @@ function convertCustomComponent(
           : {}),
         loc,
       },
-      notes: [...(inlined.notes ?? []), `inlined-local-component:${name}`],
+      notes: [
+        ...(inlined.notes ?? []),
+        `inlined-local-component:${name}`,
+        ...(bound.scope.values.size > 0 || childrenBound
+          ? ["static-props-bound"]
+          : []),
+        ...(childrenBound ? ["jsx-children-bound"] : []),
+      ],
     };
 
-    // Self-closing custom with only static children from usage site
-    if (node.children.length > 0) {
+    // Append usage children only when the component did not declare/bind children.
+    if (node.children.length > 0 && !childrenBound) {
       const usageChildren = convertChildren(ctx, node.children);
       if (wrapped.kind === "container" || wrapped.kind === "group") {
-        return {
+        const withChildren = {
           ...wrapped,
           children: [...wrapped.children, ...usageChildren],
         };
+        addDiagnostic(ctx, {
+          severity: "info",
+          code: "inlined-local-component",
+          message: `Inlined same-file component <${name} /> structurally (static analysis only).`,
+          nodeId: withChildren.id,
+          loc,
+        });
+        return withChildren;
       }
     }
 

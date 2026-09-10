@@ -1,11 +1,14 @@
 export default function UnsupportedCases() {
-  const items = ["a", "b"];
+  // Dynamic receiver — must remain unsupported (not executed / not guessed).
+  const items = getItems();
   return (
     <div>
       {items.map((item) => (
         <p key={item}>{item}</p>
       ))}
-      <input type="text" value={items[0]} onChange={() => {}} />
+      <input type="text" value="x" onChange={() => {}} />
     </div>
   );
 }
+
+declare function getItems(): string[];

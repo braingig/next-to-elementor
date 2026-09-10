@@ -1,11 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from "react";
 import type { ConversionResult, ReportNodeEntry } from "@/lib/converter";
 import {
   downloadElementorJson,
   requestConvert,
 } from "@/app/lib/convert-client";
+import {
+  readFolderSelection,
+  type FolderSelection,
+} from "@/app/lib/folder-files";
 
 const SAMPLE_SOURCE = `export function HeroSection() {
   return (
@@ -30,6 +41,7 @@ const SAMPLE_SOURCE = `export function HeroSection() {
 }
 `;
 
+type InputMode = "file" | "folder";
 type UiError = string | null;
 
 function outcomeLabel(outcome: ConversionResult["outcome"]): string {
@@ -55,12 +67,19 @@ function outcomeTone(outcome: ConversionResult["outcome"]): string {
 }
 
 export function ConverterWorkspace() {
+  const [inputMode, setInputMode] = useState<InputMode>("file");
   const [source, setSource] = useState(SAMPLE_SOURCE);
   const [css, setCss] = useState("");
   const [title, setTitle] = useState("converted-section");
   const [loading, setLoading] = useState(false);
   const [uiError, setUiError] = useState<UiError>(null);
   const [result, setResult] = useState<ConversionResult | null>(null);
+
+  const [folderSelection, setFolderSelection] = useState<FolderSelection | null>(
+    null,
+  );
+  const [entryPath, setEntryPath] = useState("");
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const unsupportedNodes = useMemo(
     () =>
@@ -74,24 +93,109 @@ export function ConverterWorkspace() {
 
   const canDownload = Boolean(result?.elementorJson);
 
+  const onModeChange = useCallback((mode: InputMode) => {
+    setInputMode(mode);
+    setUiError(null);
+    setResult(null);
+  }, []);
+
+  const onFolderPicked = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const list = event.target.files;
+      setUiError(null);
+      setResult(null);
+      if (!list || list.length === 0) {
+        setFolderSelection(null);
+        setEntryPath("");
+        return;
+      }
+      try {
+        const selection = await readFolderSelection(list);
+        setFolderSelection(selection);
+        const entry =
+          selection.suggestedEntryPath ??
+          selection.entryCandidates?.[0] ??
+          selection.componentPaths[0] ??
+          "";
+        setEntryPath(entry);
+        if (selection.css) {
+          setCss(selection.css);
+        }
+        if (selection.sectionName) {
+          setTitle(selection.sectionName);
+        }
+        if (selection.entryError && !selection.suggestedEntryPath) {
+          setUiError(
+            `${selection.entryError} Select an entry file below, then Convert.`,
+          );
+        }
+      } catch (error) {
+        setFolderSelection(null);
+        setEntryPath("");
+        setUiError(
+          error instanceof Error
+            ? error.message
+            : "Failed to read the selected folder.",
+        );
+      }
+      // Allow re-selecting the same folder.
+      event.target.value = "";
+    },
+    [],
+  );
+
   const onConvert = useCallback(async () => {
     setUiError(null);
-    if (!source.trim()) {
-      setUiError("Source TSX/JSX is required.");
-      setResult(null);
-      return;
-    }
     setLoading(true);
     try {
+      if (inputMode === "file") {
+        if (!source.trim()) {
+          setUiError("Source TSX/JSX is required.");
+          setResult(null);
+          return;
+        }
+        const response = await requestConvert({
+          source,
+          css,
+          language: "auto",
+          title: title.trim() || "converted-section",
+        });
+        if (!response.ok) {
+          setResult(null);
+          setUiError(response.error);
+          return;
+        }
+        setResult(response.result);
+        return;
+      }
+
+      if (!folderSelection || folderSelection.componentPaths.length === 0) {
+        setUiError("Select a section folder that contains TSX/JSX files.");
+        setResult(null);
+        return;
+      }
+      if (!entryPath.trim()) {
+        setUiError("Choose an entry component file.");
+        setResult(null);
+        return;
+      }
+
       const response = await requestConvert({
-        source,
+        mode: "folder",
+        files: folderSelection.files,
+        entryPath: entryPath.trim(),
+        sectionName: folderSelection.sectionName,
         css,
         language: "auto",
-        title: title.trim() || "converted-section",
+        title: title.trim() || folderSelection.sectionName || "converted-section",
       });
       if (!response.ok) {
         setResult(null);
-        setUiError(response.error);
+        const extra =
+          response.candidates && response.candidates.length > 0
+            ? ` Candidates: ${response.candidates.join(", ")}`
+            : "";
+        setUiError(`${response.error}${extra}`);
         return;
       }
       setResult(response.result);
@@ -103,16 +207,21 @@ export function ConverterWorkspace() {
     } finally {
       setLoading(false);
     }
-  }, [source, css, title]);
+  }, [inputMode, source, css, title, folderSelection, entryPath]);
 
   const onClear = useCallback(() => {
-    setSource("");
+    setSource(inputMode === "file" ? "" : SAMPLE_SOURCE);
     setCss("");
     setTitle("converted-section");
     setResult(null);
     setUiError(null);
     setLoading(false);
-  }, []);
+    setFolderSelection(null);
+    setEntryPath("");
+    if (folderInputRef.current) {
+      folderInputRef.current.value = "";
+    }
+  }, [inputMode]);
 
   const onDownload = useCallback(() => {
     if (!result?.elementorJson) return;
@@ -133,14 +242,38 @@ export function ConverterWorkspace() {
           React → Elementor Free converter
         </h1>
         <p className="max-w-3xl text-base leading-relaxed text-zinc-600">
-          Paste a TSX/JSX section, optionally add CSS, convert with the Free 4.2.4
-          engine, preview the classic Elementor JSON, and download it. Conversion
-          is static analysis only — your source is never executed.
+          Convert a single TSX/JSX file or a section folder with local imports into
+          Elementor Free 4.2.4 classic JSON. Static analysis only — source is never
+          executed. Folder mode sends a virtual file map (not a server path).
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-zinc-800">Input</span>
+            <div
+              className="inline-flex rounded-lg border border-zinc-300 bg-zinc-50 p-1"
+              role="group"
+              aria-label="Input mode"
+            >
+              <ModeButton
+                active={inputMode === "file"}
+                disabled={loading}
+                onClick={() => onModeChange("file")}
+              >
+                Single File
+              </ModeButton>
+              <ModeButton
+                active={inputMode === "folder"}
+                disabled={loading}
+                onClick={() => onModeChange("folder")}
+              >
+                Section Folder
+              </ModeButton>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-1">
             <label
               htmlFor="convert-title"
@@ -157,23 +290,113 @@ export function ConverterWorkspace() {
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="convert-source"
-              className="text-sm font-medium text-zinc-800"
-            >
-              Source (TSX / JSX)
-            </label>
-            <textarea
-              id="convert-source"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              spellCheck={false}
-              disabled={loading}
-              className="min-h-[280px] resize-y rounded-lg border border-zinc-300 bg-zinc-50 p-3 font-mono text-xs leading-5 text-zinc-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200 sm:min-h-[360px] sm:text-sm"
-              placeholder="export function Section() { return <h1>Hello</h1>; }"
-            />
-          </div>
+          {inputMode === "file" ? (
+            <>
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="convert-source"
+                  className="text-sm font-medium text-zinc-800"
+                >
+                  Source (TSX / JSX)
+                </label>
+                <textarea
+                  id="convert-source"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  spellCheck={false}
+                  disabled={loading}
+                  className="min-h-[280px] resize-y rounded-lg border border-zinc-300 bg-zinc-50 p-3 font-mono text-xs leading-5 text-zinc-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200 sm:min-h-[360px] sm:text-sm"
+                  placeholder="export function Section() { return <h1>Hello</h1>; }"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-zinc-800">
+                  Section folder
+                </span>
+                <input
+                  ref={folderInputRef}
+                  id="convert-folder"
+                  type="file"
+                  multiple
+                  disabled={loading}
+                  onChange={onFolderPicked}
+                  className="block w-full text-sm text-zinc-700 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-800 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-teal-900"
+                  {...({
+                    webkitdirectory: "",
+                    directory: "",
+                  } as Record<string, string>)}
+                />
+                <p className="text-xs text-zinc-500">
+                  Selects a folder in the browser and builds a relative virtual file
+                  map (.tsx/.ts/.jsx/.js/.css). Absolute paths are never uploaded.
+                </p>
+              </div>
+
+              {folderSelection ? (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-zinc-800">
+                      Selected: {folderSelection.sectionName}/
+                    </span>
+                    <ul className="max-h-40 overflow-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs text-zinc-800">
+                      {folderSelection.textPaths.map((p) => (
+                        <li key={p}>{p}</li>
+                      ))}
+                      {folderSelection.assetPaths.map((p) => (
+                        <li key={`asset-${p}`} className="text-zinc-500">
+                          {p}{" "}
+                          <span className="italic">(asset — not uploaded)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label
+                      htmlFor="convert-entry"
+                      className="text-sm font-medium text-zinc-800"
+                    >
+                      Entry
+                    </label>
+                    <select
+                      id="convert-entry"
+                      value={entryPath}
+                      onChange={(e) => setEntryPath(e.target.value)}
+                      disabled={loading}
+                      className="rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+                    >
+                      {folderSelection.componentPaths.length === 0 ? (
+                        <option value="">No component files found</option>
+                      ) : (
+                        folderSelection.componentPaths.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  {folderSelection.assetPaths.length > 0 ? (
+                    <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                      Image/font assets were detected but are not uploaded to
+                      WordPress. Elementor will keep URL strings (for example{" "}
+                      <code className="font-mono text-xs">/assets/hero.png</code>
+                      ) — they will not resolve unless that URL exists on the
+                      target site.
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-sm text-zinc-500">
+                  No folder selected yet.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-1">
             <label
@@ -191,6 +414,13 @@ export function ConverterWorkspace() {
               className="min-h-[120px] resize-y rounded-lg border border-zinc-300 bg-zinc-50 p-3 font-mono text-xs leading-5 text-zinc-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200 sm:text-sm"
               placeholder=".hero { display: flex; }"
             />
+            {inputMode === "folder" ? (
+              <p className="text-xs text-zinc-500">
+                Folder <code className="font-mono">.css</code> files are concatenated
+                here automatically. CSS <code className="font-mono">import</code>{" "}
+                resolution is not implemented yet.
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -332,6 +562,34 @@ export function ConverterWorkspace() {
         </section>
       </div>
     </div>
+  );
+}
+
+function ModeButton({
+  active,
+  disabled,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className={`rounded-md px-3 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+        active
+          ? "bg-white text-teal-900 shadow-sm"
+          : "text-zinc-600 hover:text-zinc-900"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
