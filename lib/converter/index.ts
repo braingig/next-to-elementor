@@ -143,6 +143,7 @@ export {
   type ProjectBinaryFile,
   type ProjectIgnoredEntry,
   type ProjectDiagnostic,
+  type ProjectVirtualFsStats,
   type ExtractProjectZipOptions,
   type ExtractProjectZipResult,
   type ProjectManifest,

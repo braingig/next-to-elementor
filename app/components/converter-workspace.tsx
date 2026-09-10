@@ -17,6 +17,7 @@ import {
   readFolderSelection,
   type FolderSelection,
 } from "@/app/lib/folder-files";
+import { ProjectZipPanel } from "@/app/components/project-zip-panel";
 
 const SAMPLE_SOURCE = `export function HeroSection() {
   return (
@@ -41,7 +42,7 @@ const SAMPLE_SOURCE = `export function HeroSection() {
 }
 `;
 
-type InputMode = "file" | "folder";
+type InputMode = "file" | "folder" | "project";
 type UiError = string | null;
 
 function outcomeLabel(outcome: ConversionResult["outcome"]): string {
@@ -242,36 +243,47 @@ export function ConverterWorkspace() {
           React → Elementor Free converter
         </h1>
         <p className="max-w-3xl text-base leading-relaxed text-zinc-600">
-          Convert a single TSX/JSX file or a section folder with local imports into
-          Elementor Free 4.2.4 classic JSON. Static analysis only — source is never
-          executed. Folder mode sends a virtual file map (not a server path).
+          Convert a single TSX/JSX file, a section folder with local imports, or a
+          full React/Next project ZIP into Elementor Free 4.2.4 classic JSON.
+          Static analysis only — uploaded source is never executed.
         </p>
       </header>
 
+      <div
+        className="inline-flex rounded-lg border border-zinc-300 bg-zinc-50 p-1"
+        role="group"
+        aria-label="Input mode"
+      >
+        <ModeButton
+          active={inputMode === "file"}
+          disabled={loading}
+          onClick={() => onModeChange("file")}
+        >
+          Single File
+        </ModeButton>
+        <ModeButton
+          active={inputMode === "folder"}
+          disabled={loading}
+          onClick={() => onModeChange("folder")}
+        >
+          Section Folder
+        </ModeButton>
+        <ModeButton
+          active={inputMode === "project"}
+          disabled={loading}
+          onClick={() => onModeChange("project")}
+        >
+          Project ZIP
+        </ModeButton>
+      </div>
+
+      {inputMode === "project" ? (
+        <ProjectZipPanel />
+      ) : (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium text-zinc-800">Input</span>
-            <div
-              className="inline-flex rounded-lg border border-zinc-300 bg-zinc-50 p-1"
-              role="group"
-              aria-label="Input mode"
-            >
-              <ModeButton
-                active={inputMode === "file"}
-                disabled={loading}
-                onClick={() => onModeChange("file")}
-              >
-                Single File
-              </ModeButton>
-              <ModeButton
-                active={inputMode === "folder"}
-                disabled={loading}
-                onClick={() => onModeChange("folder")}
-              >
-                Section Folder
-              </ModeButton>
-            </div>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -561,6 +573,7 @@ export function ConverterWorkspace() {
           )}
         </section>
       </div>
+      )}
     </div>
   );
 }
