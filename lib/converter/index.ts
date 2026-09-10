@@ -113,7 +113,7 @@ export {
   type DependencyGraph,
 } from "./section-input";
 
-/** Phase 13a–13b: project ZIP VFS + framework/route discovery (no conversion). */
+/** Phase 13a–13c: project VFS + structure + per-route convertSource orchestration. */
 export {
   extractProjectZip,
   normalizeZipEntryPath,
@@ -132,6 +132,10 @@ export {
   discoverNextPagesRoutes,
   discoverSpaRoutes,
   resolveSpaEntry,
+  convertProject,
+  buildConversionUnit,
+  convertRouteUnit,
+  PROJECT_ROUTE_GRAPH_LIMITS,
   type ProjectLimits,
   type ProjectVirtualFS,
   type ProjectVfsFile,
@@ -146,6 +150,10 @@ export {
   type ProjectFrameworkKind,
   type ProjectStructureAnalysis,
   type DiscoverRoutesResult,
+  type ConversionUnit,
+  type RouteConversionResult,
+  type ProjectConversionResult,
+  type ConvertProjectOptions,
 } from "./project";
 
 export {
