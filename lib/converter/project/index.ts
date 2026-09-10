@@ -1,9 +1,11 @@
 /**
- * Project layer (Phase 13a–13c).
+ * Project layer (Phase 13a–13e).
  *
  * 13a: secure ZIP → ProjectVirtualFS
  * 13b: framework detection + route discovery
  * 13c: per-route ConversionUnit → convertSource → ProjectConversionResult
+ * 13d: project ZIP APIs + UI
+ * 13e: dependency capability registry + thin static adapters
  *
  * Never executes uploaded code. Does not change convertSource / section-input.
  */
@@ -93,3 +95,23 @@ export {
   type BuildConversionUnitOptions,
   type ConvertRouteUnitOptions,
 } from "./convert";
+
+/** Phase 13e: dependency capability registry + thin static adapters */
+export {
+  DEPENDENCY_REGISTRY,
+  lookupDependencyRegistry,
+  packageNameFromSpecifier,
+  listRegisteredPackages,
+  discoverExternalImports,
+  groupImportsByPackage,
+  analyzeRouteDependencies,
+  applyDependencyAnalysisToUnit,
+  dependencyForcesRoutePartial,
+  getAdapter,
+  type DependencyCategory,
+  type DependencyCapabilityStatus,
+  type DependencyCapability,
+  type ExternalImportHit,
+  type RouteDependencyAnalysis,
+  type RegistryEntry,
+} from "./deps";

@@ -105,6 +105,15 @@ export function toApiProjectResult(
       conversion: r.conversion,
       diagnostics: sanitizeDiagnostics(r.diagnostics),
       unit: r.unit ? toUnitSummary(r.unit) : null,
+      ...(r.dependencies
+        ? {
+            dependencies: r.dependencies.map((d) => ({
+              ...d,
+              diagnostics: sanitizeDiagnostics(d.diagnostics),
+              importedFrom: d.importedFrom.map((p) => sanitizeMessage(p)),
+            })),
+          }
+        : {}),
     })),
     projectReport: {
       ...result.projectReport,

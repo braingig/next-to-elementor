@@ -13,6 +13,7 @@ import type {
   ProjectRoute,
   ProjectStructureAnalysis,
 } from "../manifest/types";
+import type { DependencyCapability } from "../deps/types";
 
 export type LayoutCompositionMode = "composed" | "page-only" | "none";
 
@@ -47,6 +48,8 @@ export type RouteConversionResult = {
   conversion: ConversionResult;
   outcome: ConversionOutcome;
   diagnostics: ProjectDiagnostic[];
+  /** Phase 13e: route-scoped dependency capabilities (static only). */
+  dependencies?: DependencyCapability[];
 };
 
 export type ProjectReportSummary = {

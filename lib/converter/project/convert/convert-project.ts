@@ -6,21 +6,35 @@
 import { loadElementorFreeCatalog } from "../../catalog";
 import { CATALOG_SCHEMA_VERSION } from "../../catalog/schema";
 import { IR_SCHEMA_VERSION } from "../../ir/schema";
+import type { ConversionOutcome } from "../../types/decisions";
 import {
   ConversionResultSchema,
   type ConversionResult,
 } from "../../report/schema";
-import type { ConversionOutcome } from "../../types/decisions";
 import { analyzeProjectStructure } from "../routes/discover";
 import type { ProjectDiagnostic, ProjectVirtualFS } from "../types";
+import type { ProjectStructureAnalysis } from "../manifest/types";
 import { buildConversionUnit } from "./build-unit";
 import { convertRouteUnit } from "./convert-route";
+import {
+  analyzeRouteDependencies,
+  applyDependencyAnalysisToUnit,
+  dependencyForcesRoutePartial,
+} from "../deps/analyze-route";
 import type {
   ConvertProjectOptions,
   ProjectConversionResult,
   ProjectReportSummary,
   RouteConversionResult,
 } from "./types";
+
+function packageVersionsFromAnalysis(
+  analysis: ProjectStructureAnalysis,
+): Record<string, string> {
+  const pkg = analysis.manifest.packageJson;
+  if (!pkg) return {};
+  return { ...pkg.dependencies, ...pkg.devDependencies };
+}
 
 function emptyFailedConversion(
   message: string,
@@ -166,14 +180,19 @@ export function convertProject(
   }
 
   const routeResults: RouteConversionResult[] = [];
+  const packageVersions = packageVersionsFromAnalysis(analysis);
 
   for (const route of analysis.routes) {
     try {
-      const unit = buildConversionUnit(vfs, route, {
+      let unit = buildConversionUnit(vfs, route, {
         framework: analysis.manifest.framework,
         maxDependencyDepth: options.maxDependencyDepth,
         maxDependencyNodes: options.maxDependencyNodes,
       });
+
+      // Phase 13e: route-scoped static dependency analysis + thin adapters.
+      const depAnalysis = analyzeRouteDependencies(unit, packageVersions);
+      unit = applyDependencyAnalysisToUnit(unit, depAnalysis);
 
       // If unit failed to resolve a usable source and graph had hard errors,
       // still attempt convertSource when entrySource exists; else mark failed.
@@ -200,6 +219,7 @@ export function convertProject(
           ),
           outcome: "failed",
           diagnostics: unit.diagnostics,
+          dependencies: depAnalysis.dependencies,
         });
         continue;
       }
@@ -213,7 +233,22 @@ export function convertProject(
         catalogTarget,
         title: `${options.titlePrefix ?? "route"} ${route.path}`,
       });
-      routeResults.push(result);
+
+      // Keep ConversionResult intact; only adjust route-level outcome when
+      // dependency gaps force partial fidelity.
+      let outcome = result.outcome;
+      if (
+        outcome === "complete" &&
+        dependencyForcesRoutePartial(depAnalysis.dependencies)
+      ) {
+        outcome = "partial";
+      }
+
+      routeResults.push({
+        ...result,
+        outcome,
+        dependencies: depAnalysis.dependencies,
+      });
     } catch (error) {
       const message =
         error instanceof Error

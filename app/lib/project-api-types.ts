@@ -10,6 +10,7 @@ import type {
   ProjectRoute,
   ProjectVirtualFsStats,
   ConversionOutcome,
+  DependencyCapability,
 } from "@/lib/converter";
 
 export type ProjectApiError = {
@@ -44,6 +45,8 @@ export type ProjectRouteApiResult = {
   conversion: ConversionResult;
   diagnostics: ProjectDiagnostic[];
   unit: ProjectUnitSummary | null;
+  /** Phase 13e: route-scoped dependency capabilities (static classification). */
+  dependencies?: DependencyCapability[];
 };
 
 export type ProjectConvertSuccess = {

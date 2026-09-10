@@ -113,7 +113,7 @@ export {
   type DependencyGraph,
 } from "./section-input";
 
-/** Phase 13a–13c: project VFS + structure + per-route convertSource orchestration. */
+/** Phase 13a–13e: project VFS + structure + per-route convert + dependency registry. */
 export {
   extractProjectZip,
   normalizeZipEntryPath,
@@ -136,6 +136,15 @@ export {
   buildConversionUnit,
   convertRouteUnit,
   PROJECT_ROUTE_GRAPH_LIMITS,
+  DEPENDENCY_REGISTRY,
+  lookupDependencyRegistry,
+  packageNameFromSpecifier,
+  listRegisteredPackages,
+  discoverExternalImports,
+  analyzeRouteDependencies,
+  applyDependencyAnalysisToUnit,
+  dependencyForcesRoutePartial,
+  getAdapter,
   type ProjectLimits,
   type ProjectVirtualFS,
   type ProjectVfsFile,
@@ -155,6 +164,10 @@ export {
   type RouteConversionResult,
   type ProjectConversionResult,
   type ConvertProjectOptions,
+  type DependencyCategory,
+  type DependencyCapabilityStatus,
+  type DependencyCapability,
+  type RouteDependencyAnalysis,
 } from "./project";
 
 export {
