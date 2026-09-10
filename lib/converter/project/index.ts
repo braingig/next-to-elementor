@@ -1,7 +1,9 @@
 /**
- * Project ZIP ingestion (Phase 13a).
+ * Project layer (Phase 13a–13b).
  *
- * Secure extract → ProjectVirtualFS. No route discovery / conversion yet.
+ * 13a: secure ZIP → ProjectVirtualFS
+ * 13b: framework detection + route discovery (no conversion)
+ *
  * Never executes uploaded code. Does not change convertSource / section-input.
  */
 
@@ -22,6 +24,8 @@ export {
   extensionOf,
   stripRootPrefix,
 } from "./fs/virtual";
+
+export { createProjectVirtualFSFromTextFiles } from "./fs/from-text";
 
 export {
   parseZipCentralDirectory,
@@ -50,3 +54,24 @@ export {
   type ExtractProjectZipSuccess,
   type ExtractProjectZipFailure,
 } from "./types";
+
+export { detectFramework } from "./manifest/detect";
+export type {
+  DetectionConfidence,
+  ProjectFrameworkKind,
+  ProjectStyleSystem,
+  ProjectPackageJsonSummary,
+  ProjectManifest,
+  ProjectRoute,
+  ProjectRouteSource,
+  DiscoverRoutesResult,
+  ProjectStructureAnalysis,
+} from "./manifest/types";
+
+export {
+  analyzeProjectStructure,
+  discoverProjectRoutes,
+} from "./routes/discover";
+export { discoverNextAppRoutes } from "./routes/next-app";
+export { discoverNextPagesRoutes } from "./routes/next-pages";
+export { discoverSpaRoutes, resolveSpaEntry } from "./routes/spa";

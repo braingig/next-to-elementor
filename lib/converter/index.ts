@@ -113,7 +113,7 @@ export {
   type DependencyGraph,
 } from "./section-input";
 
-/** Phase 13a: secure project ZIP → ProjectVirtualFS (no route conversion yet). */
+/** Phase 13a–13b: project ZIP VFS + framework/route discovery (no conversion). */
 export {
   extractProjectZip,
   normalizeZipEntryPath,
@@ -123,7 +123,15 @@ export {
   matchIgnoredPath,
   classifyProjectFileBytes,
   detectSingleRootPrefix,
+  createProjectVirtualFSFromTextFiles,
   ProjectZipError,
+  detectFramework,
+  analyzeProjectStructure,
+  discoverProjectRoutes,
+  discoverNextAppRoutes,
+  discoverNextPagesRoutes,
+  discoverSpaRoutes,
+  resolveSpaEntry,
   type ProjectLimits,
   type ProjectVirtualFS,
   type ProjectVfsFile,
@@ -133,6 +141,11 @@ export {
   type ProjectDiagnostic,
   type ExtractProjectZipOptions,
   type ExtractProjectZipResult,
+  type ProjectManifest,
+  type ProjectRoute,
+  type ProjectFrameworkKind,
+  type ProjectStructureAnalysis,
+  type DiscoverRoutesResult,
 } from "./project";
 
 export {
