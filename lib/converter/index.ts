@@ -113,6 +113,28 @@ export {
   type DependencyGraph,
 } from "./section-input";
 
+/** Phase 13a: secure project ZIP → ProjectVirtualFS (no route conversion yet). */
+export {
+  extractProjectZip,
+  normalizeZipEntryPath,
+  PROJECT_LIMITS,
+  resolveProjectLimits,
+  PROJECT_IGNORE_SEGMENT_NAMES,
+  matchIgnoredPath,
+  classifyProjectFileBytes,
+  detectSingleRootPrefix,
+  ProjectZipError,
+  type ProjectLimits,
+  type ProjectVirtualFS,
+  type ProjectVfsFile,
+  type ProjectTextFile,
+  type ProjectBinaryFile,
+  type ProjectIgnoredEntry,
+  type ProjectDiagnostic,
+  type ExtractProjectZipOptions,
+  type ExtractProjectZipResult,
+} from "./project";
+
 export {
   parseReactSource,
   analyzeReactAst,
