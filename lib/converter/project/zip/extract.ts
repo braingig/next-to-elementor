@@ -1,8 +1,10 @@
 /**
- * Safe project ZIP → ProjectVirtualFS (Phase 13a).
+ * Safe project ZIP → ProjectVirtualFS (Phase 13a + 14a admission).
  *
  * Never executes project code, never reads host paths from ZIP names,
  * never installs dependencies. Inflates only after central-directory checks.
+ * Phase 14a: separate source vs binary limits; soft-skip oversized binaries.
+ * No image decoding / compression.
  */
 
 import { unzipSync } from "fflate";
@@ -11,7 +13,9 @@ import { matchIgnoredPath } from "../ignore";
 import { resolveProjectLimits, type ProjectLimits } from "../limits";
 import {
   classifyProjectFileBytes,
+  classifyProjectPathAdmission,
   detectSingleRootPrefix,
+  isBinaryAdmissionKind,
   stripRootPrefix,
 } from "../fs/virtual";
 import {
@@ -67,6 +71,20 @@ function pushError(
   });
 }
 
+function pushWarning(
+  diagnostics: ProjectDiagnostic[],
+  code: string,
+  message: string,
+  path?: string,
+): void {
+  diagnostics.push({
+    severity: "warning",
+    code,
+    message,
+    ...(path ? { path } : {}),
+  });
+}
+
 /**
  * Normalize a ZIP entry name into a virtual root-relative POSIX path.
  * Returns null when absolute / traversal / empty after normalize.
@@ -99,7 +117,11 @@ function planEntries(
   cdEntries: ZipCdEntry[],
   limits: ProjectLimits,
   diagnostics: ProjectDiagnostic[],
-): { planned: PlannedEntry[]; ignored: ProjectIgnoredEntry[] } | null {
+): {
+  planned: PlannedEntry[];
+  ignored: ProjectIgnoredEntry[];
+  skippedBinaryAssetCount: number;
+} | null {
   if (cdEntries.length > limits.maxArchiveEntries) {
     pushError(
       diagnostics,
@@ -113,6 +135,9 @@ function planEntries(
   let totalCompressed = 0;
   const planned: PlannedEntry[] = [];
   const ignored: ProjectIgnoredEntry[] = [];
+  let admittedBinaryBytes = 0;
+  let skippedBinaryAssetCount = 0;
+  let emittedTotalBudgetWarning = false;
 
   for (const cd of cdEntries) {
     totalUncompressed += cd.uncompressedSize;
@@ -201,16 +226,79 @@ function planEntries(
       continue;
     }
 
-    if (cd.uncompressedSize > limits.maxFileBytes) {
-      pushError(
-        diagnostics,
-        "file-byte-limit",
-        `File exceeds ${limits.maxFileBytes} byte limit: ${normalized} (${cd.uncompressedSize} bytes)`,
+    const admission = classifyProjectPathAdmission(normalized);
+    const size = cd.uncompressedSize;
+
+    if (!isBinaryAdmissionKind(admission)) {
+      // Source/text — hard fail when over source limit.
+      if (size > limits.maxSourceFileBytes) {
+        pushError(
+          diagnostics,
+          "file-byte-limit",
+          `Source/text file exceeds ${limits.maxSourceFileBytes} byte limit: ${normalized} (${size} bytes)`,
+          normalized,
+        );
+        return null;
+      }
+      planned.push({
+        rawName: cd.fileName,
         normalized,
-      );
-      return null;
+        cd,
+        ignored: false,
+      });
+      continue;
     }
 
+    // Binary asset / other binary — soft-skip when over per-asset or total budget.
+    if (size > limits.maxBinaryAssetBytes) {
+      skippedBinaryAssetCount += 1;
+      ignored.push({ path: normalized, reason: "asset-file-byte-limit" });
+      pushWarning(
+        diagnostics,
+        "asset-file-byte-limit",
+        `Binary asset exceeds ${limits.maxBinaryAssetBytes} byte limit and was skipped: ${normalized} (${size} bytes)`,
+        normalized,
+      );
+      planned.push({
+        rawName: cd.fileName,
+        normalized,
+        cd,
+        ignored: true,
+        ignoreReason: "asset-file-byte-limit",
+      });
+      continue;
+    }
+
+    if (admittedBinaryBytes + size > limits.maxBinaryAssetsTotalBytes) {
+      skippedBinaryAssetCount += 1;
+      ignored.push({ path: normalized, reason: "asset-total-byte-limit" });
+      if (!emittedTotalBudgetWarning) {
+        emittedTotalBudgetWarning = true;
+        pushWarning(
+          diagnostics,
+          "asset-total-byte-limit",
+          `Binary asset total budget of ${limits.maxBinaryAssetsTotalBytes} bytes exceeded; further binary assets are skipped (first skipped: ${normalized}, ${size} bytes).`,
+          normalized,
+        );
+      } else {
+        pushWarning(
+          diagnostics,
+          "asset-total-byte-limit",
+          `Binary asset skipped after total budget exceeded: ${normalized} (${size} bytes)`,
+          normalized,
+        );
+      }
+      planned.push({
+        rawName: cd.fileName,
+        normalized,
+        cd,
+        ignored: true,
+        ignoreReason: "asset-total-byte-limit",
+      });
+      continue;
+    }
+
+    admittedBinaryBytes += size;
     planned.push({
       rawName: cd.fileName,
       normalized,
@@ -260,7 +348,7 @@ function planEntries(
     return null;
   }
 
-  return { planned, ignored };
+  return { planned, ignored, skippedBinaryAssetCount };
 }
 
 function applyRootStrip(
@@ -310,6 +398,7 @@ function applyRootStrip(
 /**
  * Extract an untrusted project ZIP into a ProjectVirtualFS.
  * Sync API (matches section-input style). Does not touch the host filesystem.
+ * Does not decode or recompress images (Phase 14a).
  */
 export function extractProjectZip(
   input: Uint8Array | ArrayBuffer | Buffer,
@@ -402,26 +491,19 @@ export function extractProjectZip(
   let textFileCount = 0;
   let binaryFileCount = 0;
   let keptBytes = 0;
+  let admittedBinaryBytes = 0;
+  let skippedBinaryAssetCount = plannedResult.skippedBinaryAssetCount;
+  const postIgnored: ProjectIgnoredEntry[] = [...stripped.ignored];
 
-  for (const [rawName, bytes] of Object.entries(inflated)) {
+  // Deterministic inflate processing order.
+  const inflatedEntries = Object.entries(inflated).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+
+  for (const [rawName, bytes] of inflatedEntries) {
     const normalized = rawToNormalized.get(rawName);
     if (!normalized) {
       continue;
-    }
-
-    if (bytes.byteLength > limits.maxFileBytes) {
-      return fail(
-        "file-byte-limit",
-        `Inflated file exceeds ${limits.maxFileBytes} byte limit: ${normalized} (${bytes.byteLength} bytes)`,
-        [
-          {
-            severity: "error",
-            code: "file-byte-limit",
-            message: `Inflated file exceeds ${limits.maxFileBytes} byte limit: ${normalized} (${bytes.byteLength} bytes)`,
-            path: normalized,
-          },
-        ],
-      );
     }
 
     if (normalized in files) {
@@ -437,6 +519,53 @@ export function extractProjectZip(
           },
         ],
       );
+    }
+
+    const admission = classifyProjectPathAdmission(normalized);
+    const size = bytes.byteLength;
+
+    if (!isBinaryAdmissionKind(admission)) {
+      if (size > limits.maxSourceFileBytes) {
+        return fail(
+          "file-byte-limit",
+          `Inflated source/text file exceeds ${limits.maxSourceFileBytes} byte limit: ${normalized} (${size} bytes)`,
+          [
+            {
+              severity: "error",
+              code: "file-byte-limit",
+              message: `Inflated source/text file exceeds ${limits.maxSourceFileBytes} byte limit: ${normalized} (${size} bytes)`,
+              path: normalized,
+            },
+          ],
+        );
+      }
+    } else {
+      if (size > limits.maxBinaryAssetBytes) {
+        skippedBinaryAssetCount += 1;
+        postIgnored.push({ path: normalized, reason: "asset-file-byte-limit" });
+        pushWarning(
+          diagnostics,
+          "asset-file-byte-limit",
+          `Inflated binary asset exceeds ${limits.maxBinaryAssetBytes} byte limit and was skipped: ${normalized} (${size} bytes)`,
+          normalized,
+        );
+        continue;
+      }
+      if (admittedBinaryBytes + size > limits.maxBinaryAssetsTotalBytes) {
+        skippedBinaryAssetCount += 1;
+        postIgnored.push({
+          path: normalized,
+          reason: "asset-total-byte-limit",
+        });
+        pushWarning(
+          diagnostics,
+          "asset-total-byte-limit",
+          `Inflated binary asset skipped after total budget exceeded: ${normalized} (${size} bytes)`,
+          normalized,
+        );
+        continue;
+      }
+      admittedBinaryBytes += size;
     }
 
     const file = classifyProjectFileBytes(normalized, bytes);
@@ -463,7 +592,7 @@ export function extractProjectZip(
 
   const vfs: ProjectVirtualFS = {
     files,
-    ignored: stripped.ignored,
+    ignored: postIgnored,
     diagnostics,
     limitsApplied: limits,
     stats: {
@@ -473,7 +602,10 @@ export function extractProjectZip(
       fileCount,
       textFileCount,
       binaryFileCount,
-      ignoredCount: stripped.ignored.length,
+      ignoredCount: postIgnored.length,
+      ...(skippedBinaryAssetCount > 0
+        ? { skippedBinaryAssetCount }
+        : {}),
       ...(stripped.rootPrefixStripped
         ? { rootPrefixStripped: stripped.rootPrefixStripped }
         : {}),

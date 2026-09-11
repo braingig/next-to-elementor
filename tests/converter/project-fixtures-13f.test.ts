@@ -547,6 +547,8 @@ describe("Phase 13f: malicious ZIP + limits + security", () => {
     assertProjectLimitsSeparateFromSection(expect);
     expect(PROJECT_LIMITS.maxFiles).toBe(500);
     expect(SECTION_INPUT_LIMITS.maxFiles).toBe(50);
+    expect(PROJECT_LIMITS.maxSourceFileBytes).toBe(1 * 1024 * 1024);
+    expect(PROJECT_LIMITS.maxBinaryAssetBytes).toBe(5 * 1024 * 1024);
   });
 
   it("never runs package managers during fixture convert", () => {

@@ -17,10 +17,18 @@ import {
   collectStaticArrayBindings,
   collectStaticObjectBindings,
 } from "./static-array-map";
+import {
+  buildImportBindingMap,
+  buildModuleStaticRegistry,
+  mapKnownComponentsToModulePaths,
+} from "./static-module-exports";
 
 function mergeKnownComponentSources(
   ctx: AnalyzerContext,
   known: Record<string, string>,
+  moduleSources: Record<string, string>,
+  pathAliases: AnalyzeReactOptions["pathAliases"],
+  componentPaths: Map<string, string>,
 ): void {
   for (const [name, source] of Object.entries(known).sort(([a], [b]) =>
     a.localeCompare(b),
@@ -41,12 +49,21 @@ function mergeKnownComponentSources(
           message: `knownComponentSources[${name}] did not contain an analyzable JSX-returning component.`,
         });
       }
-      // Merge static object literals from the dependency file (e.g. icons map).
-      for (const [objName, fields] of collectStaticObjectBindings(ast)) {
-        ctx.staticObjects.set(objName, fields);
-      }
-      for (const [arrName, elements] of collectStaticArrayBindings(ast)) {
-        ctx.staticArrays.set(arrName, elements);
+      // Per-component scope — never flatten into entry staticArrays/staticObjects.
+      ctx.componentStaticObjects.set(name, collectStaticObjectBindings(ast));
+      ctx.componentStaticArrays.set(name, collectStaticArrayBindings(ast));
+
+      const fromPath = componentPaths.get(name);
+      if (fromPath && Object.keys(moduleSources).length > 0) {
+        ctx.componentImportBindings.set(
+          name,
+          buildImportBindingMap({
+            ast,
+            fromPath,
+            moduleSources,
+            pathAliases,
+          }),
+        );
       }
     } catch {
       addDiagnostic(ctx, {
@@ -71,6 +88,24 @@ export function analyzeReactAst(
   const localComponents = collectLocalComponents(ast);
   const staticArrays = collectStaticArrayBindings(ast);
   const staticObjects = collectStaticObjectBindings(ast);
+  const moduleSources = opts.moduleSources ?? {};
+  const pathAliases = opts.pathAliases;
+  const moduleStaticRegistry = buildModuleStaticRegistry(moduleSources);
+  const componentPaths = mapKnownComponentsToModulePaths(
+    opts.knownComponentSources,
+    moduleSources,
+  );
+
+  const entryPath = opts.sourcePath ?? "entry.tsx";
+  const entryImportBindings =
+    Object.keys(moduleSources).length > 0
+      ? buildImportBindingMap({
+          ast,
+          fromPath: entryPath,
+          moduleSources,
+          pathAliases,
+        })
+      : new Map();
 
   const ctx: AnalyzerContext = {
     source,
@@ -80,13 +115,26 @@ export function analyzeReactAst(
     localComponents,
     staticArrays,
     staticObjects,
+    componentStaticArrays: new Map(),
+    componentStaticObjects: new Map(),
+    inlineComponentStack: [],
+    moduleStaticRegistry,
+    entryImportBindings,
+    componentImportBindings: new Map(),
     diagnostics: [],
     idCounter: { value: 0 },
     inlineDepth: 0,
+    passthroughDepth: 0,
     propScopes: [],
   };
 
-  mergeKnownComponentSources(ctx, opts.knownComponentSources);
+  mergeKnownComponentSources(
+    ctx,
+    opts.knownComponentSources,
+    moduleSources,
+    pathAliases,
+    componentPaths,
+  );
 
   const entry = findEntryComponent(ast, opts.componentName);
   if (!entry) {
@@ -163,5 +211,7 @@ export function analyzeReactSource(
     sourceName: options.sourceName,
     componentName: options.componentName,
     knownComponentSources: options.knownComponentSources,
+    moduleSources: options.moduleSources,
+    pathAliases: options.pathAliases,
   });
 }

@@ -11,7 +11,11 @@ export type ToConvertOptionsInput = {
   /** Extra convertSource fields (css, title, catalog, …). Never overrides entry wiring. */
   convert?: Omit<
     ConvertSourceOptions,
-    "source" | "knownComponentSources" | "sourcePath" | "componentName"
+    | "source"
+    | "knownComponentSources"
+    | "moduleSources"
+    | "sourcePath"
+    | "componentName"
   > & {
     /** Optional override; defaults to resolved.entryComponentName */
     componentName?: string;
@@ -46,5 +50,6 @@ export function toConvertSourceOptions(
     sourceName: sourceName ?? defaultSourceName(resolved.entryPath),
     componentName: overrideName ?? resolved.entryComponentName,
     knownComponentSources: { ...resolved.knownComponentSources },
+    moduleSources: { ...resolved.moduleSources },
   };
 }

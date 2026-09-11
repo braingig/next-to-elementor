@@ -91,6 +91,8 @@ export function convertRouteUnit(
           path: unit.entryFile,
         },
       ],
+      assets: unit.assets,
+      assetReferences: unit.assetReferences,
     };
   }
 
@@ -102,6 +104,7 @@ export function convertRouteUnit(
       sourceName: unit.route.id,
       language: languageForPath(unit.route.entryFile),
       knownComponentSources: unit.knownComponentSources,
+      moduleSources: unit.moduleSources,
       css: unit.css,
       catalogTarget,
       title: options.title ?? `route ${unit.route.path}`,
@@ -183,5 +186,7 @@ export function convertRouteUnit(
     conversion,
     outcome: conversion.outcome,
     diagnostics,
+    assets: unit.assets,
+    assetReferences: unit.assetReferences,
   };
 }

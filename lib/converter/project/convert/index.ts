@@ -16,4 +16,4 @@ export {
 export { buildConversionUnit } from "./build-unit";
 export { collectRouteScopedCss } from "./collect-css";
 export { convertRouteUnit, type ConvertRouteUnitOptions } from "./convert-route";
-export { convertProject } from "./convert-project";
+export { convertProject, convertProjectAsync } from "./convert-project";

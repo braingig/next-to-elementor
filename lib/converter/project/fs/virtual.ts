@@ -42,6 +42,18 @@ const TEXT_EXTENSIONS = new Set([
   ".browserslist",
 ]);
 
+/** Common image formats admitted under binary-asset limits (Phase 14a). */
+const BINARY_ASSET_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".ico",
+  ".bmp",
+  ".avif",
+]);
+
 const TEXT_BASENAMES = new Set([
   "dockerfile",
   "makefile",
@@ -50,6 +62,11 @@ const TEXT_BASENAMES = new Set([
   "readme",
   "changelog",
 ]);
+
+export type ProjectPathAdmissionKind =
+  | "source-text"
+  | "binary-asset"
+  | "other-binary";
 
 export function extensionOf(path: string): string {
   const base = path.includes("/") ? path.slice(path.lastIndexOf("/") + 1) : path;
@@ -65,6 +82,33 @@ function basenameLower(path: string): string {
 
 function hasNul(bytes: Uint8Array): boolean {
   return bytes.includes(0);
+}
+
+/**
+ * Path-only admission class (Phase 14a) — no decoding.
+ * SVG stays source/text; png/jpeg/webp/gif are binary assets.
+ */
+export function classifyProjectPathAdmission(
+  path: string,
+): ProjectPathAdmissionKind {
+  const extension = extensionOf(path);
+  if (
+    TEXT_EXTENSIONS.has(extension) ||
+    TEXT_BASENAMES.has(basenameLower(path)) ||
+    extension === ""
+  ) {
+    return "source-text";
+  }
+  if (BINARY_ASSET_EXTENSIONS.has(extension)) {
+    return "binary-asset";
+  }
+  return "other-binary";
+}
+
+export function isBinaryAdmissionKind(
+  kind: ProjectPathAdmissionKind,
+): boolean {
+  return kind === "binary-asset" || kind === "other-binary";
 }
 
 /**

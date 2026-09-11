@@ -45,9 +45,12 @@ classified without engines.
 
 ## Deferred (Phase 14+)
 
-Full path-alias resolution, CSS modules / SCSS compilation, chart/carousel/
-animation engines, WordPress media upload, Elementor import, async jobs,
-Playwright project visual testing.
+- **14a (done in tree):** separate source vs binary ZIP admission limits — see [phase-14.md](./phase-14.md)
+- Full path-alias resolution, CSS modules / SCSS compilation
+- Chart/carousel/animation engines
+- WordPress media upload, Elementor import, async jobs
+- Automatic image compression (deferred until a real asset/media pipeline)
+- Playwright project visual testing
 
 ## APIs
 

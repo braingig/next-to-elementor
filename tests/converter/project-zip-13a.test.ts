@@ -307,7 +307,7 @@ describe("project Phase 13a: extractProjectZip", () => {
     expect(result.error.code).toBe("uncompressed-size-limit");
   });
 
-  it("enforces individual file size limit", () => {
+  it("enforces individual source file size limit", () => {
     const zip = zipFromFiles({
       "huge.tsx": "x".repeat(2000),
     });

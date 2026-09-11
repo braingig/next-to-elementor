@@ -49,6 +49,23 @@ export type ProjectRouteApiResult = {
   dependencies?: DependencyCapability[];
 };
 
+export type ProjectMediaApiSummary = {
+  enabled: boolean;
+  uploadedCount: number;
+  reusedCount: number;
+  failedCount: number;
+  skippedCount: number;
+  uploads: Array<{
+    assetPath: string;
+    status: "uploaded" | "reused" | "failed" | "skipped";
+    url?: string;
+    attachmentId?: string;
+    skipReason?: string;
+    errorCode?: string;
+    message?: string;
+  }>;
+};
+
 export type ProjectConvertSuccess = {
   ok: true;
   result: {
@@ -67,6 +84,8 @@ export type ProjectConvertSuccess = {
       message: string;
     };
     diagnostics: ProjectDiagnostic[];
+    /** Phase 14c: present only when media was enabled for this convert. */
+    media?: ProjectMediaApiSummary;
   };
 };
 

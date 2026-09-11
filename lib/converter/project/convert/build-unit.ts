@@ -96,6 +96,7 @@ function resolveRouteGraph(
   files: Record<string, string>,
   entryPath: string,
   limits: { maxDependencyDepth: number; maxDependencyNodes: number },
+  pathAliases?: Record<string, string[]>,
 ): ResolvedGraph {
   const result = resolveImportGraph({
     files,
@@ -104,6 +105,7 @@ function resolveRouteGraph(
       maxDependencyDepth: limits.maxDependencyDepth,
       maxDependencyNodes: limits.maxDependencyNodes,
     },
+    pathAliases,
   });
 
   if (!result.ok) {
@@ -252,6 +254,7 @@ export function buildConversionUnit(
     componentFiles,
     route.entryFile,
     limits,
+    options.pathAliases,
   );
 
   if (!pageGraph.ok) {
@@ -318,7 +321,12 @@ export function buildConversionUnit(
         break;
       }
 
-      const layoutGraph = resolveRouteGraph(componentFiles, layoutPath, limits);
+      const layoutGraph = resolveRouteGraph(
+        componentFiles,
+        layoutPath,
+        limits,
+        options.pathAliases,
+      );
       if (!layoutGraph.ok) {
         diagnostics.push(...layoutGraph.diagnostics);
         diagnostics.push({

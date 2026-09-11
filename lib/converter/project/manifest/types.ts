@@ -58,7 +58,8 @@ export type ProjectRouteSource =
   | "app-router"
   | "pages-router"
   | "spa-entry"
-  | "react-router-static";
+  | "react-router-static"
+  | "tanstack-file-route";
 
 /**
  * One visual conversion unit candidate for Phase 13c.

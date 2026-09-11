@@ -7,6 +7,8 @@
  * 13d: project ZIP APIs + UI
  * 13e: dependency capability registry + thin static adapters
  * 13f: project fixtures + integration/regression validation
+ * 14a: separate source vs binary-asset ZIP admission limits
+ * 14b: static asset discovery + VFS path mapping (no WP media / compression)
  *
  * Never executes uploaded code. Does not change convertSource / section-input.
  */
@@ -15,6 +17,7 @@ export {
   PROJECT_LIMITS,
   resolveProjectLimits,
   type ProjectLimits,
+  type ProjectLimitsInput,
 } from "./limits";
 
 export {
@@ -24,9 +27,12 @@ export {
 
 export {
   classifyProjectFileBytes,
+  classifyProjectPathAdmission,
+  isBinaryAdmissionKind,
   detectSingleRootPrefix,
   extensionOf,
   stripRootPrefix,
+  type ProjectPathAdmissionKind,
 } from "./fs/virtual";
 
 export { createProjectVirtualFSFromTextFiles } from "./fs/from-text";
@@ -83,6 +89,7 @@ export { discoverSpaRoutes, resolveSpaEntry } from "./routes/spa";
 /** Phase 13c: per-route ConversionUnit → convertSource → ProjectConversionResult */
 export {
   convertProject,
+  convertProjectAsync,
   buildConversionUnit,
   convertRouteUnit,
   collectRouteScopedCss,
@@ -116,3 +123,45 @@ export {
   type RouteDependencyAnalysis,
   type RegistryEntry,
 } from "./deps";
+
+/** Phase 14b: static asset discovery + VFS mapping */
+export {
+  discoverRouteAssets,
+  IMAGE_ASSET_EXTENSIONS,
+  isImageAssetPath,
+  resolveAssetSpecifierToPath,
+  lookupAssetInVfs,
+  type ProjectAsset,
+  type ProjectAssetKind,
+  type ProjectAssetReference,
+  type ProjectAssetReferenceKind,
+  type ProjectAssetReferenceStatus,
+  type RouteAssetDiscoveryResult,
+} from "./assets";
+
+/** Phase 14c/14d: opt-in WordPress media upload + pre-convert rewrite + optimize */
+export {
+  runProjectMediaPipeline,
+  rewriteConversionUnitMediaUrls,
+  createWordPressMediaClient,
+  readWordPressMediaConfigFromEnv,
+  validateWordPressMediaConfig,
+  WP_MEDIA_ENV,
+  MEDIA_UPLOAD_EXTENSIONS,
+  MEDIA_OPTIMIZE_ENV,
+  MEDIA_OPTIMIZE_LIMITS,
+  MEDIA_OPTIMIZE_EXTENSIONS,
+  optimizeAsset,
+  isMediaOptimizeEnabledFromEnv,
+  resetSharpCacheForTests,
+  type ProjectMediaClient,
+  type ProjectMediaUploadRequest,
+  type ProjectMediaUploadResult,
+  type ProjectMediaOptimizationMeta,
+  type ProjectMediaPipelineOptions,
+  type ProjectMediaSummary,
+  type ProjectMediaPipelineResult,
+  type ProjectWordPressMediaConfig,
+  type MediaOptimizationStatus,
+  type AssetOptimizationResult,
+} from "./media";

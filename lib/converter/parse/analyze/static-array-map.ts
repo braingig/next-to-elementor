@@ -18,6 +18,7 @@ import {
   addDiagnostic,
   emptyProvenance,
   locFromBabel,
+  lookupStaticArrayBinding,
   nextId,
   unsupportedNode,
   type AnalyzerContext,
@@ -26,7 +27,11 @@ import {
 import {
   extractStaticPrimitive,
   type StaticPrimitive,
+  type StaticPropEnv,
 } from "./static-value";
+
+/** Hard cap on statically expanded map elements — never silently truncates. */
+export const MAX_STATIC_ARRAY_MAP_ELEMENTS = 100;
 
 export type StaticObjectFields = Map<string, StaticPrimitive>;
 
@@ -34,12 +39,29 @@ export type StaticArrayElement =
   | { kind: "primitive"; value: StaticPrimitive }
   | { kind: "object"; fields: StaticObjectFields };
 
+function literalEnvFromMap(
+  literals: Map<string, StaticPrimitive>,
+): StaticPropEnv {
+  return {
+    lookupIdentifier: (name) => {
+      if (!literals.has(name)) return { found: false };
+      return { found: true, value: literals.get(name)! };
+    },
+    lookupMember: () => ({ found: false }),
+  };
+}
+
 /**
  * Extract a fully-static array literal into analyzable elements.
  * Returns null if any element is dynamic / unsupported.
+ *
+ * Object fields may be:
+ * - static primitives (literals or same-file const literal bindings via env)
+ * - opaque Identifiers (skipped so the rest of the object can still be static)
  */
 export function extractStaticArrayElements(
   node: ArrayExpression,
+  env?: StaticPropEnv,
 ): StaticArrayElement[] | null {
   const out: StaticArrayElement[] = [];
   for (const el of node.elements) {
@@ -50,14 +72,14 @@ export function extractStaticArrayElements(
       return null;
     }
     if (el.type === "ObjectExpression") {
-      const fields = extractStaticObjectFields(el);
+      const fields = extractStaticObjectFields(el, env);
       if (!fields) {
         return null;
       }
       out.push({ kind: "object", fields });
       continue;
     }
-    const prim = extractStaticPrimitive(el);
+    const prim = extractStaticPrimitive(el, env);
     if (!prim.ok) {
       return null;
     }
@@ -68,6 +90,7 @@ export function extractStaticArrayElements(
 
 function extractStaticObjectFields(
   node: ObjectExpression,
+  env?: StaticPropEnv,
 ): StaticObjectFields | null {
   const fields: StaticObjectFields = new Map();
   for (const prop of node.properties) {
@@ -85,11 +108,18 @@ function extractStaticObjectFields(
     } else {
       return null;
     }
-    const prim = extractStaticPrimitive(prop.value as Expression);
-    if (!prim.ok) {
-      return null;
+    const valueExpr = prop.value as Expression;
+    const prim = extractStaticPrimitive(valueExpr, env);
+    if (prim.ok) {
+      fields.set(key, prim.value);
+      continue;
     }
-    fields.set(key, prim.value);
+    // Opaque Identifier (import / unresolved local): keep the object static
+    // without binding this field. Used fields that stay opaque remain unresolved.
+    if (valueExpr.type === "Identifier") {
+      continue;
+    }
+    return null;
   }
   return fields;
 }
@@ -103,7 +133,9 @@ export { extractStaticObjectFields };
 export function collectStaticObjectBindings(
   ast: File,
 ): Map<string, StaticObjectFields> {
+  const literals = new Map<string, StaticPrimitive>();
   const map = new Map<string, StaticObjectFields>();
+  const env = literalEnvFromMap(literals);
 
   traverse(ast, {
     VariableDeclarator(path) {
@@ -114,16 +146,25 @@ export function collectStaticObjectBindings(
       const name = id.name;
       if (!init) {
         map.delete(name);
+        literals.delete(name);
         return;
       }
       if (init.type === "ObjectExpression") {
-        const fields = extractStaticObjectFields(init);
+        const fields = extractStaticObjectFields(init, env);
         if (fields) {
           map.set(name, fields);
+          literals.delete(name);
           return;
         }
       }
+      const prim = extractStaticPrimitive(init, env);
+      if (prim.ok) {
+        literals.set(name, prim.value);
+        map.delete(name);
+        return;
+      }
       map.delete(name);
+      literals.delete(name);
     },
   });
 
@@ -134,11 +175,16 @@ export function collectStaticObjectBindings(
  * Collect file-level / function-level `const/let/var name = [ ... ]` bindings
  * that are fully static. A later non-static declarator with the same name
  * removes the binding (honest unresolved).
+ *
+ * Same-file const literal bindings may appear as object field values.
+ * Opaque Identifiers (e.g. imported assets/icons) do not reject the array.
  */
 export function collectStaticArrayBindings(
   ast: File,
 ): Map<string, StaticArrayElement[]> {
+  const literals = new Map<string, StaticPrimitive>();
   const map = new Map<string, StaticArrayElement[]>();
+  const env = literalEnvFromMap(literals);
 
   traverse(ast, {
     VariableDeclarator(path) {
@@ -149,17 +195,26 @@ export function collectStaticArrayBindings(
       const name = id.name;
       if (!init) {
         map.delete(name);
+        literals.delete(name);
         return;
       }
       if (init.type === "ArrayExpression") {
-        const elements = extractStaticArrayElements(init);
+        const elements = extractStaticArrayElements(init, env);
         if (elements) {
           map.set(name, elements);
+          literals.delete(name);
           return;
         }
       }
+      const prim = extractStaticPrimitive(init, env);
+      if (prim.ok) {
+        literals.set(name, prim.value);
+        map.delete(name);
+        return;
+      }
       // Non-static (or non-array) binding shadows any prior static array.
       map.delete(name);
+      literals.delete(name);
     },
   });
 
@@ -265,7 +320,7 @@ function buildItemScope(
     }
     for (const b of itemParam.bindings) {
       if (!element.fields.has(b.propName)) {
-        // Missing field — leave unbound (honest Identifier later) rather than inventing.
+        // Missing / opaque field — leave unbound (honest Identifier later).
         continue;
       }
       values.set(b.localName, element.fields.get(b.propName)!);
@@ -305,7 +360,7 @@ function resolveMapArrayElements(
     return { ok: true, elements };
   }
   if (unwrapped.type === "Identifier") {
-    const bound = ctx.staticArrays.get(unwrapped.name);
+    const bound = lookupStaticArrayBinding(ctx, unwrapped.name);
     if (!bound) {
       return {
         ok: false,
@@ -345,6 +400,15 @@ export function convertStaticArrayMap(
     return unsupportedNode(ctx, {
       reasonCode: "dynamic-children",
       message: `Array.map() cannot be expanded statically: ${arrayResult.reason}`,
+      originalSummary: ".map(...)",
+      loc,
+    });
+  }
+
+  if (arrayResult.elements.length > MAX_STATIC_ARRAY_MAP_ELEMENTS) {
+    return unsupportedNode(ctx, {
+      reasonCode: "dynamic-children",
+      message: `Array.map() static expansion refused: ${arrayResult.elements.length} elements exceed limit of ${MAX_STATIC_ARRAY_MAP_ELEMENTS} (no silent truncation).`,
       originalSummary: ".map(...)",
       loc,
     });

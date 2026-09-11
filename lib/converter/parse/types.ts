@@ -28,6 +28,14 @@ export const AnalyzeReactOptionsSchema = z
      * Never executed.
      */
     knownComponentSources: z.record(z.string(), z.string()).default({}),
+    /**
+     * Optional VFS module path → source (project/section packaging).
+     * Enables cross-file static const array/object export resolution via imports.
+     * Never executed; never reads the host filesystem.
+     */
+    moduleSources: z.record(z.string(), z.string()).default({}),
+    /** Optional tsconfig path aliases for resolving non-relative imports. */
+    pathAliases: z.record(z.string(), z.array(z.string())).optional(),
   })
   .strict();
 export type AnalyzeReactOptions = z.infer<typeof AnalyzeReactOptionsSchema>;

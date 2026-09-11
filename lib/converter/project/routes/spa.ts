@@ -179,8 +179,177 @@ function routerScanFiles(vfs: ProjectVirtualFS, entryFile: string): string[] {
   return out;
 }
 
+function isTanStackRootLayoutFile(path: string): boolean {
+  const base = path.split("/").pop() ?? "";
+  return /^__root\.(tsx|ts|jsx|js)$/i.test(base);
+}
+
+function isRouteModuleFile(path: string): boolean {
+  return /\.(tsx|ts|jsx|js)$/i.test(path) && !/\.d\.ts$/i.test(path);
+}
+
+/**
+ * Collect candidate TanStack file-route modules under src/routes (recursive),
+ * or top-level routes/ when that convention is clearly used (no src/routes).
+ */
+function listTanStackRouteModules(vfs: ProjectVirtualFS): string[] {
+  const modules = listTextPaths(vfs).filter(isRouteModuleFile);
+  const underSrc = modules.filter((path) => /(^|\/)src\/routes\//.test(path));
+  if (underSrc.length > 0) return underSrc;
+  // Top-level routes/ only — avoid picking random **/routes paths inside packages.
+  return modules.filter((path) => /^routes\//.test(path));
+}
+
+function extractCreateFileRoutePath(ast: t.File): string | null {
+  let found: string | null = null;
+  traverse(ast, {
+    CallExpression(path: NodePath<t.CallExpression>) {
+      if (found != null) return;
+      const callee = path.node.callee;
+      if (!t.isIdentifier(callee) || callee.name !== "createFileRoute") return;
+      const arg = path.node.arguments[0];
+      if (t.isStringLiteral(arg)) {
+        found = arg.value;
+      }
+    },
+  });
+  return found;
+}
+
+function normalizeTanStackRoutePath(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Allow "/" and paths starting with "/".
+  if (!trimmed.startsWith("/")) return null;
+  return trimmed;
+}
+
+function tanStackDynamicSegments(path: string): string[] {
+  // TanStack uses $param; keep React Router :param for consistency if present.
+  return path
+    .split("/")
+    .filter(Boolean)
+    .flatMap((segment) => {
+      if (segment.startsWith("$")) return [segment.slice(1) || segment];
+      if (segment.startsWith(":")) return [segment.slice(1)];
+      return [];
+    });
+}
+
+function packageHasTanStack(manifest: ProjectManifest): {
+  router: boolean;
+  start: boolean;
+} {
+  const deps = {
+    ...(manifest.packageJson?.dependencies ?? {}),
+    ...(manifest.packageJson?.devDependencies ?? {}),
+  };
+  return {
+    router: Boolean(deps["@tanstack/react-router"]),
+    start: Boolean(deps["@tanstack/react-start"]),
+  };
+}
+
+/**
+ * Static TanStack file-route discovery (fallback when classic SPA entry is absent).
+ * Never executes code. Does not treat src/router.tsx as a visual page.
+ */
+function discoverTanStackFileRoutes(
+  vfs: ProjectVirtualFS,
+  manifest: ProjectManifest,
+): { routes: ProjectRoute[]; diagnostics: ProjectDiagnostic[] } {
+  const diagnostics: ProjectDiagnostic[] = [];
+  const modules = listTanStackRouteModules(vfs);
+  if (modules.length === 0) {
+    return { routes: [], diagnostics };
+  }
+
+  const tanstack = packageHasTanStack(manifest);
+  if (tanstack.router || tanstack.start || hasFile(vfs, "src/router.tsx") || hasFile(vfs, "src/router.ts")) {
+    diagnostics.push({
+      severity: "info",
+      code: "tanstack-router-detected",
+      message: tanstack.start
+        ? "TanStack Start/Router indicators found; discovering createFileRoute modules under routes/."
+        : "TanStack Router file-route modules found under routes/.",
+    });
+  }
+
+  const routes: ProjectRoute[] = [];
+
+  for (const file of modules) {
+    if (isTanStackRootLayoutFile(file)) {
+      diagnostics.push({
+        severity: "info",
+        code: "tanstack-root-layout-skipped",
+        message: `Skipped TanStack root layout ${file} (not a standalone visual page).`,
+        path: file,
+      });
+      continue;
+    }
+
+    const source = readTextFile(vfs, file);
+    if (source == null) continue;
+    const ast = tryParse(source, file);
+    if (!ast) {
+      diagnostics.push({
+        severity: "info",
+        code: "spa-router-parse-skipped",
+        message: `Could not parse ${file} for TanStack createFileRoute paths.`,
+        path: file,
+      });
+      continue;
+    }
+
+    const rawPath = extractCreateFileRoutePath(ast);
+    if (rawPath == null) continue;
+    const path = normalizeTanStackRoutePath(rawPath);
+    // Only accept statically known absolute paths (no invented file-path inference).
+    if (path == null) continue;
+
+    const dynamicSegments = tanStackDynamicSegments(path);
+    const isDynamic = dynamicSegments.length > 0;
+    if (isDynamic) {
+      diagnostics.push({
+        severity: "info",
+        code: "tanstack-file-route-dynamic",
+        message: `TanStack dynamic file route ${path} preserved as a pattern (no concrete params invented).`,
+        path: file,
+      });
+    }
+
+    routes.push({
+      id: `tanstack:${path}`,
+      path,
+      kind: "page",
+      entryFile: file,
+      layoutChain: [],
+      dynamicSegments,
+      isDynamic,
+      confidence: isDynamic ? "low" : "medium",
+      source: "tanstack-file-route",
+    });
+  }
+
+  if (routes.length > 0) {
+    diagnostics.push({
+      severity: "info",
+      code: "tanstack-file-route-discovered",
+      message: `Discovered ${routes.length} TanStack createFileRoute visual route(s) (classic SPA entry was absent).`,
+    });
+  }
+
+  return {
+    routes: routes.sort(
+      (a, b) => a.path.localeCompare(b.path) || a.entryFile.localeCompare(b.entryFile),
+    ),
+    diagnostics,
+  };
+}
+
 /**
  * Discover SPA routes: static react-router paths when analyzable, else one entry.
+ * When classic SPA entry tiers miss, fall back to TanStack createFileRoute modules.
  */
 export function discoverSpaRoutes(
   vfs: ProjectVirtualFS,
@@ -194,11 +363,16 @@ export function discoverSpaRoutes(
   diagnostics.push(...entryDiags);
 
   if (!entryFile) {
+    const tanstack = discoverTanStackFileRoutes(vfs, manifest);
+    diagnostics.push(...tanstack.diagnostics);
+    if (tanstack.routes.length > 0) {
+      return { routes: tanstack.routes, diagnostics };
+    }
     diagnostics.push({
       severity: "warning",
       code: "spa-entry-missing",
       message:
-        "No safe SPA entry file found (src/main.*, src/index.*, main.*, index.*).",
+        "No safe SPA entry file found (src/main.*, src/index.*, main.*, index.*) and no TanStack createFileRoute modules were discovered.",
     });
     return { routes: [], diagnostics };
   }

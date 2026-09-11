@@ -51,6 +51,7 @@ if (result.outcome === "complete") {
 | [phase-11.md](./phase-11.md) | WordPress + Elementor Free 4.2.4 runtime harness |
 | [phase-12.md](./phase-12.md) | Product converter UI + `/api/convert` |
 | [phase-13.md](./phase-13.md) | Project ZIP layer (13a–13f) |
+| [phase-14.md](./phase-14.md) | Project assets — admission (14a), VFS mapping (14b); WP media deferred |
 | [section-input.md](./section-input.md) | Virtual section folder map (engine; UI/API not yet) |
 | [conversion-rules.md](./conversion-rules.md) | Decision order |
 | [unsupported-policy.md](./unsupported-policy.md) | Reason codes |

@@ -10,6 +10,10 @@ import {
   resolveRelativeVirtualPath,
 } from "./normalize-paths";
 import {
+  resolveAliasToVirtualModule,
+  type PathAliases,
+} from "./resolve-aliases";
+import {
   SECTION_INPUT_LIMITS,
   type DependencyEdge,
   type DependencyGraph,
@@ -122,7 +126,41 @@ function describeImport(node: ImportDeclaration): StaticImport {
 }
 
 /**
- * Try deterministic extensions against the virtual file map.
+ * Try deterministic extensions against a virtual-root-relative base path.
+ * Shared by relative imports and path-alias targets.
+ */
+export function resolveExistingVirtualModule(
+  files: Record<string, string>,
+  base: string,
+): string | null {
+  // If specifier already included an extension / index path, `base` is the
+  // candidate "as written" after normalizing .. segments.
+  for (const suffix of RESOLVE_EXTENSIONS) {
+    let candidate: string | null;
+    if (suffix === "") {
+      candidate = base;
+    } else if (suffix.startsWith("/")) {
+      // Avoid Foo.tsx/index.tsx when base already has an extension.
+      if (/\.(tsx|ts|jsx|js|mjs)$/i.test(base)) {
+        continue;
+      }
+      candidate = normalizeVirtualPath(base + suffix);
+    } else {
+      if (/\.(tsx|ts|jsx|js|mjs)$/i.test(base)) {
+        continue;
+      }
+      candidate = normalizeVirtualPath(base + suffix);
+    }
+    if (candidate && candidate in files) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Try deterministic extensions against the virtual file map (relative only).
  */
 export function resolveModulePath(
   files: Record<string, string>,
@@ -138,30 +176,7 @@ export function resolveModulePath(
     return null;
   }
 
-  // If specifier already included an extension / index path, `base` is the
-  // candidate "as written" after normalizing .. segments.
-  for (const suffix of RESOLVE_EXTENSIONS) {
-    let candidate: string | null;
-    if (suffix === "") {
-      candidate = base;
-    } else if (suffix.startsWith("/")) {
-      // Avoid Foo.tsx/index.tsx when base already has an extension.
-      if (/\.(tsx|ts|jsx|js)$/i.test(base)) {
-        continue;
-      }
-      candidate = normalizeVirtualPath(base + suffix);
-    } else {
-      if (/\.(tsx|ts|jsx|js)$/i.test(base)) {
-        continue;
-      }
-      candidate = normalizeVirtualPath(base + suffix);
-    }
-    if (candidate && candidate in files) {
-      return candidate;
-    }
-  }
-
-  return null;
+  return resolveExistingVirtualModule(files, base);
 }
 
 export type ResolveImportsResult =
@@ -182,13 +197,19 @@ export type ResolveImportsResult =
     };
 
 /**
- * Walk relative imports from entry, build a deterministic dependency graph,
- * detect missing modules, cycles, depth/node limits, and binding collisions.
+ * Walk relative (and optional path-alias) imports from entry, build a
+ * deterministic dependency graph, detect missing modules, cycles, depth/node
+ * limits, and binding collisions.
+ *
+ * Path aliases are optional. When omitted, non-relative imports stay external
+ * (section-input / classic behavior unchanged).
  */
 export function resolveImportGraph(args: {
   files: Record<string, string>;
   entryPath: string;
   limits?: Partial<SectionInputLimits>;
+  /** tsconfig/jsconfig paths — resolve against `files` only (no host FS). */
+  pathAliases?: PathAliases;
 }): ResolveImportsResult {
   const maxDepth =
     args.limits?.maxDependencyDepth ?? SECTION_INPUT_LIMITS.maxDependencyDepth;
@@ -198,6 +219,7 @@ export function resolveImportGraph(args: {
   const diagnostics: SectionDiagnostic[] = [];
   const files = args.files;
   const entryPath = args.entryPath;
+  const pathAliases = args.pathAliases;
 
   const moduleSources: Record<string, string> = {
     [entryPath]: files[entryPath]!,
@@ -311,50 +333,103 @@ export function resolveImportGraph(args: {
       }
 
       const spec = imp.specifier;
+      const isRelative = spec.startsWith("./") || spec.startsWith("../");
 
-      if (!spec.startsWith("./") && !spec.startsWith("../")) {
-        // npm / aliases / URLs — out of scope for this phase.
-        if (!imp.isSideEffect) {
+      let resolved: string | null = null;
+
+      if (isRelative) {
+        if (SKIP_ASSET_EXT.test(spec) || (imp.isSideEffect && SKIP_ASSET_EXT.test(spec))) {
+          diagnostics.push({
+            severity: "info",
+            code: "asset-or-css-import-skipped",
+            message: `CSS/asset import not collected in this phase: ${JSON.stringify(spec)} in ${fromPath}`,
+            path: fromPath,
+          });
+          continue;
+        }
+
+        if (imp.isNamespace) {
           diagnostics.push({
             severity: "warning",
-            code: "external-import-skipped",
-            message: `External/non-relative import skipped (not resolved): ${JSON.stringify(spec)} in ${fromPath}`,
+            code: "namespace-import-skipped",
+            message: `Namespace import is not supported for component inlining: ${JSON.stringify(spec)} in ${fromPath}`,
             path: fromPath,
           });
         }
-        continue;
-      }
 
-      if (SKIP_ASSET_EXT.test(spec) || (imp.isSideEffect && SKIP_ASSET_EXT.test(spec))) {
-        diagnostics.push({
-          severity: "info",
-          code: "asset-or-css-import-skipped",
-          message: `CSS/asset import not collected in this phase: ${JSON.stringify(spec)} in ${fromPath}`,
-          path: fromPath,
+        resolved = resolveModulePath(files, fromPath, spec);
+        if (!resolved) {
+          diagnostics.push({
+            severity: "error",
+            code: "missing-dependency",
+            message: `Missing local dependency ${JSON.stringify(spec)} imported from ${fromPath}`,
+            path: fromPath,
+          });
+          visiting.delete(fromPath);
+          stack.pop();
+          return false;
+        }
+      } else {
+        // Optional path-alias resolution (project layer). Unmatched → external.
+        const alias = resolveAliasToVirtualModule({
+          specifier: spec,
+          pathAliases,
+          files,
+          resolveExisting: (base) => resolveExistingVirtualModule(files, base),
         });
-        continue;
-      }
 
-      if (imp.isNamespace) {
-        diagnostics.push({
-          severity: "warning",
-          code: "namespace-import-skipped",
-          message: `Namespace import is not supported for component inlining: ${JSON.stringify(spec)} in ${fromPath}`,
-          path: fromPath,
-        });
-      }
+        if (alias.matched) {
+          if (
+            SKIP_ASSET_EXT.test(spec) ||
+            (alias.mappedBase != null && SKIP_ASSET_EXT.test(alias.mappedBase)) ||
+            (imp.isSideEffect && SKIP_ASSET_EXT.test(spec))
+          ) {
+            diagnostics.push({
+              severity: "info",
+              code: "asset-or-css-import-skipped",
+              message: `CSS/asset import not collected in this phase: ${JSON.stringify(spec)} in ${fromPath}`,
+              path: fromPath,
+            });
+            continue;
+          }
 
-      const resolved = resolveModulePath(files, fromPath, spec);
-      if (!resolved) {
-        diagnostics.push({
-          severity: "error",
-          code: "missing-dependency",
-          message: `Missing local dependency ${JSON.stringify(spec)} imported from ${fromPath}`,
-          path: fromPath,
-        });
-        visiting.delete(fromPath);
-        stack.pop();
-        return false;
+          if (imp.isNamespace) {
+            diagnostics.push({
+              severity: "warning",
+              code: "namespace-import-skipped",
+              message: `Namespace import is not supported for component inlining: ${JSON.stringify(spec)} in ${fromPath}`,
+              path: fromPath,
+            });
+          }
+
+          if (!alias.resolved) {
+            diagnostics.push({
+              severity: "warning",
+              code: "alias-unresolved",
+              message: `Path alias ${JSON.stringify(spec)} matched ${JSON.stringify(alias.pattern)} but no file exists in the project VFS${alias.mappedBase ? ` (mapped to ${JSON.stringify(alias.mappedBase)})` : ""}.`,
+              path: fromPath,
+            });
+            continue;
+          }
+
+          diagnostics.push({
+            severity: "info",
+            code: "alias-resolved",
+            message: `Resolved path alias ${JSON.stringify(spec)} → ${JSON.stringify(alias.resolved)} via ${JSON.stringify(alias.pattern)}.`,
+            path: fromPath,
+          });
+          resolved = alias.resolved;
+        } else {
+          if (!imp.isSideEffect) {
+            diagnostics.push({
+              severity: "warning",
+              code: "external-import-skipped",
+              message: `External/non-relative import skipped (not resolved): ${JSON.stringify(spec)} in ${fromPath}`,
+              path: fromPath,
+            });
+          }
+          continue;
+        }
       }
 
       if (!registerBindings(imp.localNames, resolved, fromPath)) {

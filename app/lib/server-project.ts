@@ -7,12 +7,14 @@ import {
   PROJECT_LIMITS,
   analyzeProjectStructure,
   convertProject,
+  convertProjectAsync,
   extractProjectZip,
   type ProjectConversionResult,
   type ProjectDiagnostic,
   type ProjectStructureAnalysis,
   type ProjectVirtualFS,
   type RouteConversionResult,
+  type ProjectMediaUploadResult,
 } from "@/lib/converter";
 import type {
   ProjectAnalyzeResponse,
@@ -120,6 +122,51 @@ export function toApiProjectResult(
       message: sanitizeMessage(result.projectReport.message),
     },
     diagnostics: sanitizeDiagnostics(result.diagnostics),
+    ...(result.media
+      ? {
+          media: {
+            enabled: result.media.enabled,
+            uploadedCount: result.media.uploadedCount,
+            reusedCount: result.media.reusedCount,
+            failedCount: result.media.failedCount,
+            skippedCount: result.media.skippedCount,
+            uploads: result.media.uploads.map((u: ProjectMediaUploadResult) => ({
+              assetPath: u.assetPath,
+              status: u.status,
+              ...(u.url ? { url: u.url } : {}),
+              ...(u.attachmentId ? { attachmentId: u.attachmentId } : {}),
+              ...(u.skipReason ? { skipReason: u.skipReason } : {}),
+              ...(u.errorCode ? { errorCode: u.errorCode } : {}),
+              ...(u.message
+                ? { message: sanitizeMessage(u.message) }
+                : {}),
+              ...(u.optimization
+                ? {
+                    optimization: {
+                      originalBytes: u.optimization.originalBytes,
+                      ...(u.optimization.optimizedBytes !== undefined
+                        ? { optimizedBytes: u.optimization.optimizedBytes }
+                        : {}),
+                      ...(u.optimization.savingsBytes !== undefined
+                        ? { savingsBytes: u.optimization.savingsBytes }
+                        : {}),
+                      ...(u.optimization.savingsPercent !== undefined
+                        ? { savingsPercent: u.optimization.savingsPercent }
+                        : {}),
+                      ...(u.optimization.optimizer
+                        ? { optimizer: u.optimization.optimizer }
+                        : {}),
+                      optimizationStatus: u.optimization.optimizationStatus,
+                      ...(u.optimization.fallbackReason
+                        ? { fallbackReason: u.optimization.fallbackReason }
+                        : {}),
+                    },
+                  }
+                : {}),
+            })),
+          },
+        }
+      : {}),
   };
 }
 
@@ -295,17 +342,23 @@ export function runProjectAnalyze(
 
 /**
  * Convert a project ZIP (in-memory). Used by the route handler and unit tests.
+ * When `mediaEnabled` is true, uses convertProjectAsync with server WP env config.
  */
-export function runProjectConvert(
+export async function runProjectConvert(
   zipBytes: Uint8Array,
-): ProjectHandlerResult<ProjectConvertResponse> {
+  options: { mediaEnabled?: boolean } = {},
+): Promise<ProjectHandlerResult<ProjectConvertResponse>> {
   const extracted = extractOrError(zipBytes);
   if (!isExtractOk(extracted)) {
     return extracted;
   }
 
   try {
-    const result = convertProject(extracted.vfs);
+    const result = options.mediaEnabled
+      ? await convertProjectAsync(extracted.vfs, {
+          media: { enabled: true },
+        })
+      : convertProject(extracted.vfs);
     return {
       status: 200,
       payload: {
@@ -322,6 +375,14 @@ export function runProjectConvert(
         : "Project conversion failed unexpectedly.",
     );
   }
+}
+
+function parseMediaOptIn(formData: FormData): boolean {
+  const raw = formData.get("media");
+  if (raw == null) return false;
+  if (typeof raw !== "string") return false;
+  const v = raw.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
 export async function handleProjectMultipart(
@@ -362,10 +423,12 @@ export async function handleProjectMultipart(
     return Response.json(zip.payload, { status: zip.status });
   }
 
-  const result =
-    mode === "analyze"
-      ? runProjectAnalyze(zip.bytes)
-      : runProjectConvert(zip.bytes);
+  if (mode === "analyze") {
+    const result = runProjectAnalyze(zip.bytes);
+    return Response.json(result.payload, { status: result.status });
+  }
 
+  const mediaEnabled = parseMediaOptIn(formData);
+  const result = await runProjectConvert(zip.bytes, { mediaEnabled });
   return Response.json(result.payload, { status: result.status });
 }

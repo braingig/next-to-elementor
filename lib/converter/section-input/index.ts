@@ -174,7 +174,7 @@ export type ConvertSectionInputOptions = ResolveSectionInputOptions & {
  * Limitations (this phase):
  * - No static/dynamic prop substitution
  * - No CSS import collection
- * - No npm / @/ / remote resolution
+ * - No npm / remote resolution (optional pathAliases supported via resolveImportGraph)
  */
 export function convertSectionInput(
   options: ConvertSectionInputOptions,
@@ -199,8 +199,15 @@ export { resolveEntryPath } from "./resolve-entry";
 export {
   collectStaticImports,
   resolveModulePath,
+  resolveExistingVirtualModule,
   resolveImportGraph,
 } from "./resolve-imports";
+export {
+  matchPathAlias,
+  normalizeAliasMappedPath,
+  resolveAliasToVirtualModule,
+  type PathAliases,
+} from "./resolve-aliases";
 export { toConvertSourceOptions } from "./to-convert-options";
 export {
   SECTION_INPUT_LIMITS,

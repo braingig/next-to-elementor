@@ -36,6 +36,13 @@ export const ConvertSourceOptionsSchema = z
      * Never executed; static inlining only. No filesystem imports.
      */
     knownComponentSources: z.record(z.string(), z.string()).default({}),
+    /**
+     * Optional packaged module path → source for cross-file static export
+     * resolution during analysis. Never executed; never host FS.
+     */
+    moduleSources: z.record(z.string(), z.string()).default({}),
+    /** Optional path aliases for non-relative import resolution. */
+    pathAliases: z.record(z.string(), z.array(z.string())).optional(),
     /** Explicit CSS accompanying the section (not a repo scan). */
     css: z.union([z.string(), z.array(z.string())]).default([]),
     resolveTailwind: z.boolean().default(true),
@@ -110,6 +117,8 @@ export function convertSource(
         sourceName: opts.sourceName,
         componentName: opts.componentName,
         knownComponentSources: opts.knownComponentSources,
+        moduleSources: opts.moduleSources,
+        pathAliases: opts.pathAliases,
       });
     } catch (error) {
       if (error instanceof ReactParseError) {

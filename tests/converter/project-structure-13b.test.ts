@@ -315,6 +315,181 @@ describe("project Phase 13b: Vite / CRA / plain React", () => {
       analysis.diagnostics.some((d) => d.code === "ambiguous-spa-entry"),
     ).toBe(true);
   });
+
+  it("falls back to TanStack createFileRoute when classic SPA entry is absent", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          dependencies: {
+            react: "18.0.0",
+            "@tanstack/react-router": "1.0.0",
+          },
+          devDependencies: { vite: "5.0.0" },
+        }),
+        "vite.config.ts": "export default {}",
+        "src/routes/index.tsx": `
+          import { createFileRoute } from '@tanstack/react-router';
+          function Index(){ return <h1>Home</h1>; }
+          export const Route = createFileRoute('/')({
+            component: Index,
+          });
+        `,
+      }),
+    );
+    expect(analysis.manifest.framework).toBe("vite-react");
+    expect(analysis.routes.length).toBeGreaterThanOrEqual(1);
+    expect(analysis.routes[0]).toMatchObject({
+      path: "/",
+      entryFile: "src/routes/index.tsx",
+      source: "tanstack-file-route",
+      kind: "page",
+    });
+    expect(
+      analysis.diagnostics.some((d) => d.code === "spa-entry-missing"),
+    ).toBe(false);
+    expect(
+      analysis.diagnostics.some((d) => d.code === "tanstack-file-route-discovered"),
+    ).toBe(true);
+  });
+
+  it("skips TanStack __root layout and still discovers index /", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          dependencies: {
+            react: "18.0.0",
+            "@tanstack/react-router": "1.0.0",
+          },
+          devDependencies: { vite: "5.0.0" },
+        }),
+        "src/routes/__root.tsx": `
+          import { createRootRoute } from '@tanstack/react-router';
+          export const Route = createRootRoute({ component: () => null });
+        `,
+        "src/routes/index.tsx": `
+          import { createFileRoute } from '@tanstack/react-router';
+          export const Route = createFileRoute('/')({ component: () => null });
+        `,
+      }),
+    );
+    expect(analysis.routes.map((r) => r.path)).toEqual(["/"]);
+    expect(analysis.routes[0]?.entryFile).toBe("src/routes/index.tsx");
+    expect(
+      analysis.routes.every((r) => !r.entryFile.includes("__root")),
+    ).toBe(true);
+    expect(
+      analysis.diagnostics.some((d) => d.code === "tanstack-root-layout-skipped"),
+    ).toBe(true);
+  });
+
+  it("does not use TanStack fallback when classic SPA entry exists", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          dependencies: {
+            react: "18.0.0",
+            "@tanstack/react-router": "1.0.0",
+          },
+          devDependencies: { vite: "5.0.0" },
+        }),
+        "src/main.tsx": "import App from './App';",
+        "src/App.tsx": "export default function App(){return <div/>}",
+        "src/routes/index.tsx": `
+          import { createFileRoute } from '@tanstack/react-router';
+          export const Route = createFileRoute('/')({ component: () => null });
+        `,
+      }),
+    );
+    expect(analysis.routes).toHaveLength(1);
+    expect(analysis.routes[0]).toMatchObject({
+      path: "/",
+      entryFile: "src/main.tsx",
+      source: "spa-entry",
+    });
+    expect(
+      analysis.diagnostics.some((d) => d.code === "tanstack-file-route-discovered"),
+    ).toBe(false);
+  });
+
+  it("discovers Festive-like TanStack Start routes without treating router.tsx as /", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          name: "festive-lights-pro",
+          dependencies: {
+            react: "19.0.0",
+            "@tanstack/react-router": "1.114.0",
+            "@tanstack/react-start": "1.114.0",
+          },
+          devDependencies: { vite: "6.0.0" },
+        }),
+        "vite.config.ts": "export default {}",
+        "src/start.ts": "export {}",
+        "src/router.tsx": `
+          import { createRouter } from '@tanstack/react-router';
+          import { routeTree } from './routeTree.gen';
+          export const router = createRouter({ routeTree });
+        `,
+        "src/routes/__root.tsx": `
+          import { createRootRoute } from '@tanstack/react-router';
+          export const Route = createRootRoute({ component: () => null });
+        `,
+        "src/routes/index.tsx": `
+          import { createFileRoute } from '@tanstack/react-router';
+          function Index(){ return <main/>; }
+          export const Route = createFileRoute('/')({
+            component: Index,
+          });
+        `,
+      }),
+    );
+    expect(analysis.manifest.framework).toBe("vite-react");
+    expect(analysis.routes.map((r) => r.path)).toContain("/");
+    expect(analysis.routes.some((r) => r.entryFile === "src/router.tsx")).toBe(
+      false,
+    );
+    expect(analysis.routes.find((r) => r.path === "/")?.entryFile).toBe(
+      "src/routes/index.tsx",
+    );
+    expect(
+      analysis.diagnostics.some((d) => d.code === "spa-entry-missing"),
+    ).toBe(false);
+    expect(
+      analysis.diagnostics.some((d) => d.code === "tanstack-router-detected"),
+    ).toBe(true);
+  });
+
+  it("preserves TanStack dynamic $param paths without executing code", () => {
+    const analysis = analyzeProjectStructure(
+      vfs({
+        "package.json": JSON.stringify({
+          dependencies: {
+            react: "18.0.0",
+            "@tanstack/react-router": "1.0.0",
+          },
+          devDependencies: { vite: "5.0.0" },
+        }),
+        "src/routes/products.$productId.tsx": `
+          import { createFileRoute } from '@tanstack/react-router';
+          export const Route = createFileRoute('/products/$productId')({
+            component: () => null,
+          });
+        `,
+      }),
+    );
+    expect(analysis.routes).toHaveLength(1);
+    expect(analysis.routes[0]).toMatchObject({
+      path: "/products/$productId",
+      entryFile: "src/routes/products.$productId.tsx",
+      source: "tanstack-file-route",
+      isDynamic: true,
+      dynamicSegments: ["productId"],
+      confidence: "low",
+    });
+    expect(
+      analysis.diagnostics.some((d) => d.code === "tanstack-file-route-dynamic"),
+    ).toBe(true);
+  });
 });
 
 describe("project Phase 13b: detection edge cases", () => {

@@ -169,8 +169,11 @@ export function assertProjectLimitsSeparateFromSection(
   expectFn: typeof import("vitest").expect,
 ): void {
   expectFn(PROJECT_LIMITS.maxFiles).toBeGreaterThan(SECTION_INPUT_LIMITS.maxFiles);
-  expectFn(PROJECT_LIMITS.maxFileBytes).toBeGreaterThan(
+  expectFn(PROJECT_LIMITS.maxSourceFileBytes).toBeGreaterThan(
     SECTION_INPUT_LIMITS.maxFileBytes,
+  );
+  expectFn(PROJECT_LIMITS.maxBinaryAssetBytes).toBeGreaterThan(
+    PROJECT_LIMITS.maxSourceFileBytes,
   );
   expectFn(PROJECT_LIMITS.maxZipBytes).toBeGreaterThan(0);
   expectFn(PROJECT_LIMITS.maxArchiveEntries).toBeGreaterThan(

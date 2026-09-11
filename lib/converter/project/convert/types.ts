@@ -14,6 +14,14 @@ import type {
   ProjectStructureAnalysis,
 } from "../manifest/types";
 import type { DependencyCapability } from "../deps/types";
+import type {
+  ProjectAsset,
+  ProjectAssetReference,
+} from "../assets/types";
+import type {
+  ProjectMediaPipelineOptions,
+  ProjectMediaSummary,
+} from "../media/types";
 
 export type LayoutCompositionMode = "composed" | "page-only" | "none";
 
@@ -39,6 +47,12 @@ export type ConversionUnit = {
   cssPaths: string[];
   graph: DependencyGraph;
   diagnostics: ProjectDiagnostic[];
+  /** Phase 14b: route-scoped discovered assets (VFS identity only). */
+  assets?: ProjectAsset[];
+  /** Phase 14b: static asset references from this route's modules/CSS. */
+  assetReferences?: ProjectAssetReference[];
+  /** Phase 14b: binding name → present VFS asset path. */
+  assetBindings?: Record<string, string>;
 };
 
 export type RouteConversionResult = {
@@ -50,6 +64,9 @@ export type RouteConversionResult = {
   diagnostics: ProjectDiagnostic[];
   /** Phase 13e: route-scoped dependency capabilities (static only). */
   dependencies?: DependencyCapability[];
+  /** Phase 14b: echo of unit assets for consumers that skip unit. */
+  assets?: ProjectAsset[];
+  assetReferences?: ProjectAssetReference[];
 };
 
 export type ProjectReportSummary = {
@@ -72,6 +89,8 @@ export type ProjectConversionResult = {
   diagnostics: ProjectDiagnostic[];
   /** Echo analysis diagnostics when convert ran discovery internally. */
   analysis?: ProjectStructureAnalysis;
+  /** Phase 14c: opt-in WordPress media summary (absent when media disabled). */
+  media?: ProjectMediaSummary;
 };
 
 export type ConvertProjectOptions = {
@@ -85,12 +104,22 @@ export type ConvertProjectOptions = {
    */
   maxDependencyDepth?: number;
   maxDependencyNodes?: number;
+  /**
+   * Phase 14c: opt-in WordPress media upload + pre-convert URL rewrite.
+   * When enabled, callers must use convertProjectAsync().
+   */
+  media?: ProjectMediaPipelineOptions;
 };
 
 export type BuildConversionUnitOptions = {
   framework: ProjectFrameworkKind;
   maxDependencyDepth?: number;
   maxDependencyNodes?: number;
+  /**
+   * tsconfig/jsconfig path aliases from ProjectManifest.pathAliases.
+   * Resolved against ProjectVirtualFS only (Phase 13g).
+   */
+  pathAliases?: Record<string, string[]>;
 };
 
 /** Default graph limits for a single project route (above section folder defaults). */

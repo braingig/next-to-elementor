@@ -49,7 +49,7 @@ describe("Phase 13d project API handlers", () => {
     expect(payload.vfsStats.fileCount).toBeGreaterThan(0);
   });
 
-  it("converts a valid multi-route ZIP", () => {
+  it("converts a valid multi-route ZIP", async () => {
     const zip = zipFromFiles({
       "package.json": JSON.stringify({
         dependencies: { next: "14.0.0", react: "18.0.0" },
@@ -60,7 +60,7 @@ describe("Phase 13d project API handlers", () => {
         "export default function About(){return <h1>About</h1>;}",
     });
 
-    const { status, payload } = runProjectConvert(zip);
+    const { status, payload } = await runProjectConvert(zip);
     expect(status).toBe(200);
     expect(payload.ok).toBe(true);
     if (!payload.ok) return;
@@ -107,12 +107,12 @@ describe("Phase 13d project API handlers", () => {
     expect(payload.code).toBe("zip-size-limit");
   });
 
-  it("returns convert result with failed outcome when no routes", () => {
+  it("returns convert result with failed outcome when no routes", async () => {
     const zip = zipFromFiles({
       "package.json": JSON.stringify({ name: "notes" }),
       "README.md": "# hi",
     });
-    const { status, payload } = runProjectConvert(zip);
+    const { status, payload } = await runProjectConvert(zip);
     expect(status).toBe(200);
     expect(payload.ok).toBe(true);
     if (!payload.ok) return;
@@ -120,7 +120,7 @@ describe("Phase 13d project API handlers", () => {
     expect(payload.result.routes).toHaveLength(0);
   });
 
-  it("returns partial multi-route response when one route fails", () => {
+  it("returns partial multi-route response when one route fails", async () => {
     const zip = zipFromFiles({
       "package.json": JSON.stringify({ dependencies: { next: "14.0.0" } }),
       "app/page.tsx":
@@ -128,7 +128,7 @@ describe("Phase 13d project API handlers", () => {
       "app/broken/page.tsx":
         "export default function Broken( { return <h1/> }",
     });
-    const { status, payload } = runProjectConvert(zip);
+    const { status, payload } = await runProjectConvert(zip);
     expect(status).toBe(200);
     expect(payload.ok).toBe(true);
     if (!payload.ok) return;
@@ -212,9 +212,9 @@ describe("Phase 13f fixture-backed project API", () => {
     ).toBe(true);
   });
 
-  it("converts multi-route fixture ZIP with per-route Free documents", () => {
+  it("converts multi-route fixture ZIP with per-route Free documents", async () => {
     const zip = zipFromFixture("next-app-basic");
-    const { status, payload } = runProjectConvert(zip);
+    const { status, payload } = await runProjectConvert(zip);
     expect(status).toBe(200);
     expect(payload.ok).toBe(true);
     if (!payload.ok) return;

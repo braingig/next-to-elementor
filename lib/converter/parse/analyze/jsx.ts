@@ -807,6 +807,88 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
   }
 }
 
+/** Max nested unknown-component passthrough wrappers (Accordion → Item → …). */
+export const MAX_UNKNOWN_PASSTHROUGH_DEPTH = 32;
+
+function hasPassthroughChildren(node: JSXElement): boolean {
+  return node.children.some((child) => {
+    if (child.type === "JSXElement" || child.type === "JSXFragment") {
+      return true;
+    }
+    if (child.type === "JSXExpressionContainer") {
+      return child.expression.type !== "JSXEmptyExpression";
+    }
+    if (child.type === "JSXText") {
+      return collapseWs(child.value).length > 0;
+    }
+    if (child.type === "JSXSpreadChild") {
+      return true;
+    }
+    return false;
+  });
+}
+
+/**
+ * When a custom component cannot be inlined, preserve usage-site children as a
+ * generic container. Does not emulate component runtime behavior.
+ */
+function passthroughUnknownComponentChildren(
+  ctx: AnalyzerContext,
+  node: JSXElement,
+  name: string,
+  loc: ReturnType<typeof locFromBabel>,
+): IrNode {
+  if (ctx.passthroughDepth >= MAX_UNKNOWN_PASSTHROUGH_DEPTH) {
+    return unsupportedNode(ctx, {
+      reasonCode: "unknown-component",
+      message: `Unknown component <${name} /> children passthrough refused: depth exceeded ${MAX_UNKNOWN_PASSTHROUGH_DEPTH}.`,
+      originalSummary: `<${name} />`,
+      provenance: { componentName: name, loc },
+      loc,
+    });
+  }
+
+  // className only — do not copy arbitrary Radix/DOM props into Elementor settings.
+  const attrs = collectJsxAttributes(
+    node.openingElement.attributes,
+    propEnvFromCtx(ctx),
+  );
+
+  const id = nextId(ctx);
+  ctx.passthroughDepth += 1;
+  let childIr: IrNode[];
+  try {
+    childIr = convertChildren(ctx, node.children);
+  } finally {
+    ctx.passthroughDepth -= 1;
+  }
+
+  addDiagnostic(ctx, {
+    severity: "info",
+    code: "unknown-component-passthrough",
+    message: `Unknown component <${name} /> preserved as a generic container; children converted statically (runtime behavior not emulated).`,
+    nodeId: id,
+    loc,
+  });
+
+  return {
+    id,
+    kind: "container",
+    status: "ok",
+    props: { as: "div" },
+    style: {},
+    provenance: emptyProvenance({
+      sourcePath: ctx.sourcePath,
+      componentName: name,
+      classNames: attrs.classNames,
+      attributes: {},
+      loc,
+    }),
+    notes: [`unknown-component-passthrough:${name}`],
+    children: childIr,
+  };
+}
+
 function convertCustomComponent(
   ctx: AnalyzerContext,
   node: JSXElement,
@@ -817,6 +899,9 @@ function convertCustomComponent(
 
   // Member components like Foo.Bar without local def
   if (name.includes(".") && !ctx.localComponents.has(name)) {
+    if (hasPassthroughChildren(node)) {
+      return passthroughUnknownComponentChildren(ctx, node, name, loc);
+    }
     return unsupportedNode(ctx, {
       reasonCode: "unknown-component",
       message: `Unknown member component <${name} /> cannot be analyzed without its implementation.`,
@@ -851,10 +936,12 @@ function convertCustomComponent(
     );
     ctx.propScopes.push(bound.scope);
     ctx.inlineDepth += 1;
+    ctx.inlineComponentStack.push(name.split(".")[0] ?? name);
     let inlined: IrNode;
     try {
       inlined = convertExpression(ctx, local.jsxRoot);
     } finally {
+      ctx.inlineComponentStack.pop();
       ctx.inlineDepth -= 1;
       ctx.propScopes.pop();
     }
@@ -919,6 +1006,11 @@ function convertCustomComponent(
       loc,
     });
     return wrapped;
+  }
+
+  // Inlining failed (no local def, or inline depth exceeded) — passthrough children.
+  if (hasPassthroughChildren(node)) {
+    return passthroughUnknownComponentChildren(ctx, node, name, loc);
   }
 
   return unsupportedNode(ctx, {

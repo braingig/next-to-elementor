@@ -3,7 +3,7 @@
  * Never maps ZIP paths to the host filesystem. Never executes project code.
  */
 
-import type { ProjectLimits } from "./limits";
+import type { ProjectLimits, ProjectLimitsInput } from "./limits";
 
 export type ProjectDiagnosticSeverity = "error" | "warning" | "info";
 
@@ -50,6 +50,8 @@ export type ProjectVirtualFsStats = {
   textFileCount: number;
   binaryFileCount: number;
   ignoredCount: number;
+  /** Binary assets soft-skipped for per-file or total budget limits (Phase 14a). */
+  skippedBinaryAssetCount?: number;
   /** Single top-level folder stripped from GitHub-style ZIPs, when applied. */
   rootPrefixStripped?: string;
 };
@@ -69,7 +71,7 @@ export type ProjectVirtualFS = {
 };
 
 export type ExtractProjectZipOptions = {
-  limits?: Partial<ProjectLimits>;
+  limits?: ProjectLimitsInput;
   /**
    * When true (default), strip a single shared top-level directory
    * (common for GitHub archive downloads).
