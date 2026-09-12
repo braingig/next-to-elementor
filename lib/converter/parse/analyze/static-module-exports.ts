@@ -16,9 +16,11 @@ import {
 import {
   collectStaticArrayBindings,
   collectStaticObjectBindings,
+  collectStaticPrimitiveBindings,
   type StaticArrayElement,
   type StaticObjectFields,
 } from "./static-array-map";
+import type { StaticPrimitive } from "./static-value";
 
 export type StaticNamedImport = {
   /** Local binding name in the importing file. */
@@ -34,6 +36,8 @@ export type ModuleStaticBindings = {
   arrays: Map<string, StaticArrayElement[]>;
   /** Local const name → static object fields. */
   objects: Map<string, StaticObjectFields>;
+  /** Local const name → static string/number/boolean/null. */
+  primitives: Map<string, StaticPrimitive>;
   /**
    * Exported name → local binding name in this module.
    * Only names present here may be imported from outside.
@@ -151,6 +155,7 @@ export function buildModuleStaticRegistry(
     registry.set(path, {
       arrays: collectStaticArrayBindings(ast),
       objects: collectStaticObjectBindings(ast),
+      primitives: collectStaticPrimitiveBindings(ast),
       exportToLocal: collectExportNameToLocal(ast),
     });
     count += 1;
@@ -273,4 +278,19 @@ export function lookupImportedStaticObject(args: {
   const local = mod.exportToLocal.get(binding.exportName);
   if (!local) return undefined;
   return mod.objects.get(local);
+}
+
+export function lookupImportedStaticPrimitive(args: {
+  localName: string;
+  importBindings: Map<string, ResolvedImportBinding> | undefined;
+  moduleRegistry: Map<string, ModuleStaticBindings>;
+}): StaticPrimitive | undefined {
+  if (!args.importBindings) return undefined;
+  const binding = args.importBindings.get(args.localName);
+  if (!binding) return undefined;
+  const mod = args.moduleRegistry.get(binding.fromPath);
+  if (!mod) return undefined;
+  const local = mod.exportToLocal.get(binding.exportName);
+  if (!local) return undefined;
+  return mod.primitives.get(local);
 }

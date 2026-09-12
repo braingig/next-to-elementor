@@ -329,6 +329,107 @@
     {
       "tier": "free",
       "verificationStatus": "verified",
+      "responsive": true,
+      "id": "background_position",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "center center",
+        "center left",
+        "center right",
+        "top center",
+        "top left",
+        "top right",
+        "bottom center",
+        "bottom left",
+        "bottom right",
+        "initial"
+      ],
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "background_repeat",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "no-repeat",
+        "repeat",
+        "repeat-x",
+        "repeat-y"
+      ],
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "background_size",
+      "valueTypes": [
+        "string",
+        "enum"
+      ],
+      "controlType": "SELECT",
+      "enumValues": [
+        "",
+        "auto",
+        "cover",
+        "contain",
+        "initial"
+      ],
+      "sourceRef": "Group_Control_Background name=background @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "background_overlay_background",
+      "valueTypes": [
+        "enum",
+        "string"
+      ],
+      "controlType": "CHOOSE",
+      "enumValues": [
+        "classic",
+        "gradient"
+      ],
+      "sourceRef": "Group_Control_Background name=background_overlay @4.2.4 + container.php register_background_overlay_controls"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": false,
+      "id": "background_overlay_color",
+      "valueTypes": [
+        "string"
+      ],
+      "controlType": "COLOR",
+      "sourceRef": "Group_Control_Background name=background_overlay @4.2.4"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
+      "responsive": true,
+      "id": "background_overlay_opacity",
+      "valueTypes": [
+        "object"
+      ],
+      "controlType": "SLIDER",
+      "sourceRef": "includes/elements/container.php@4.2.4 register_background_overlay_controls"
+    },
+    {
+      "tier": "free",
+      "verificationStatus": "verified",
       "responsive": false,
       "id": "border_border",
       "valueTypes": [

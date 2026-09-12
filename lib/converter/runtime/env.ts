@@ -17,10 +17,17 @@ export type RuntimeEnvFile = {
   wordpress: string;
   php: string;
   elementor: string;
+  /** Active WP theme — expected hello-elementor for Full Width visuals. */
+  theme?: string;
+  themeVersion?: string;
   docker: boolean;
   baseUrl: string;
   elementorSourcePath: string;
+  helloElementorPath?: string;
   proActive: boolean;
+  /** True when setup wrote tests/runtime/generated/wp-media.json. */
+  mediaConfigured?: boolean;
+  mediaConfigPath?: string;
 };
 
 export function dockerDaemonAvailable(): boolean {
@@ -82,6 +89,11 @@ export function probePhase11Runtime(): {
       `environment.json Elementor version is ${env.elementor}, required ${REQUIRED_ELEMENTOR_FREE_VERSION}.`,
     );
   }
+  if (env && env.theme && env.theme !== "hello-elementor") {
+    reasons.push(
+      `environment.json theme is "${env.theme}", required hello-elementor for Elementor Full Width visuals.`,
+    );
+  }
 
   if (reasons.length > 0) {
     return { status: "blocked", reasons, env };
@@ -112,6 +124,11 @@ export function runSetup(): RuntimeEnvFile {
       `Elementor version must be ${REQUIRED_ELEMENTOR_FREE_VERSION}, got ${env.elementor}`,
     );
   }
+  if (env.theme && env.theme !== "hello-elementor") {
+    throw new Error(
+      `Runtime theme must be hello-elementor for Full Width visuals, got ${env.theme}`,
+    );
+  }
   return env;
 }
 
@@ -119,6 +136,7 @@ export function compose(
   args: string[],
   opts?: { inherit?: boolean },
 ): { stdout: string; stderr: string; status: number | null } {
+  const helloDefault = join(process.cwd(), "docker/themes/hello-elementor");
   const r = spawnSync("docker", ["compose", ...args], {
     cwd: DOCKER_COMPOSE_DIR,
     encoding: "utf8",
@@ -127,6 +145,7 @@ export function compose(
       ELEMENTOR_FREE_4_2_4_PATH:
         process.env.ELEMENTOR_FREE_4_2_4_PATH ??
         (resolveElementorFree424SourceRoot() as { root: string }).root,
+      HELLO_ELEMENTOR_PATH: process.env.HELLO_ELEMENTOR_PATH ?? helloDefault,
     },
   });
   if (opts?.inherit && r.status !== 0) {

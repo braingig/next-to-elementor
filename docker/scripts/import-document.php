@@ -66,6 +66,25 @@ if ( ! is_array( $elements ) ) {
 	exit( 1 );
 }
 
+// Honor Free Page Layout from document settings.template when present.
+// Allowed Free 4.2.4 templates: default, elementor_canvas, elementor_header_footer, elementor_theme.
+$allowed_templates = [
+	'default',
+	'elementor_canvas',
+	'elementor_header_footer',
+	'elementor_theme',
+];
+$template = 'elementor_canvas';
+if (
+	isset( $doc['settings'] ) &&
+	is_array( $doc['settings'] ) &&
+	isset( $doc['settings']['template'] ) &&
+	is_string( $doc['settings']['template'] ) &&
+	in_array( $doc['settings']['template'], $allowed_templates, true )
+) {
+	$template = $doc['settings']['template'];
+}
+
 // Create through Elementor documents manager so meta / edit mode are correct.
 $document = \Elementor\Plugin::$instance->documents->create(
 	'wp-page',
@@ -86,7 +105,7 @@ $saved = $document->save(
 		'elements' => $elements,
 		'settings' => [
 			'post_status' => 'publish',
-			'template'    => 'elementor_canvas',
+			'template'    => $template,
 		],
 	]
 );
@@ -96,8 +115,8 @@ if ( ! $saved ) {
 	exit( 1 );
 }
 
-// Force canvas template for clean frontend screenshots.
-update_post_meta( $document->get_main_id(), '_wp_page_template', 'elementor_canvas' );
+// Sync WP page template meta (Elementor Full Width / Canvas / Theme).
+update_post_meta( $document->get_main_id(), '_wp_page_template', $template );
 
 // Re-load and read back through Elementor API.
 $reloaded = \Elementor\Plugin::$instance->documents->get( $document->get_main_id(), false );

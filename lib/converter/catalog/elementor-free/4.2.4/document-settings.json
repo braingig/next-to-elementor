@@ -1,0 +1,27 @@
+{
+  "notes": "Elementor Free 4.2.4 Page Layout (document settings.template). Synced to _wp_page_template on save. Not the Pro Template widget.",
+  "sourceRef": "modules/page-templates/module.php@4.2.4 + core/settings/page/manager.php@4.2.4",
+  "controlId": "template",
+  "templates": [
+    {
+      "id": "default",
+      "label": "Default",
+      "notes": "Kit / WordPress default page template."
+    },
+    {
+      "id": "elementor_canvas",
+      "label": "Elementor Canvas",
+      "notes": "Blank canvas — no theme header/footer."
+    },
+    {
+      "id": "elementor_header_footer",
+      "label": "Elementor Full Width",
+      "notes": "Full-width Elementor content; theme header/footer still load. Preferred when auto cannot distinguish Canvas vs Full Width."
+    },
+    {
+      "id": "elementor_theme",
+      "label": "Theme",
+      "notes": "Host theme template — theme content column may constrain Elementor."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 /**
- * Collect CSS imported by modules in a route dependency graph (route-scoped).
+ * Collect CSS imported by modules in a route dependency graph (route-scoped),
+ * plus CSS imported from root/global layout modules when provided.
  * Does not concatenate the entire project CSS tree.
  */
 
@@ -14,8 +15,20 @@ const CSS_IMPORT_EXT = /\.(css|scss|sass|less)$/i;
 export type CollectRouteCssResult = {
   css: string[];
   cssPaths: string[];
+  /** First module that imported each CSS path. */
+  cssImporters: Record<string, string>;
   diagnostics: ProjectDiagnostic[];
 };
+
+/**
+ * Strip bundler/query suffixes from import specifiers:
+ * `../styles.css?url` → `../styles.css`
+ */
+export function stripCssImportQuery(specifier: string): string {
+  const q = specifier.indexOf("?");
+  if (q < 0) return specifier;
+  return specifier.slice(0, q);
+}
 
 /**
  * Walk module sources for relative CSS / style imports and load them from the
@@ -29,6 +42,7 @@ export function collectRouteScopedCss(args: {
 }): CollectRouteCssResult {
   const diagnostics: ProjectDiagnostic[] = [];
   const cssPaths: string[] = [];
+  const cssImporters: Record<string, string> = {};
   const seen = new Set<string>();
 
   const orderedModules = [...args.modulePaths].sort((a, b) =>
@@ -51,13 +65,14 @@ export function collectRouteScopedCss(args: {
     }
 
     for (const imp of imports) {
-      const spec = imp.specifier;
+      const rawSpec = imp.specifier;
+      const spec = stripCssImportQuery(rawSpec);
       if (!spec.startsWith("./") && !spec.startsWith("../")) {
         if (CSS_IMPORT_EXT.test(spec)) {
           diagnostics.push({
             severity: "warning",
             code: "external-css-skipped",
-            message: `Non-relative CSS import skipped: ${JSON.stringify(spec)} in ${fromPath}`,
+            message: `Non-relative CSS import skipped: ${JSON.stringify(rawSpec)} in ${fromPath}`,
             path: fromPath,
           });
         }
@@ -77,7 +92,7 @@ export function collectRouteScopedCss(args: {
         diagnostics.push({
           severity: "warning",
           code: "css-import-unresolved",
-          message: `CSS import could not be resolved: ${JSON.stringify(spec)} from ${fromPath}`,
+          message: `CSS import could not be resolved: ${JSON.stringify(rawSpec)} from ${fromPath}`,
           path: fromPath,
         });
         continue;
@@ -85,6 +100,7 @@ export function collectRouteScopedCss(args: {
 
       if (seen.has(resolved)) continue;
       seen.add(resolved);
+      cssImporters[resolved] = fromPath;
 
       if (/\.module\.(css|scss|sass|less)$/i.test(resolved)) {
         diagnostics.push({
@@ -104,6 +120,15 @@ export function collectRouteScopedCss(args: {
         });
       }
 
+      if (rawSpec !== spec) {
+        diagnostics.push({
+          severity: "info",
+          code: "css-import-query-stripped",
+          message: `CSS import query stripped: ${JSON.stringify(rawSpec)} → ${JSON.stringify(spec)}`,
+          path: fromPath,
+        });
+      }
+
       cssPaths.push(resolved);
     }
   }
@@ -113,7 +138,7 @@ export function collectRouteScopedCss(args: {
     .map((p) => args.textFiles[p])
     .filter((c): c is string => typeof c === "string" && c.trim().length > 0);
 
-  return { css, cssPaths, diagnostics };
+  return { css, cssPaths, cssImporters, diagnostics };
 }
 
 function resolveCssPath(

@@ -5,6 +5,8 @@ import { parseCssSources, resolveCssVars, collectCssClassNames } from "./css/par
 import { declarationsToIrStyle, mergeIrStyles } from "./declarations";
 import { resolveInlineStyleRaw } from "./inline";
 import { resolveTailwindClasses } from "./tailwind/map";
+import { canonicalizeCssColor, primaryFontFamily } from "./theme/color";
+import { extractThemeTokens, type ThemeTokens } from "./theme/extract";
 import {
   ResolveStylesOptionsSchema,
   type ResolveStylesOptions,
@@ -22,6 +24,26 @@ function bareClassToken(token: string): string {
   return parts[parts.length - 1] ?? token;
 }
 
+const COLOR_PROPS = new Set([
+  "color",
+  "background-color",
+  "border-color",
+  "outline-color",
+  "fill",
+  "stroke",
+]);
+
+function normalizeResolvedDeclValue(prop: string, value: string): string {
+  if (COLOR_PROPS.has(prop) || prop === "background") {
+    const canonical = canonicalizeCssColor(value);
+    if (canonical) return canonical;
+  }
+  if (prop === "font-family") {
+    return primaryFontFamily(value) ?? value;
+  }
+  return value;
+}
+
 function resolveDeclValues(
   declarations: Record<string, string>,
   customProperties: Record<string, string>,
@@ -31,7 +53,7 @@ function resolveDeclValues(
   for (const [k, v] of Object.entries(declarations)) {
     if (k.startsWith("--")) continue;
     const resolved = resolveCssVars(v, customProperties);
-    out[k] = resolved.value;
+    out[k] = normalizeResolvedDeclValue(k, resolved.value);
     if (resolved.unresolved) unresolvedVars.push(`${k}:${v}`);
   }
   return { declarations: out, unresolvedVars };
@@ -86,15 +108,16 @@ function resolveNode(
   ancestors: IrNode[],
   parsed: ReturnType<typeof parseCssSources>,
   cssClassNames: Set<string>,
+  theme: ThemeTokens,
   options: ResolveStylesOptions,
   diagnostics: IrDiagnostic[],
 ): IrNode {
   const ctx: MatchContext = { node, ancestors };
 
-  // 1) Tailwind (lowest precedence)
+  // 1) Tailwind (lowest precedence) — includes project theme color/font tokens
   let twStyle: IrStyle = {};
   if (options.resolveTailwind) {
-    const tw = resolveTailwindClasses(node.provenance?.classNames ?? []);
+    const tw = resolveTailwindClasses(node.provenance?.classNames ?? [], theme);
     twStyle = tw.style;
     for (const cls of tw.unknown) {
       // Classes defined in provided CSS are stylesheet hooks, not missing Tailwind utilities.
@@ -138,6 +161,7 @@ function resolveNode(
       [...ancestors, node],
       parsed,
       cssClassNames,
+      theme,
       options,
       diagnostics,
     ),
@@ -162,6 +186,7 @@ export function resolveStyles(
   const sources = cssList(opts.css);
   const parsed = parseCssSources(sources);
   const cssClassNames = collectCssClassNames(parsed);
+  const theme = extractThemeTokens(parsed.customProperties);
 
   const diagnostics: IrDiagnostic[] = [
     ...document.diagnostics,
@@ -177,6 +202,7 @@ export function resolveStyles(
     [],
     parsed,
     cssClassNames,
+    theme,
     opts,
     diagnostics,
   );

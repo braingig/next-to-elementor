@@ -121,6 +121,10 @@ export function mapHtmlTagToKind(
 }
 
 export function isIntrinsicHtmlTag(name: string): boolean {
+  // Member JSX (item.icon) is never an HTML tag — even when the object starts lowercase.
+  if (name.includes(".")) {
+    return false;
+  }
   return /^[a-z]/.test(name);
 }
 

@@ -93,6 +93,8 @@ export {
   buildConversionUnit,
   convertRouteUnit,
   collectRouteScopedCss,
+  stripCssImportQuery,
+  listRootCssSourceModules,
   PROJECT_ROUTE_GRAPH_LIMITS,
   type ConversionUnit,
   type LayoutCompositionMode,
@@ -102,7 +104,19 @@ export {
   type ConvertProjectOptions,
   type BuildConversionUnitOptions,
   type ConvertRouteUnitOptions,
+  type DocumentPageLayoutMode,
 } from "./convert";
+
+/** Project-only Elementor Free Page Layout (settings.template). */
+export {
+  ELEMENTOR_FREE_PAGE_TEMPLATES,
+  applyDocumentPageLayout,
+  documentHasFullBleedLandingEvidence,
+  isAllowedElementorFreePageTemplate,
+  isFullBleedLandingContainer,
+  resolveProjectPageTemplate,
+  type ElementorFreePageTemplate,
+} from "./document-page-layout";
 
 /** Phase 13e: dependency capability registry + thin static adapters */
 export {

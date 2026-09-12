@@ -1,6 +1,8 @@
 # Phase 11 — minimal WordPress + Elementor Free 4.2.4 runtime harness.
 # Elementor Free 4.2.4 must be bind-mounted from ELEMENTOR_FREE_4_2_4_PATH
 # (default: /Users/nusratnova/Downloads/elementor). Never use in-repo ./elementor (4.2.1).
+# Hello Elementor (classic) is bind-mounted for Elementor Full Width visual verification —
+# runtime harness only; not a converter dependency.
 
 name: n2e-elementor-runtime
 
@@ -34,6 +36,7 @@ services:
     volumes:
       - n2e_wp_data:/var/www/html
       - ${ELEMENTOR_FREE_4_2_4_PATH:-/Users/nusratnova/Downloads/elementor}:/var/www/html/wp-content/plugins/elementor:ro
+      - ${HELLO_ELEMENTOR_PATH:-../themes/hello-elementor}:/var/www/html/wp-content/themes/hello-elementor:ro
       - ../scripts:/opt/n2e-scripts:ro
       - ../../tests/runtime/generated:/opt/n2e-generated
     depends_on:
@@ -57,6 +60,7 @@ services:
     volumes:
       - n2e_wp_data:/var/www/html
       - ${ELEMENTOR_FREE_4_2_4_PATH:-/Users/nusratnova/Downloads/elementor}:/var/www/html/wp-content/plugins/elementor:ro
+      - ${HELLO_ELEMENTOR_PATH:-../themes/hello-elementor}:/var/www/html/wp-content/themes/hello-elementor:ro
       - ../scripts:/opt/n2e-scripts:ro
       - ../../tests/runtime/generated:/opt/n2e-generated
     depends_on:

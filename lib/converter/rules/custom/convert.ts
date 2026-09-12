@@ -7,6 +7,7 @@ import {
   type NativeNodeDecision,
 } from "../native/types";
 import type { NativeEmit } from "../native/widgets/leaf";
+import { mapIrStyleToSettings } from "../native/styles/map-style";
 import { serializeScopedCss } from "./css";
 import { serializeIrNodeHtml } from "./html";
 import { findUnsafeCustomPatterns } from "./safety";
@@ -119,7 +120,17 @@ export function convertCustomFallback(
 
   const css = serializeScopedCss(scopeClass, node.style);
   const html = css ? `${body}<style>${css}</style>` : body;
+  const styleSettings = mapIrStyleToSettings(node.style, {
+    catalog,
+    widgetId: "html",
+    spacingPrefix: "_",
+  });
   const settings: ElementorSettings = { html };
+  for (const key of ["hide_desktop", "hide_tablet", "hide_mobile"] as const) {
+    if (styleSettings[key] != null) {
+      settings[key] = styleSettings[key];
+    }
+  }
 
   const decision: NativeNodeDecision = {
     nodeId: node.id,

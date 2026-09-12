@@ -13,15 +13,14 @@ function pascalToKebab(name: string): string {
 }
 
 function iconStubSource(exportName: string, iconName: string): string {
-  return `export function ${exportName}(props) {
-  const size = props && props.size != null ? props.size : 24;
-  const className = props && props.className != null ? props.className : undefined;
+  // Fully static SVG attributes so serializeStaticJsxElement succeeds.
+  // Usage-site className is merged via inlining provenance — not stubbed here.
+  return `export function ${exportName}(_props) {
   return (
     <svg
       data-icon="${iconName}"
-      width={size}
-      height={size}
-      className={className}
+      width="24"
+      height="24"
       aria-hidden="true"
       viewBox="0 0 24 24"
     />

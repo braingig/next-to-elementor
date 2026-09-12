@@ -16,6 +16,7 @@ import { convertJsxRoot } from "./jsx";
 import {
   collectStaticArrayBindings,
   collectStaticObjectBindings,
+  collectStaticPrimitiveBindings,
 } from "./static-array-map";
 import {
   buildImportBindingMap,
@@ -52,6 +53,10 @@ function mergeKnownComponentSources(
       // Per-component scope — never flatten into entry staticArrays/staticObjects.
       ctx.componentStaticObjects.set(name, collectStaticObjectBindings(ast));
       ctx.componentStaticArrays.set(name, collectStaticArrayBindings(ast));
+      ctx.componentStaticPrimitives.set(
+        name,
+        collectStaticPrimitiveBindings(ast),
+      );
 
       const fromPath = componentPaths.get(name);
       if (fromPath && Object.keys(moduleSources).length > 0) {
@@ -88,6 +93,7 @@ export function analyzeReactAst(
   const localComponents = collectLocalComponents(ast);
   const staticArrays = collectStaticArrayBindings(ast);
   const staticObjects = collectStaticObjectBindings(ast);
+  const staticPrimitives = collectStaticPrimitiveBindings(ast);
   const moduleSources = opts.moduleSources ?? {};
   const pathAliases = opts.pathAliases;
   const moduleStaticRegistry = buildModuleStaticRegistry(moduleSources);
@@ -115,8 +121,10 @@ export function analyzeReactAst(
     localComponents,
     staticArrays,
     staticObjects,
+    staticPrimitives,
     componentStaticArrays: new Map(),
     componentStaticObjects: new Map(),
+    componentStaticPrimitives: new Map(),
     inlineComponentStack: [],
     moduleStaticRegistry,
     entryImportBindings,

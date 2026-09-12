@@ -32,6 +32,12 @@ export type ElementorDocument = {
   title: string;
   type: "page";
   content: ElementorElement[];
+  /**
+   * Optional document-level settings (Elementor Free page settings).
+   * Classic 0.4 emission may include `template` for Page Layout
+   * (e.g. elementor_header_footer = Full Width). Not set by convertSource.
+   */
+  settings?: ElementorSettings;
 };
 
 export type NativeNodeDecision = {

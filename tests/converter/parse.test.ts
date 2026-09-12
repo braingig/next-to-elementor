@@ -232,9 +232,10 @@ describe("analyzeReactSource fixtures", () => {
           n.kind === "unsupported" && n.props.reasonCode === "dynamic-content",
       ),
     ).toBe(true);
-    // Ensure we did not invent resolved dynamic text
+    // Static const string bindings may resolve; method calls must not be evaluated.
     const json = JSON.stringify(document);
-    expect(json).not.toContain("Ada");
+    expect(json).toContain("Ada");
+    expect(json).not.toContain("ADA");
   });
 
   it("resolves static conditionals and rejects dynamic ones", () => {

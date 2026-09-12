@@ -47,6 +47,13 @@ test.describe("Phase 11 browser + visual validation", () => {
     expect(env!.elementor).toBe("4.2.4");
   });
 
+  test("runtime theme is Hello Elementor when environment is present", () => {
+    test.skip(!env, "BLOCKED: runtime environment.json missing — run setup + runtime first");
+    // Older environment.json without theme: skip rather than fail mid-migration.
+    test.skip(!("theme" in (env as object)), "theme field not yet written — re-run setup");
+    expect((env as { theme?: string }).theme).toBe("hello-elementor");
+  });
+
   test("imported pages exist for browser checks", () => {
     test.skip(!env, "BLOCKED: no runtime env");
     expect(pages.length).toBeGreaterThan(0);

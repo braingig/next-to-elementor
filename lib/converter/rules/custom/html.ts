@@ -69,8 +69,32 @@ function buildAttributes(
     case "image":
       attrs.src = node.props.src;
       attrs.alt = node.props.alt ?? "";
-      if (node.props.width) attrs.width = String(node.props.width);
-      if (node.props.height) attrs.height = String(node.props.height);
+      // Prefer resolved IR height/width (e.g. Tailwind h-12) as inline styles so
+      // custom-HTML fallbacks don't rely on site-wide Tailwind CSS. Drop
+      // intrinsic width/height attrs when a utility height is present — otherwise
+      // large asset dimensions (e.g. 750×501 logos) dominate layout.
+      {
+        const styleParts: string[] = [];
+        if (node.style?.box?.height) {
+          styleParts.push(`height:${node.style.box.height}`);
+          styleParts.push("width:auto");
+          delete attrs.width;
+          delete attrs.height;
+        } else {
+          if (node.props.width) attrs.width = String(node.props.width);
+          if (node.props.height) attrs.height = String(node.props.height);
+          if (node.style?.box?.width) {
+            styleParts.push(`width:${node.style.box.width}`);
+          }
+        }
+        if (node.style?.box?.maxWidth) {
+          styleParts.push(`max-width:${node.style.box.maxWidth}`);
+        }
+        if (styleParts.length > 0) {
+          const existing = attrs.style ? `${attrs.style};` : "";
+          attrs.style = `${existing}${styleParts.join(";")}`;
+        }
+      }
       break;
     case "link":
       attrs.href = node.props.href;

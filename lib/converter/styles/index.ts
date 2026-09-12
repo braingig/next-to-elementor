@@ -14,3 +14,14 @@ export { resolveTailwindClasses, resolveTailwindUtility } from "./tailwind/map";
 export { parseCssSources, collectCssClassNames } from "./css/parse";
 export { resolveInlineStyleRaw } from "./inline";
 export { mergeIrStyles, declarationsToIrStyle } from "./declarations";
+export {
+  extractThemeTokens,
+  resolveThemeColorToken,
+  type ThemeTokens,
+} from "./theme/extract";
+export {
+  canonicalizeCssColor,
+  applyCssColorAlpha,
+  primaryFontFamily,
+} from "./theme/color";
+export { parseOklch, oklchToCssColor } from "./theme/oklch";

@@ -23,7 +23,13 @@ import {
   shouldPropagateContainerTextAlign,
   withInheritedParentTextAlign,
 } from "./inherit-text-align";
-import { applyFlexRowChildShrinkWrap, applyFlexRowNowrapDefault } from "./flex-child-width";
+import {
+  applyFlexRowChildShrinkWrap,
+  applyFlexRowLeafShrinkWrap,
+  applyFlexRowNowrapDefault,
+} from "./flex-child-width";
+import { applyHorizontalLayoutInference } from "./layout-inference";
+import { absorbFullBleedBackground } from "./full-bleed-background";
 import { elementorIdFromIrId } from "../types";
 
 /** Child converter hook — Phase 6 injects native→custom→unsupported. */
@@ -94,18 +100,14 @@ export function convertContainerLike(
   });
 
   // Default flex container when layout display missing but children present.
-  // Do NOT invent flex_direction: Elementor's unset direction behaves as column
-  // for structural wrappers; explicit `display:flex` without direction emits row
-  // from mapIrStyleToSettings (CSS/Tailwind default).
+  // flex_direction is inferred conservatively after children convert
+  // (see applyHorizontalLayoutInference) — Elementor unset ≈ column.
   if (!settings.container_type) {
     settings.container_type = "flex";
   }
   if (!settings.content_width) {
     settings.content_width = "full";
   }
-
-  // CSS/Tailwind flex default is nowrap; Elementor row forces mobile wrap.
-  applyFlexRowNowrapDefault(settings);
 
   if (node.props.as && ["section", "header", "footer", "main", "article", "aside", "nav", "div"].includes(node.props.as)) {
     settings.html_tag = node.props.as === "div" ? "div" : node.props.as;
@@ -125,14 +127,46 @@ export function convertContainerLike(
     catalog,
     convertChild,
   );
-  const emittedChildren = emits
-    .map((e) => e.element)
-    .filter((el): el is NonNullable<typeof el> => Boolean(el));
+
+  // Absolute inset-0 cover <img> + empty overlay → Container background_*
+  // (Free-compatible full-bleed hero) instead of broken absolute Image widgets.
+  const absorbed = absorbFullBleedBackground({
+    parent: node,
+    catalog,
+    settings,
+    irChildren: children,
+    emits,
+  });
+  const emittedChildren = absorbed.children;
+  const childDecisions = absorbed.childDecisions;
+
+  // Infer row / grid columns from cues + child shape (never global flex→row).
+  applyHorizontalLayoutInference({
+    node,
+    settings,
+    children: emittedChildren,
+  });
+
+  // CSS/Tailwind flex default is nowrap; Elementor row forces mobile wrap.
+  applyFlexRowNowrapDefault(settings);
 
   // Flex-row child containers default to 100% width in Elementor Free CSS;
   // shrink-wrap clusters that have no explicit IR width so justify-between
   // bars (navbars) stay horizontal on mobile.
   applyFlexRowChildShrinkWrap(settings, emittedChildren);
+
+  // Leaf widgets (html/button/icon/image) also default to flex-grow in row
+  // mode — set _element_width:auto so nav links/CTAs hug content.
+  applyFlexRowLeafShrinkWrap(settings, emittedChildren);
+
+  let message = "Mapped to Free Container.";
+  if (absorbed.absorbedImage || absorbed.absorbedOverlay) {
+    const bits = [
+      absorbed.absorbedImage ? "cover background image" : null,
+      absorbed.absorbedOverlay ? "background overlay" : null,
+    ].filter(Boolean);
+    message = `Mapped to Free Container (${bits.join(" + ")} absorbed from absolute children).`;
+  }
 
   return {
     decision: {
@@ -141,8 +175,8 @@ export function convertContainerLike(
       strategy: "native",
       elementorType: "container",
       settings,
-      message: "Mapped to Free Container.",
-      children: decisions,
+      message,
+      children: childDecisions,
     },
     element: {
       id: elementorIdFromIrId(node.id),

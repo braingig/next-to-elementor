@@ -74,6 +74,7 @@
             "elType": "widget",
             "widgetType": "image",
             "settingKeys": [
+              "_element_width",
               "caption_source",
               "image",
               "image_size",
@@ -100,6 +101,7 @@
                 "elType": "widget",
                 "widgetType": "html",
                 "settingKeys": [
+                  "_element_width",
                   "html"
                 ],
                 "children": []
@@ -108,6 +110,7 @@
                 "elType": "widget",
                 "widgetType": "html",
                 "settingKeys": [
+                  "_element_width",
                   "html"
                 ],
                 "children": []
@@ -116,6 +119,7 @@
                 "elType": "widget",
                 "widgetType": "html",
                 "settingKeys": [
+                  "_element_width",
                   "html"
                 ],
                 "children": []
@@ -124,6 +128,7 @@
                 "elType": "widget",
                 "widgetType": "button",
                 "settingKeys": [
+                  "_element_width",
                   "_padding",
                   "background_background",
                   "background_color",

@@ -88,6 +88,18 @@ function collectDecls(rule: Rule): Record<string, string> {
   return decls;
 }
 
+/** Direct declarations on an at-rule (skip nested hover/pseudo rules). */
+function collectDirectDecls(at: AtRule): Record<string, string> {
+  const decls: Record<string, string> = {};
+  for (const node of at.nodes ?? []) {
+    if (node.type === "decl") {
+      const decl = node as Declaration;
+      decls[decl.prop] = decl.value;
+    }
+  }
+  return decls;
+}
+
 /**
  * Parse CSS with PostCSS into flat rule records.
  * Not a full browser engine — unsupported constructs become diagnostics.
@@ -152,6 +164,31 @@ export function parseCssSources(sources: string[]): ParsedCss {
               continue;
             }
             visit(at.nodes ?? [], bp);
+          } else if (at.name === "theme") {
+            // Tailwind v4 @theme / @theme inline — collect custom properties only.
+            at.walkDecls((decl: Declaration) => {
+              if (decl.prop.startsWith("--")) {
+                customProperties[decl.prop] = decl.value;
+              }
+            });
+          } else if (at.name === "utility") {
+            // Tailwind v4 @utility name { … } → treat as a static .name class rule.
+            const utilityName = at.params.trim().split(/\s+/)[0];
+            if (!utilityName || !/^[A-Za-z_][\w-]*$/.test(utilityName)) {
+              diagnostics.push({
+                code: "unsupported-css",
+                message: `@utility with unsupported name skipped: @utility ${at.params}`,
+              });
+              continue;
+            }
+            const decls = collectDirectDecls(at);
+            rules.push({
+              selectors: [`.${utilityName}`],
+              declarations: decls,
+              order: order++,
+              specificity: [0, 1, 0],
+              mediaBreakpoint,
+            });
           } else if (at.name === "supports" || at.name === "layer" || at.name === "container") {
             diagnostics.push({
               code: "unsupported-css",

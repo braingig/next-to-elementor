@@ -124,6 +124,34 @@ export const CatalogUnverifiedItemSchema = z
   .strict();
 export type CatalogUnverifiedItem = z.infer<typeof CatalogUnverifiedItemSchema>;
 
+/** Free Page Layout option (document settings.template → _wp_page_template). */
+export const CatalogDocumentPageTemplateSchema = z
+  .object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    notes: z.string().optional(),
+  })
+  .strict();
+export type CatalogDocumentPageTemplate = z.infer<
+  typeof CatalogDocumentPageTemplateSchema
+>;
+
+/**
+ * Document-level Free settings verified for classic 0.4 emission.
+ * Distinct from the Pro Template *widget* in pro-denylist.
+ */
+export const CatalogDocumentSettingsSchema = z
+  .object({
+    notes: z.string().optional(),
+    sourceRef: z.string().optional(),
+    controlId: z.literal("template"),
+    templates: z.array(CatalogDocumentPageTemplateSchema).min(1),
+  })
+  .strict();
+export type CatalogDocumentSettings = z.infer<
+  typeof CatalogDocumentSettingsSchema
+>;
+
 /**
  * Versioned Elementor Free capability catalog.
  */
@@ -143,6 +171,8 @@ export const ElementorFreeCatalogSchema = z
     breakpoints: z.array(CatalogBreakpointSchema).default([]),
     proDenylist: z.array(ProDenylistEntrySchema).default([]),
     unverified: z.array(CatalogUnverifiedItemSchema).default([]),
+    /** Free document Page Layout templates (settings.template). */
+    documentSettings: CatalogDocumentSettingsSchema.optional(),
     notes: z.string().optional(),
   })
   .strict();

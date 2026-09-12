@@ -13,6 +13,7 @@
     "test:elementor:runtime:setup": "bash docker/scripts/setup.sh",
     "test:elementor:runtime:teardown": "bash docker/scripts/teardown.sh",
     "test:elementor:runtime": "tsx scripts/run-runtime-validation.ts",
+    "test:elementor:runtime:media": "tsx scripts/import-project-with-runtime-media.ts",
     "test:visual:source": "node scripts/render-source-fixtures.mjs",
     "test:visual": "npm run test:visual:source && npx playwright test -c tests/runtime/playwright.config.ts && tsx scripts/merge-visual-report.ts",
     "test:elementor:all": "npm run test:elementor && npm run test:elementor:runtime && npm run test:visual"

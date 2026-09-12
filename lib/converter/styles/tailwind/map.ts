@@ -1,5 +1,7 @@
 import type { IrStyle } from "../../ir/schema";
 import { mergeIrStyles } from "../declarations";
+import type { ThemeTokens } from "../theme/extract";
+import { resolveThemeColorToken } from "../theme/extract";
 
 const SPACING: Record<string, string> = {
   "0": "0px",
@@ -149,7 +151,21 @@ function spacing(token: string): string | undefined {
   return undefined;
 }
 
-function color(token: string): string | undefined {
+function color(
+  token: string,
+  theme?: ThemeTokens,
+): string | undefined {
+  const fromTheme = theme
+    ? resolveThemeColorToken(token, theme.colors)
+    : undefined;
+  if (fromTheme) return fromTheme;
+
+  // Curated map may also use opacity modifiers (e.g. slate-900/80).
+  const slash = token.match(/^(.+)\/(\d{1,3})$/);
+  if (slash && COLORS[slash[1]!] != null) {
+    return resolveThemeColorToken(token, COLORS);
+  }
+
   if (COLORS[token] != null) return COLORS[token];
   const arb = token.match(/^\[(.+)\]$/);
   if (arb) return arb[1];
@@ -160,7 +176,10 @@ function color(token: string): string | undefined {
  * Resolve a single Tailwind utility (without variant prefix) into IrStyle.
  * Returns null if unknown.
  */
-export function resolveTailwindUtility(utility: string): IrStyle | null {
+export function resolveTailwindUtility(
+  utility: string,
+  theme?: ThemeTokens,
+): IrStyle | null {
   // Layout / display
   if (utility === "flex") return { layout: { display: "flex" } };
   if (utility === "inline-flex") return { layout: { display: "inline-flex" } };
@@ -168,6 +187,9 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   if (utility === "inline-block") return { layout: { display: "inline-block" } };
   if (utility === "grid") return { layout: { display: "grid" } };
   if (utility === "hidden") return { layout: { display: "none" } };
+  // Visually hidden but kept for a11y in source — Elementor has no sr-only;
+  // map to display:none so the text does not leak into the visual layout.
+  if (utility === "sr-only") return { layout: { display: "none" } };
   if (utility === "flex-row") return { layout: { flexDirection: "row" } };
   if (utility === "flex-col") return { layout: { flexDirection: "column" } };
   if (utility === "flex-wrap") return { layout: { flexWrap: "wrap" } };
@@ -318,20 +340,34 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   }
   const textColor = utility.match(/^text-(.+)$/);
   if (textColor && !FONT_SIZE[textColor[1]!]) {
-    const c = color(textColor[1]!);
+    const c = color(textColor[1]!, theme);
     if (c) return { typography: { color: c } };
   }
   const fw = utility.match(/^font-(.+)$/);
-  if (fw && FONT_WEIGHT[fw[1]!]) {
-    return { typography: { fontWeight: FONT_WEIGHT[fw[1]!] } };
+  if (fw) {
+    if (FONT_WEIGHT[fw[1]!]) {
+      return { typography: { fontWeight: FONT_WEIGHT[fw[1]!] } };
+    }
+    const family = theme?.fonts[fw[1]!];
+    if (family) {
+      return { typography: { fontFamily: family } };
+    }
   }
   const leading = utility.match(/^leading-(.+)$/);
-  if (leading && LINE_HEIGHT[leading[1]!]) {
-    return { typography: { lineHeight: LINE_HEIGHT[leading[1]!] } };
+  if (leading) {
+    if (LINE_HEIGHT[leading[1]!]) {
+      return { typography: { lineHeight: LINE_HEIGHT[leading[1]!] } };
+    }
+    const arb = leading[1]!.match(/^\[(.+)\]$/);
+    if (arb) return { typography: { lineHeight: arb[1]!.replace(/_/g, " ") } };
   }
   const tracking = utility.match(/^tracking-(.+)$/);
-  if (tracking && LETTER_SPACING[tracking[1]!]) {
-    return { typography: { letterSpacing: LETTER_SPACING[tracking[1]!] } };
+  if (tracking) {
+    if (LETTER_SPACING[tracking[1]!]) {
+      return { typography: { letterSpacing: LETTER_SPACING[tracking[1]!] } };
+    }
+    const arb = tracking[1]!.match(/^\[(.+)\]$/);
+    if (arb) return { typography: { letterSpacing: arb[1]!.replace(/_/g, " ") } };
   }
   if (utility === "italic") return { typography: { fontStyle: "italic" } };
   if (utility === "uppercase") return { typography: { textTransform: "uppercase" } };
@@ -343,8 +379,23 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   // Background
   const bg = utility.match(/^bg-(.+)$/);
   if (bg) {
-    const c = color(bg[1]!);
-    if (c) return { background: { color: c } };
+    const token = bg[1]!;
+    const arb = token.match(/^\[(.+)\]$/);
+    if (arb) {
+      // Tailwind arbitrary values use `_` for spaces.
+      const inner = arb[1]!.replace(/_/g, " ");
+      if (/gradient\(/i.test(inner) || /^url\(/i.test(inner)) {
+        return { background: { image: inner } };
+      }
+      return { background: { color: inner } };
+    }
+    const c = color(token, theme);
+    if (c) {
+      if (/gradient\(/i.test(c) || /^url\(/i.test(c)) {
+        return { background: { image: c } };
+      }
+      return { background: { color: c } };
+    }
   }
 
   // Border / radius
@@ -383,7 +434,7 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   }
   const borderC = utility.match(/^border-(.+)$/);
   if (borderC) {
-    const c = color(borderC[1]!);
+    const c = color(borderC[1]!, theme);
     if (c) return { border: { color: c } };
   }
   if (utility === "rounded") {
@@ -400,6 +451,17 @@ export function resolveTailwindUtility(utility: string): IrStyle | null {
   if (utility === "fixed") return { position: { position: "fixed" } };
   if (utility === "sticky") return { position: { position: "sticky" } };
   if (utility === "static") return { position: { position: "static" } };
+  if (utility === "inset-0") {
+    return {
+      position: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+    };
+  }
+  if (utility === "inset-x-0") {
+    return { position: { left: "0px", right: "0px" } };
+  }
+  if (utility === "inset-y-0") {
+    return { position: { top: "0px", bottom: "0px" } };
+  }
   for (const side of ["top", "right", "bottom", "left"] as const) {
     const m = utility.match(new RegExp(`^${side}-(\\S+)$`));
     if (m) {
@@ -458,8 +520,12 @@ export type TailwindResolveResult = {
 /**
  * Resolve a list of class tokens. Responsive variants (`md:flex-col`) become
  * `style.responsive.md`. Unknown utilities are listed (no guessing).
+ * Optional `theme` supplies project `@theme` / `:root` color and font tokens.
  */
-export function resolveTailwindClasses(classNames: string[]): TailwindResolveResult {
+export function resolveTailwindClasses(
+  classNames: string[],
+  theme?: ThemeTokens,
+): TailwindResolveResult {
   let style: IrStyle = {};
   const unknown: string[] = [];
 
@@ -481,7 +547,7 @@ export function resolveTailwindClasses(classNames: string[]): TailwindResolveRes
       continue;
     }
 
-    const resolved = resolveTailwindUtility(utility);
+    const resolved = resolveTailwindUtility(utility, theme);
     if (!resolved) {
       unknown.push(token);
       continue;

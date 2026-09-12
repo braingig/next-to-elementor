@@ -29,6 +29,7 @@ Runtime compatibility and visual similarity are **different** checks.
 | WordPress image | `wordpress:6.8.2-php8.2-apache` (WP ≥ 6.8 required by Elementor 4.2.4) |
 | PHP | **8.2** (image); Elementor requires ≥ 7.4 |
 | MySQL | `mysql:8.0` |
+| Theme (runtime only) | **Hello Elementor** (classic `header.php`/`footer.php`) — not Twenty Twenty-Five |
 | Elementor Pro | **Not installed / not allowed** |
 | Port | `http://127.0.0.1:9080` (`N2E_WP_PORT`) |
 
@@ -47,10 +48,32 @@ What setup does:
 
 1. Starts MySQL + WordPress via `docker/wordpress/docker-compose.yml`
 2. Bind-mounts Elementor Free **4.2.4** from `ELEMENTOR_FREE_4_2_4_PATH` (read-only)
-3. Installs WordPress, activates **elementor** only
-4. **Fails** if plugin version ≠ `4.2.4`
-5. **Fails** if Elementor Pro is active
-6. Writes `environment.json`
+3. Ensures **Hello Elementor** (classic) via `docker/scripts/ensure-hello-elementor.sh` / `HELLO_ELEMENTOR_PATH` and bind-mounts it (runtime harness only)
+4. Installs WordPress, activates **elementor** + **hello-elementor**
+5. **Fails** if plugin version ≠ `4.2.4`
+6. **Fails** if Elementor Pro is active
+7. **Fails** if active theme ≠ `hello-elementor`
+8. Writes `environment.json` (includes `theme` / `themeVersion`)
+
+Hello Elementor is required so Elementor Full Width (`elementor_header_footer`) can call real `header.php`/`footer.php`. Twenty Twenty-Five (block theme) is not used for visual verification. Canvas remains supported via document `settings.template`.
+
+The converter package does **not** depend on Hello Elementor.
+
+### WordPress media (same instance as visuals)
+
+Setup also provisions an Application Password and writes  
+`tests/runtime/generated/wp-media.json` (gitignored) for Phase 14c/14d uploads.
+
+```bash
+# After setup — convert project ZIP with real media + import into Elementor:
+npm run test:elementor:runtime:media
+# or: npx tsx scripts/import-project-with-runtime-media.ts /path/to/project.zip
+```
+
+Env (optional override of `wp-media.json`): `N2E_WP_BASE_URL`, `N2E_WP_USER`, `N2E_WP_APP_PASSWORD`  
+must point at the **same** origin as the harness (`http://127.0.0.1:9080`).
+
+Do **not** use mock/`example.test` clients for visual verification.
 
 Teardown:
 

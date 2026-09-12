@@ -129,6 +129,7 @@
                     "elType": "widget",
                     "widgetType": "button",
                     "settingKeys": [
+                      "_element_width",
                       "_padding",
                       "background_background",
                       "background_color",
@@ -145,6 +146,7 @@
                     "elType": "widget",
                     "widgetType": "html",
                     "settingKeys": [
+                      "_element_width",
                       "html"
                     ],
                     "children": []
@@ -159,6 +161,7 @@
             "settingKeys": [
               "_border_radius",
               "_element_custom_width",
+              "_element_width",
               "caption_source",
               "image",
               "image_size",

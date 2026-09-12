@@ -8,6 +8,7 @@ import type { DependencyGraph } from "../../section-input/types";
 import type { ProjectDiagnostic, ProjectVirtualFS } from "../types";
 import type { ProjectRoute } from "../manifest/types";
 import { collectRouteScopedCss } from "./collect-css";
+import { listRootCssSourceModules } from "./root-css-modules";
 import {
   PROJECT_ROUTE_GRAPH_LIMITS,
   type BuildConversionUnitOptions,
@@ -387,12 +388,37 @@ export function buildConversionUnit(
     }
   }
 
+  const rootCssModules = listRootCssSourceModules(textFiles);
+  const cssModuleSources: Record<string, string> = { ...moduleSources };
+  for (const rootPath of rootCssModules) {
+    if (cssModuleSources[rootPath] === undefined && textFiles[rootPath]) {
+      cssModuleSources[rootPath] = textFiles[rootPath]!;
+    }
+  }
+  const cssModulePaths = [
+    ...new Set([
+      ...(graph.nodes.length > 0 ? graph.nodes : [route.entryFile]),
+      ...rootCssModules,
+    ]),
+  ].sort((a, b) => a.localeCompare(b));
+
   const cssResult = collectRouteScopedCss({
-    modulePaths: graph.nodes.length > 0 ? graph.nodes : [route.entryFile],
-    moduleSources,
+    modulePaths: cssModulePaths,
+    moduleSources: cssModuleSources,
     textFiles,
   });
   diagnostics.push(...cssResult.diagnostics);
+  const rootImportedCss = cssResult.cssPaths.filter((p) =>
+    rootCssModules.includes(cssResult.cssImporters[p] ?? ""),
+  );
+  if (rootImportedCss.length > 0) {
+    diagnostics.push({
+      severity: "info",
+      code: "root-css-included",
+      message: `Included root/global CSS: ${rootImportedCss.join(", ")}`,
+      path: route.entryFile,
+    });
+  }
 
   return {
     route,

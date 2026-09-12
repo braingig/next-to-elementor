@@ -189,6 +189,7 @@ function convertPackagedRoutes(args: {
   packaged: PackagedRoute[];
   catalogTarget: string;
   titlePrefix?: string;
+  documentPageLayout?: ConvertProjectOptions["documentPageLayout"];
   urlByAssetPath: Record<string, string>;
   mediaFailedAssets: Set<string>;
 }): RouteConversionResult[] {
@@ -240,6 +241,7 @@ function convertPackagedRoutes(args: {
       const result = convertRouteUnit(unit, {
         catalogTarget: args.catalogTarget,
         title: `${args.titlePrefix ?? "route"} ${route.path}`,
+        documentPageLayout: args.documentPageLayout,
       });
 
       let outcome = result.outcome;
@@ -470,6 +472,7 @@ export function convertProject(
     packaged: prepared.packaged,
     catalogTarget: prepared.catalogTarget,
     titlePrefix: options.titlePrefix,
+    documentPageLayout: options.documentPageLayout,
     urlByAssetPath: {},
     mediaFailedAssets: new Set(),
   });
@@ -538,6 +541,7 @@ export async function convertProjectAsync(
     packaged: prepared.packaged,
     catalogTarget: prepared.catalogTarget,
     titlePrefix: options.titlePrefix,
+    documentPageLayout: options.documentPageLayout,
     urlByAssetPath,
     mediaFailedAssets,
   });

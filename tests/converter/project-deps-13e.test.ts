@@ -169,6 +169,10 @@ describe("project Phase 13e: lucide-react adapter", () => {
     });
     expect(applied.status).toBe("supported");
     expect(applied.knownComponentSources?.Check).toContain('data-icon="check"');
+    expect(applied.knownComponentSources?.Check).toContain('width="24"');
+    expect(applied.knownComponentSources?.Check).toContain('height="24"');
+    expect(applied.knownComponentSources?.Check).not.toContain("width={size}");
+    expect(applied.knownComponentSources?.Check).not.toContain("className={className}");
     expect(applied.knownComponentSources?.ArrowRight).toContain(
       'data-icon="arrow-right"',
     );

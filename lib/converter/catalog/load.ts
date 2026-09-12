@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -78,6 +78,11 @@ export function loadElementorFreeCatalog(
     .filter((name) => name.endsWith(".json"))
     .sort();
 
+  const documentSettingsPath = join(versionDir, "document-settings.json");
+  const documentSettings = existsSync(documentSettingsPath)
+    ? readJson(documentSettingsPath)
+    : undefined;
+
   const catalogInput = {
     version: CATALOG_SCHEMA_VERSION,
     elementorTarget,
@@ -93,6 +98,7 @@ export function loadElementorFreeCatalog(
     breakpoints: readJson(join(versionDir, "breakpoints.json")),
     proDenylist: readJson(join(versionDir, "pro-denylist.json")),
     unverified: readJson(join(versionDir, "unverified.json")),
+    ...(documentSettings !== undefined ? { documentSettings } : {}),
   };
 
   return ElementorFreeCatalogSchema.parse(catalogInput);

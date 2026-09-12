@@ -35,9 +35,25 @@ export const MAX_STATIC_ARRAY_MAP_ELEMENTS = 100;
 
 export type StaticObjectFields = Map<string, StaticPrimitive>;
 
+/** Opaque Identifier field → local binding name (e.g. icon → ShieldCheck). */
+export type OpaqueIdentifierFields = Map<string, string>;
+
+export type StaticObjectExtract = {
+  fields: StaticObjectFields;
+  /**
+   * Identifier-valued fields skipped from primitives (imports / unresolved locals).
+   * Component resolution happens later only when the name is in localComponents.
+   */
+  opaqueIdentifiers?: OpaqueIdentifierFields;
+};
+
 export type StaticArrayElement =
   | { kind: "primitive"; value: StaticPrimitive }
-  | { kind: "object"; fields: StaticObjectFields };
+  | {
+      kind: "object";
+      fields: StaticObjectFields;
+      opaqueIdentifiers?: OpaqueIdentifierFields;
+    };
 
 function literalEnvFromMap(
   literals: Map<string, StaticPrimitive>,
@@ -57,7 +73,7 @@ function literalEnvFromMap(
  *
  * Object fields may be:
  * - static primitives (literals or same-file const literal bindings via env)
- * - opaque Identifiers (skipped so the rest of the object can still be static)
+ * - opaque Identifiers (recorded for later component JSX resolve; primitives stay unbound)
  */
 export function extractStaticArrayElements(
   node: ArrayExpression,
@@ -72,11 +88,17 @@ export function extractStaticArrayElements(
       return null;
     }
     if (el.type === "ObjectExpression") {
-      const fields = extractStaticObjectFields(el, env);
-      if (!fields) {
+      const extracted = extractStaticObjectFields(el, env);
+      if (!extracted) {
         return null;
       }
-      out.push({ kind: "object", fields });
+      out.push({
+        kind: "object",
+        fields: extracted.fields,
+        ...(extracted.opaqueIdentifiers
+          ? { opaqueIdentifiers: extracted.opaqueIdentifiers }
+          : {}),
+      });
       continue;
     }
     const prim = extractStaticPrimitive(el, env);
@@ -91,8 +113,9 @@ export function extractStaticArrayElements(
 function extractStaticObjectFields(
   node: ObjectExpression,
   env?: StaticPropEnv,
-): StaticObjectFields | null {
+): StaticObjectExtract | null {
   const fields: StaticObjectFields = new Map();
+  const opaqueIdentifiers: OpaqueIdentifierFields = new Map();
   for (const prop of node.properties) {
     if (prop.type === "SpreadElement" || prop.type === "ObjectMethod") {
       return null;
@@ -114,14 +137,19 @@ function extractStaticObjectFields(
       fields.set(key, prim.value);
       continue;
     }
-    // Opaque Identifier (import / unresolved local): keep the object static
-    // without binding this field. Used fields that stay opaque remain unresolved.
+    // Opaque Identifier (import / unresolved local): keep the object static.
+    // Record the binding name so map JSX like <item.icon /> can resolve later
+    // when that name is a known local/stub component — never execute imports.
     if (valueExpr.type === "Identifier") {
+      opaqueIdentifiers.set(key, valueExpr.name);
       continue;
     }
     return null;
   }
-  return fields;
+  return {
+    fields,
+    ...(opaqueIdentifiers.size > 0 ? { opaqueIdentifiers } : {}),
+  };
 }
 
 export { extractStaticObjectFields };
@@ -150,9 +178,9 @@ export function collectStaticObjectBindings(
         return;
       }
       if (init.type === "ObjectExpression") {
-        const fields = extractStaticObjectFields(init, env);
-        if (fields) {
-          map.set(name, fields);
+        const extracted = extractStaticObjectFields(init, env);
+        if (extracted) {
+          map.set(name, extracted.fields);
           literals.delete(name);
           return;
         }
@@ -165,6 +193,48 @@ export function collectStaticObjectBindings(
       }
       map.delete(name);
       literals.delete(name);
+    },
+  });
+
+  return map;
+}
+
+/**
+ * Collect `const/let/var name = <static primitive>` bindings (string/number/boolean/null).
+ * Used for cross-file `export const PHONE_HREF = "tel:…"` and same-file text/href refs.
+ * A later non-static declarator with the same name removes the binding.
+ */
+export function collectStaticPrimitiveBindings(
+  ast: File,
+): Map<string, StaticPrimitive> {
+  const map = new Map<string, StaticPrimitive>();
+  const env = literalEnvFromMap(map);
+
+  traverse(ast, {
+    VariableDeclarator(path) {
+      const { id, init } = path.node;
+      if (id.type !== "Identifier") {
+        return;
+      }
+      const name = id.name;
+      if (!init) {
+        map.delete(name);
+        return;
+      }
+      // Arrays/objects are handled by dedicated collectors — not primitives.
+      if (
+        init.type === "ArrayExpression" ||
+        init.type === "ObjectExpression"
+      ) {
+        map.delete(name);
+        return;
+      }
+      const prim = extractStaticPrimitive(init, env);
+      if (prim.ok) {
+        map.set(name, prim.value);
+        return;
+      }
+      map.delete(name);
     },
   });
 
@@ -298,6 +368,8 @@ function buildItemScope(
 ): PropScope | null {
   const values = new Map<string, StaticPrimitive>();
   const objectBindings = new Map<string, StaticObjectFields>();
+  const opaqueObjectIdentifiers = new Map<string, OpaqueIdentifierFields>();
+  const opaqueIdentifiers = new Map<string, string>();
 
   if (indexName) {
     values.set(indexName, index);
@@ -312,6 +384,9 @@ function buildItemScope(
       values.set(itemParam.name, element.value);
     } else {
       objectBindings.set(itemParam.name, element.fields);
+      if (element.opaqueIdentifiers && element.opaqueIdentifiers.size > 0) {
+        opaqueObjectIdentifiers.set(itemParam.name, element.opaqueIdentifiers);
+      }
     }
   } else {
     // Destructuring requires an object element.
@@ -319,17 +394,27 @@ function buildItemScope(
       return null;
     }
     for (const b of itemParam.bindings) {
-      if (!element.fields.has(b.propName)) {
-        // Missing / opaque field — leave unbound (honest Identifier later).
+      if (element.fields.has(b.propName)) {
+        values.set(b.localName, element.fields.get(b.propName)!);
         continue;
       }
-      values.set(b.localName, element.fields.get(b.propName)!);
+      // Opaque Identifier field (e.g. icon: ShieldCheck) → bind local for <Icon />.
+      const opaqueName = element.opaqueIdentifiers?.get(b.propName);
+      if (opaqueName !== undefined) {
+        opaqueIdentifiers.set(b.localName, opaqueName);
+        continue;
+      }
+      // Missing field — leave unbound (honest Identifier later).
     }
   }
 
   return {
     values,
     ...(objectBindings.size > 0 ? { objectBindings } : {}),
+    ...(opaqueObjectIdentifiers.size > 0
+      ? { opaqueObjectIdentifiers }
+      : {}),
+    ...(opaqueIdentifiers.size > 0 ? { opaqueIdentifiers } : {}),
   };
 }
 

@@ -295,9 +295,31 @@ export function applyIrStyleSlice(
   }
 
   // Background
-  if (style.background?.color) {
+  if (style.background?.color && !/gradient\(/i.test(style.background.color)) {
     allow(`${bgPrefix}background_background`, "classic", false);
     allow(`${bgPrefix}background_color`, style.background.color, false);
+  }
+  if (style.background?.image) {
+    const urlMatch = style.background.image.match(
+      /^url\(\s*['"]?([^'")]+)['"]?\s*\)$/i,
+    );
+    if (urlMatch) {
+      allow(`${bgPrefix}background_background`, "classic", false);
+      allow(
+        `${bgPrefix}background_image`,
+        { url: urlMatch[1], id: "", source: "url" },
+        false,
+      );
+    }
+  }
+  if (style.background?.size) {
+    allow(`${bgPrefix}background_size`, style.background.size, false);
+  }
+  if (style.background?.position) {
+    allow(`${bgPrefix}background_position`, style.background.position, false);
+  }
+  if (style.background?.repeat) {
+    allow(`${bgPrefix}background_repeat`, style.background.repeat, false);
   }
 
   // Border
@@ -425,5 +447,77 @@ export function mapIrStyleToSettings(
     );
   }
 
+  applyResponsiveVisibilityHides(style, tiers, ctx, settings);
+
   return settings;
+}
+
+/**
+ * Map Tailwind/CSS display:none (+ responsive show) to Free hide_* switchers.
+ *
+ * Examples (mobile-first IR → Elementor desktop-first hides):
+ * - `hidden lg:flex` → hide_mobile + hide_tablet
+ * - `flex lg:hidden` → hide_desktop
+ * - `hidden md:flex` → hide_mobile
+ */
+export function applyResponsiveVisibilityHides(
+  style: IrStyle,
+  tiers: CascadedTiers,
+  ctx: StyleMapContext,
+  settings: ElementorSettings,
+): void {
+  const desktopDisplay = tiers.desktop.layout?.display;
+  const tabletDisplay = tiers.tablet?.layout?.display;
+  const mobileDisplay = tiers.mobile?.layout?.display;
+
+  const hasResponsiveDisplay = Object.values(style.responsive ?? {}).some(
+    (partial) => partial?.layout?.display !== undefined,
+  );
+  const baseDisplay = style.layout?.display;
+
+  // Always-hidden (no responsive re-show): hide on every device.
+  if (baseDisplay === "none" && !hasResponsiveDisplay) {
+    setHide(ctx, settings, "hide_desktop");
+    setHide(ctx, settings, "hide_tablet");
+    setHide(ctx, settings, "hide_mobile");
+    return;
+  }
+
+  // Only emit hides when display participates in a responsive visibility pattern.
+  if (!hasResponsiveDisplay && baseDisplay !== "none") {
+    return;
+  }
+
+  if (desktopDisplay === "none") {
+    setHide(ctx, settings, "hide_desktop");
+  }
+  // Tablet: explicit cascaded none, or inherit base none when desktop shows via lg+.
+  if (
+    tabletDisplay === "none" ||
+    (tabletDisplay === undefined &&
+      baseDisplay === "none" &&
+      desktopDisplay !== undefined &&
+      desktopDisplay !== "none")
+  ) {
+    setHide(ctx, settings, "hide_tablet");
+  }
+  if (
+    mobileDisplay === "none" ||
+    (mobileDisplay === undefined &&
+      baseDisplay === "none" &&
+      hasResponsiveDisplay)
+  ) {
+    setHide(ctx, settings, "hide_mobile");
+  }
+}
+
+function setHide(
+  ctx: StyleMapContext,
+  settings: ElementorSettings,
+  id: "hide_desktop" | "hide_tablet" | "hide_mobile",
+): void {
+  if (!canUseControl(ctx.catalog, ctx.widgetId, id)) return;
+  // Elementor SWITCHER return_value is "hidden-{device}" → class elementor-hidden-{device}.
+  const device = id.replace("hide_", "");
+  settings[id] = `hidden-${device}`;
 }

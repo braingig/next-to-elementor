@@ -10,6 +10,7 @@ import type { StaticPrimitive } from "./static-value";
 import {
   lookupImportedStaticArray,
   lookupImportedStaticObject,
+  lookupImportedStaticPrimitive,
 } from "./static-module-exports";
 
 export type PropScope = {
@@ -22,6 +23,16 @@ export type PropScope = {
    * objectBindings.get("feature").get("title") without exposing bare `title`.
    */
   objectBindings?: Map<string, Map<string, StaticPrimitive>>;
+  /**
+   * Opaque Identifier fields on map items: `item.icon` → local name `ShieldCheck`.
+   * Resolved to components only when that name is in localComponents.
+   */
+  opaqueObjectIdentifiers?: Map<string, Map<string, string>>;
+  /**
+   * Destructured opaque Identifier locals: `Icon` → `ShieldCheck` from
+   * `({ icon: Icon }) => <Icon />`.
+   */
+  opaqueIdentifiers?: Map<string, string>;
   /**
    * Usage-site JSX children for `{children}` / `props.children` during inlining.
    * Converted on demand — never executed.
@@ -47,6 +58,8 @@ export type AnalyzerContext = {
   >;
   /** Entry-source static object literals. */
   staticObjects: Map<string, Map<string, StaticPrimitive>>;
+  /** Entry-source static primitive consts (string/number/boolean/null). */
+  staticPrimitives: Map<string, StaticPrimitive>;
   /**
    * Per known-component static arrays (keyed by component name, then array binding).
    * QuoteForm.SERVICES must not be visible while inlining Services.
@@ -57,6 +70,8 @@ export type AnalyzerContext = {
   >;
   /** Per known-component static object literals. */
   componentStaticObjects: Map<string, Map<string, StaticPrimitive>>;
+  /** Per known-component static primitive consts. */
+  componentStaticPrimitives: Map<string, Map<string, StaticPrimitive>>;
   /**
    * Stack of inlined known-component names (innermost last).
    * Array/object binding lookup prefers the innermost component scope.
@@ -220,6 +235,47 @@ export function lookupPropBinding(
   return { found: false };
 }
 
+/**
+ * Look up a static primitive const (same-file or imported export).
+ * Prefer prop-scope bindings via lookupPropBinding first.
+ */
+export function lookupStaticPrimitiveBinding(
+  ctx: AnalyzerContext,
+  name: string,
+): { found: true; value: StaticPrimitive } | { found: false } {
+  for (let i = ctx.inlineComponentStack.length - 1; i >= 0; i -= 1) {
+    const comp = ctx.inlineComponentStack[i]!;
+    const scoped = ctx.componentStaticPrimitives.get(comp)?.get(name);
+    if (scoped !== undefined) {
+      return { found: true, value: scoped };
+    }
+    const imported = lookupImportedStaticPrimitive({
+      localName: name,
+      importBindings: ctx.componentImportBindings.get(comp),
+      moduleRegistry: ctx.moduleStaticRegistry,
+    });
+    if (imported !== undefined) {
+      return { found: true, value: imported };
+    }
+  }
+
+  const entryLocal = ctx.staticPrimitives.get(name);
+  if (entryLocal !== undefined) {
+    return { found: true, value: entryLocal };
+  }
+
+  const entryImported = lookupImportedStaticPrimitive({
+    localName: name,
+    importBindings: ctx.entryImportBindings,
+    moduleRegistry: ctx.moduleStaticRegistry,
+  });
+  if (entryImported !== undefined) {
+    return { found: true, value: entryImported };
+  }
+
+  return { found: false };
+}
+
 /** Look up a static array binding scoped to the current inlined component / entry. */
 export function lookupStaticArrayBinding(
   ctx: AnalyzerContext,
@@ -266,6 +322,40 @@ export function lookupPropsMember(
     }
   }
   return { found: false };
+}
+
+/**
+ * Resolve opaque Identifier stored on a map item object: `item.icon` → `ShieldCheck`.
+ * Does not check localComponents — caller decides whether the name is a known component.
+ */
+export function lookupOpaqueObjectIdentifier(
+  ctx: AnalyzerContext,
+  objectName: string,
+  propName: string,
+): string | null {
+  for (let i = ctx.propScopes.length - 1; i >= 0; i -= 1) {
+    const refs = ctx.propScopes[i]!.opaqueObjectIdentifiers?.get(objectName);
+    if (refs?.has(propName)) {
+      return refs.get(propName)!;
+    }
+  }
+  return null;
+}
+
+/**
+ * Resolve a destructured opaque Identifier local: `Icon` → `ShieldCheck`.
+ */
+export function lookupOpaqueIdentifier(
+  ctx: AnalyzerContext,
+  localName: string,
+): string | null {
+  for (let i = ctx.propScopes.length - 1; i >= 0; i -= 1) {
+    const refs = ctx.propScopes[i]!.opaqueIdentifiers;
+    if (refs?.has(localName)) {
+      return refs.get(localName)!;
+    }
+  }
+  return null;
 }
 
 /**

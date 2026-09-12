@@ -205,3 +205,51 @@ export default function Split() {
     }
   });
 });
+
+describe("flex-row leaf widget shrink-wrap", () => {
+  it("sets _element_width auto on html links in a flex row", () => {
+    const result = convert(`
+export default function Nav() {
+  return (
+    <nav className="flex items-center gap-7">
+      <a href="#home">Home</a>
+      <a href="#services">Services</a>
+      <a href="#quote" className="rounded-full px-5 py-2">Get a Free Quote</a>
+    </nav>
+  );
+}
+`);
+    const doc = result.elementorJson as ElementorDocument;
+    const htmls: El[] = [];
+    walk(doc.content as El[], (el) => {
+      if (el.widgetType === "html") htmls.push(el);
+    });
+    expect(htmls.length).toBeGreaterThanOrEqual(3);
+    for (const h of htmls) {
+      expect(h.settings?._element_width).toBe("auto");
+      expect(String(h.settings?.html ?? "")).toMatch(/white-space\s*:\s*nowrap/);
+    }
+  });
+
+  it("does not force _element_width auto inside flex-col stacks", () => {
+    const result = convert(`
+export default function Stack() {
+  return (
+    <section className="flex flex-col gap-4">
+      <a href="#a">One</a>
+      <a href="#b">Two</a>
+    </section>
+  );
+}
+`);
+    const doc = result.elementorJson as ElementorDocument;
+    const htmls: El[] = [];
+    walk(doc.content as El[], (el) => {
+      if (el.widgetType === "html") htmls.push(el);
+    });
+    expect(htmls.length).toBe(2);
+    for (const h of htmls) {
+      expect(h.settings?._element_width).toBeUndefined();
+    }
+  });
+});

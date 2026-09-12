@@ -34,6 +34,26 @@ export function validateElementorDocument(
     });
   }
 
+  const pageTemplate = document.settings?.template;
+  if (pageTemplate !== undefined) {
+    if (typeof pageTemplate !== "string" || pageTemplate.length === 0) {
+      violations.push({
+        id: "document.settings.template",
+        kind: "control",
+        message: "Document settings.template must be a non-empty string.",
+      });
+    } else {
+      const allowed = catalog.documentSettings?.templates.map((t) => t.id) ?? [];
+      if (allowed.length > 0 && !allowed.includes(pageTemplate)) {
+        violations.push({
+          id: "document.settings.template",
+          kind: "control",
+          message: `Document settings.template "${pageTemplate}" is not a verified Elementor Free ${catalog.elementorTarget} Page Layout. Allowed: ${allowed.join(", ")}.`,
+        });
+      }
+    }
+  }
+
   walkElements(document.content, (el) => {
     if (el.elType !== "container" && el.elType !== "widget") {
       violations.push({

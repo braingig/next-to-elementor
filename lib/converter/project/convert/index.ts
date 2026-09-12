@@ -14,6 +14,8 @@ export {
 } from "./types";
 
 export { buildConversionUnit } from "./build-unit";
-export { collectRouteScopedCss } from "./collect-css";
+export { collectRouteScopedCss, stripCssImportQuery } from "./collect-css";
+export { listRootCssSourceModules } from "./root-css-modules";
 export { convertRouteUnit, type ConvertRouteUnitOptions } from "./convert-route";
 export { convertProject, convertProjectAsync } from "./convert-project";
+export type { DocumentPageLayoutMode } from "./types";

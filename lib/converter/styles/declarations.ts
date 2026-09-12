@@ -115,8 +115,9 @@ export function declarationsToIrStyle(
     if ("special" in mapping) {
       if (mapping.special === "background-shorthand") {
         if (
-          /^(#|rgb|hsl|var\(|transparent$|[a-z]+$)/i.test(value) &&
-          !value.includes("url(")
+          /^(#|rgb|hsl|oklch\(|var\(|transparent$|[a-z]+$)/i.test(value) &&
+          !value.includes("url(") &&
+          !/gradient\(/i.test(value)
         ) {
           setGroup(style, "background", "color", value);
         } else {

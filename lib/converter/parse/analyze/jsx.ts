@@ -12,9 +12,12 @@ import {
   locFromBabel,
   lookupJsxChildren,
   lookupJsxChildrenMember,
+  lookupOpaqueIdentifier,
+  lookupOpaqueObjectIdentifier,
   lookupPropBinding,
   lookupPropsMember,
   lookupStaticObjectField,
+  lookupStaticPrimitiveBinding,
   nextId,
   uncertainNode,
   unsupportedNode,
@@ -40,7 +43,11 @@ import { convertStaticArrayMap } from "./static-array-map";
 
 function propEnvFromCtx(ctx: AnalyzerContext): StaticPropEnv {
   return {
-    lookupIdentifier: (name) => lookupPropBinding(ctx, name),
+    lookupIdentifier: (name) => {
+      const prop = lookupPropBinding(ctx, name);
+      if (prop.found) return prop;
+      return lookupStaticPrimitiveBinding(ctx, name);
+    },
     lookupMember: (objectName, propName) =>
       lookupPropsMember(ctx, objectName, propName),
     lookupComputedMember: (objectName, key) =>
@@ -64,6 +71,35 @@ function getJsxElementName(node: JSXElement): string | null {
       parts.unshift(cur.name);
     }
     return parts.join(".");
+  }
+  return null;
+}
+
+/**
+ * Resolve map opaque component refs: <item.icon /> / <Icon /> → ShieldCheck
+ * when the Identifier is a known local/stub component. Static only — no import execution.
+ */
+function resolveOpaqueComponentJsxName(
+  ctx: AnalyzerContext,
+  name: string,
+): string | null {
+  if (!name.includes(".")) {
+    const fromLocal = lookupOpaqueIdentifier(ctx, name);
+    if (fromLocal && ctx.localComponents.has(fromLocal)) {
+      return fromLocal;
+    }
+    return null;
+  }
+  // Only simple object.prop (Festive: item.icon / s.icon).
+  const dot = name.indexOf(".");
+  if (dot <= 0 || name.indexOf(".", dot + 1) !== -1) {
+    return null;
+  }
+  const objectName = name.slice(0, dot);
+  const propName = name.slice(dot + 1);
+  const fromMember = lookupOpaqueObjectIdentifier(ctx, objectName, propName);
+  if (fromMember && ctx.localComponents.has(fromMember)) {
+    return fromMember;
   }
   return null;
 }
@@ -445,6 +481,12 @@ function convertJsxElement(ctx: AnalyzerContext, node: JSXElement): IrNode {
       notes: ["jsx-fragment-component"],
       children: convertChildren(ctx, node.children),
     };
+  }
+
+  // Static map opaque refs: <item.icon /> → ShieldCheck when stub/local exists.
+  const opaqueComponent = resolveOpaqueComponentJsxName(ctx, name);
+  if (opaqueComponent) {
+    return convertCustomComponent(ctx, node, opaqueComponent);
   }
 
   // Custom components (PascalCase / member except React.Fragment)

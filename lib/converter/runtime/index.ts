@@ -31,3 +31,10 @@ export {
   type ImportResult,
   type CollectedWidget,
 } from "./import";
+
+export {
+  createHarnessWordPressMediaClient,
+  readHarnessWordPressMediaConfig,
+  harnessWordPressMediaPath,
+  type HarnessWordPressMediaFile,
+} from "./wp-media";

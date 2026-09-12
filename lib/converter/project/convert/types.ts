@@ -22,6 +22,9 @@ import type {
   ProjectMediaPipelineOptions,
   ProjectMediaSummary,
 } from "../media/types";
+import type { DocumentPageLayoutMode } from "../document-page-layout";
+
+export type { DocumentPageLayoutMode };
 
 export type LayoutCompositionMode = "composed" | "page-only" | "none";
 
@@ -93,6 +96,13 @@ export type ProjectConversionResult = {
   media?: ProjectMediaSummary;
 };
 
+/**
+ * Project-only document Page Layout (Elementor Free settings.template).
+ * Never applied by convertSource / section-input.
+ * - auto (default): Full Width when the emitted doc has full-bleed landing evidence
+ * - full-width / canvas: always set that Free template
+ * - off: never set document settings.template
+ */
 export type ConvertProjectOptions = {
   /** Precomputed 13b analysis; if omitted, analyzeProjectStructure(vfs) runs. */
   analysis?: ProjectStructureAnalysis;
@@ -104,6 +114,11 @@ export type ConvertProjectOptions = {
    */
   maxDependencyDepth?: number;
   maxDependencyNodes?: number;
+  /**
+   * Project-only: Elementor Free Full Width / Canvas page layout.
+   * Default `auto`. Does not change convertSource.
+   */
+  documentPageLayout?: DocumentPageLayoutMode;
   /**
    * Phase 14c: opt-in WordPress media upload + pre-convert URL rewrite.
    * When enabled, callers must use convertProjectAsync().

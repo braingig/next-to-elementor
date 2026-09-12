@@ -18,6 +18,9 @@
 tests/runtime/generated/**
 !tests/runtime/generated/.gitkeep
 
+# Runtime harness only — Hello Elementor theme cache (downloaded by setup)
+/docker/themes/hello-elementor/
+
 # next.js
 /.next/
 /out/

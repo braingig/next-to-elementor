@@ -13,6 +13,11 @@ import {
 } from "../../report/schema";
 import type { ElementorDocument } from "../../rules/native/types";
 import type { ProjectDiagnostic } from "../types";
+import {
+  applyDocumentPageLayout,
+  resolveProjectPageTemplate,
+  type DocumentPageLayoutMode,
+} from "../document-page-layout";
 import type { ConversionUnit, RouteConversionResult } from "./types";
 
 function failedConversion(
@@ -58,6 +63,11 @@ function languageForPath(path: string): "tsx" | "jsx" | "auto" {
 export type ConvertRouteUnitOptions = {
   catalogTarget?: string;
   title?: string;
+  /**
+   * Project-only Page Layout. Default `auto`.
+   * Applied after convertSource; never changes convertSource defaults.
+   */
+  documentPageLayout?: DocumentPageLayoutMode;
 };
 
 /**
@@ -126,10 +136,25 @@ export function convertRouteUnit(
   if (conversion.elementorJson != null) {
     try {
       const catalog = loadElementorFreeCatalog(catalogTarget as "4.2.4");
-      const validation = validateElementorDocument(
-        conversion.elementorJson as ElementorDocument,
-        catalog,
-      );
+      const layoutMode: DocumentPageLayoutMode =
+        options.documentPageLayout ?? "auto";
+      let document = conversion.elementorJson as ElementorDocument;
+      const pageTemplate = resolveProjectPageTemplate(layoutMode, document);
+      if (pageTemplate) {
+        document = applyDocumentPageLayout(document, pageTemplate);
+        conversion = {
+          ...conversion,
+          elementorJson: document,
+        };
+        diagnostics.push({
+          severity: "info",
+          code: "document-page-layout-applied",
+          message: `Applied Elementor Free Page Layout template "${pageTemplate}" (mode: ${layoutMode}).`,
+          path: unit.entryFile,
+        });
+      }
+
+      const validation = validateElementorDocument(document, catalog);
       if (!validation.passed) {
         diagnostics.push({
           severity: "error",

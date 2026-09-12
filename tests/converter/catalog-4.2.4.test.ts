@@ -53,6 +53,16 @@ describe("Elementor Free catalog 4.2.4", () => {
     expect(() => ElementorFreeCatalogSchema.parse(catalog)).not.toThrow();
   });
 
+  it("catalogues Free document Page Layout templates (settings.template)", () => {
+    const catalog = loadElementorFreeCatalog("4.2.4");
+    expect(catalog.documentSettings?.controlId).toBe("template");
+    const ids = (catalog.documentSettings?.templates ?? []).map((t) => t.id);
+    expect(ids).toContain("elementor_header_footer");
+    expect(ids).toContain("elementor_canvas");
+    expect(ids).toContain("elementor_theme");
+    expect(ids).toContain("default");
+  });
+
   it("catalogues every MVP widget with a valid Free widgetType/id", () => {
     const catalog = loadElementorFreeCatalog("4.2.4");
     for (const id of MVP_WIDGET_IDS) {
