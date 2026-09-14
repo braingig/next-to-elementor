@@ -15,7 +15,7 @@ import {
   toElementorElement,
   validateElementorDocument,
 } from "../../emit";
-import { detectNativeFidelityGap } from "../native/fidelity";
+import { detectNativeFidelityGap, isSelfPaintOnlyFidelityGap, peelSelfPaintForHybrid } from "../native/fidelity";
 import { convertCustomFallback } from "./convert";
 import type { NativeEmit } from "../native/widgets/leaf";
 
@@ -31,12 +31,28 @@ export type ConvertToElementorOptions = {
  *
  * Escalate to custom when Free native would only partially map style/layout
  * (transforms, unequal grids, gradients, multi-layer shadows, lossy responsive).
+ *
+ * Self-paint gaps (gradient / backdrop / multi-shadow) on containers with
+ * children are peeled into a decorative custom sibling so native-compatible
+ * descendants stay Elementor Free widgets (smallest custom boundary).
  */
 export function convertIrNodeWithFallback(
   node: IrNode,
   catalog: ElementorFreeCatalog,
 ): NativeEmit {
   const fidelityGap = detectNativeFidelityGap(node);
+  if (fidelityGap && isSelfPaintOnlyFidelityGap(fidelityGap)) {
+    const peeled = peelSelfPaintForHybrid(node);
+    if (peeled) {
+      const hybrid: IrNode = {
+        ...peeled.contentNode,
+        children: [peeled.paintNode, ...peeled.contentNode.children],
+      };
+      // Re-enter so remaining non-paint gaps still escalate correctly; paint
+      // child becomes its own custom HTML leaf via absolute-overlay fidelity.
+      return convertIrNodeWithFallback(hybrid, catalog);
+    }
+  }
   if (fidelityGap) {
     return convertCustomFallback(node, catalog, fidelityGap.message);
   }

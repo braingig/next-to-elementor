@@ -197,6 +197,180 @@ export function detectNativeFidelityGap(node: IrNode): NativeFidelityGap | null 
 }
 
 /**
+ * Paint-only gaps: the node's own fill/effects cannot be native, but descendants
+ * do not need to live inside the same HTML widget for layout correctness.
+ * Used to peel a decorative layer instead of absorbing the whole subtree.
+ */
+export function isSelfPaintOnlyFidelityGap(
+  gap: NativeFidelityGap | null | undefined,
+): boolean {
+  if (!gap) return false;
+  const m = gap.message;
+  return (
+    m.includes("Gradient / complex backgrounds") ||
+    m.includes("Responsive gradient backgrounds") ||
+    m.includes("backdrop-filter") ||
+    m.includes("Multi-layer box-shadow") ||
+    m.includes("Responsive multi-layer box-shadow")
+  );
+}
+
+function styleSliceHasSelfPaint(style: IrStyle | undefined): boolean {
+  if (!style) return false;
+  return (
+    styleHasGradientBackground(style) ||
+    Boolean(style.effects?.backdropFilter) ||
+    styleHasMultiLayerShadow(style)
+  );
+}
+
+/**
+ * Split unmappable self-paint (gradient / backdrop / multi-shadow) onto an
+ * absolute inset decorative sibling so the parent can stay a native container
+ * with native-convertible children (smallest custom boundary).
+ *
+ * Returns null when peeling is not applicable.
+ */
+export function peelSelfPaintForHybrid(node: IrNode): {
+  contentNode: IrNode;
+  paintNode: IrNode;
+} | null {
+  if (node.kind !== "container" && node.kind !== "group") return null;
+  if (node.children.length === 0) return null;
+  if (!styleSliceHasSelfPaint(node.style)) return null;
+  // Positioned chrome / transforms require the node itself as the custom root.
+  if (styleHasFixedOverlay(node.style) || styleHasTransform(node.style)) {
+    return null;
+  }
+  if (styleHasUnsupportedGrid(node.style)) return null;
+
+  const src = node.style ?? {};
+  const paintBackground: NonNullable<IrStyle["background"]> = {};
+  const contentBackground: NonNullable<IrStyle["background"]> = {
+    ...(src.background ?? {}),
+  };
+
+  if (styleHasGradientBackground(src)) {
+    const color = src.background?.color ?? "";
+    const image = src.background?.image ?? "";
+    if (/gradient\(/i.test(color)) {
+      paintBackground.color = color;
+      delete contentBackground.color;
+    }
+    if (/gradient\(/i.test(image)) {
+      paintBackground.image = image;
+      delete contentBackground.image;
+    }
+    // Decorative fills should cover the box.
+    if (src.background?.size) paintBackground.size = src.background.size;
+    if (src.background?.position) {
+      paintBackground.position = src.background.position;
+    }
+    if (src.background?.repeat) paintBackground.repeat = src.background.repeat;
+  }
+
+  const paintEffects: NonNullable<IrStyle["effects"]> = {};
+  const contentEffects: NonNullable<IrStyle["effects"]> = {
+    ...(src.effects ?? {}),
+  };
+  if (src.effects?.backdropFilter) {
+    paintEffects.backdropFilter = src.effects.backdropFilter;
+    delete contentEffects.backdropFilter;
+  }
+  if (styleHasMultiLayerShadow(src)) {
+    paintEffects.boxShadow = src.effects!.boxShadow;
+    delete contentEffects.boxShadow;
+  }
+
+  const paintStyle: IrStyle = {
+    position: {
+      position: "absolute",
+      top: "0px",
+      right: "0px",
+      bottom: "0px",
+      left: "0px",
+      zIndex: "-1",
+    },
+    layout: { pointerEvents: "none" },
+    ...(Object.keys(paintBackground).length > 0
+      ? { background: paintBackground }
+      : {}),
+    ...(Object.keys(paintEffects).length > 0 ? { effects: paintEffects } : {}),
+  };
+
+  const contentStyle: IrStyle = { ...src };
+  if (Object.keys(contentBackground).length > 0) {
+    contentStyle.background = contentBackground;
+  } else {
+    delete contentStyle.background;
+  }
+  if (Object.keys(contentEffects).length > 0) {
+    contentStyle.effects = contentEffects;
+  } else {
+    delete contentStyle.effects;
+  }
+  // Ensure absolute paint layer is positioned against this box.
+  contentStyle.position = {
+    ...(contentStyle.position ?? {}),
+    position: contentStyle.position?.position ?? "relative",
+  };
+
+  // Also peel responsive paint slices so the content node no longer gaps.
+  if (contentStyle.responsive) {
+    const nextResponsive: NonNullable<IrStyle["responsive"]> = {
+      ...contentStyle.responsive,
+    };
+    for (const bp of Object.keys(nextResponsive)) {
+      const partial = nextResponsive[bp];
+      if (!partial || !styleSliceHasSelfPaint(partial)) continue;
+      const cleaned = { ...partial };
+      if (styleHasGradientBackground(partial)) {
+        const bg = { ...(partial.background ?? {}) };
+        if (/gradient\(/i.test(bg.color ?? "")) delete bg.color;
+        if (/gradient\(/i.test(bg.image ?? "")) delete bg.image;
+        if (Object.keys(bg).length > 0) cleaned.background = bg;
+        else delete cleaned.background;
+      }
+      if (partial.effects?.backdropFilter || styleHasMultiLayerShadow(partial)) {
+        const fx = { ...(partial.effects ?? {}) };
+        delete fx.backdropFilter;
+        if (styleHasMultiLayerShadow(partial)) delete fx.boxShadow;
+        if (Object.keys(fx).length > 0) cleaned.effects = fx;
+        else delete cleaned.effects;
+      }
+      nextResponsive[bp] = cleaned;
+    }
+    contentStyle.responsive = nextResponsive;
+  }
+
+  const paintNode: IrNode = {
+    id: `${node.id}__paint`,
+    kind: "container",
+    props: {},
+    style: paintStyle,
+    provenance: {
+      htmlTag: "div",
+      classNames: [],
+      attributes: { "aria-hidden": "true" },
+      ...(node.provenance?.sourcePath
+        ? { sourcePath: node.provenance.sourcePath }
+        : {}),
+    },
+    children: [],
+  };
+
+  const contentNode: IrNode = {
+    ...node,
+    style: contentStyle,
+  };
+
+  // Peeling must clear self-paint on the content node.
+  if (styleSliceHasSelfPaint(contentNode.style)) return null;
+
+  return { contentNode, paintNode };
+}
+
+/**
  * After full-bleed absorb: remaining *absolute* layer stacks with no in-flow
  * siblings may need a custom containing block.
  *

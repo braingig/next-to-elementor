@@ -234,4 +234,107 @@ describe("hybrid native/custom boundary", () => {
     expect(widgets.some((w) => w.widgetType === "heading")).toBe(true);
     expect(widgets.some((w) => w.widgetType === "html")).toBe(true);
   });
+
+  it("gradient section peels paint layer; heading/text/button/image stay native widgets", () => {
+    const result = convertSource({
+      source: `
+        export default function Feature() {
+          return (
+            <section
+              className="relative overflow-hidden py-20"
+              style={{
+                backgroundColor: "#0f172a",
+                backgroundImage:
+                  "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), transparent 40%)",
+              }}
+            >
+              <span className="text-xs font-semibold uppercase tracking-wide text-amber-300">Badge</span>
+              <h2 className="text-3xl font-bold text-white">Feature title</h2>
+              <p className="text-base text-white/80">Supporting paragraph copy.</p>
+              <a role="button" href="#go" className="rounded-full bg-red-600 px-5 py-2 text-white font-semibold">Get started</a>
+              <img src="https://cdn.example.com/hero.png" alt="Hero" className="h-40 w-auto" />
+            </section>
+          );
+        }
+      `,
+      catalogTarget: "4.2.4",
+    });
+    expect(result.elementorJson).not.toBeNull();
+    const counts = countWidgets(result.elementorJson as ElementorDocument);
+    expect(counts.container ?? 0).toBeGreaterThanOrEqual(1);
+    expect(counts["widget:heading"] ?? 0).toBeGreaterThanOrEqual(1);
+    expect(counts["widget:text-editor"] ?? 0).toBeGreaterThanOrEqual(1);
+    expect(counts["widget:button"] ?? 0).toBeGreaterThanOrEqual(1);
+    expect(counts["widget:image"] ?? 0).toBeGreaterThanOrEqual(1);
+    // Decorative paint only — not the whole section as one HTML blob.
+    expect(counts["widget:html"] ?? 0).toBeGreaterThanOrEqual(1);
+
+    const section = result.report.nodes.find(
+      (n) => n.irKind === "container" && n.provenance?.htmlTag === "section",
+    );
+    expect(section?.decision).toBe("native");
+    expect(
+      result.report.nodes.find(
+        (n) =>
+          n.irKind === "heading" &&
+          (n.message ?? "").startsWith("Included in parent custom HTML"),
+      ),
+    ).toBeUndefined();
+    expect(
+      result.report.nodes.some(
+        (n) => n.irKind === "heading" && n.decision === "native",
+      ),
+    ).toBe(true);
+    expect(
+      result.report.nodes.some(
+        (n) => n.irKind === "text" && n.decision === "native",
+      ),
+    ).toBe(true);
+    expect(
+      result.report.nodes.some(
+        (n) => n.irKind === "button" && n.decision === "native",
+      ),
+    ).toBe(true);
+    expect(
+      result.report.nodes.some(
+        (n) => n.irKind === "image" && n.decision === "native",
+      ),
+    ).toBe(true);
+
+    const htmlWidgets: string[] = [];
+    walk(result.elementorJson!.content, (el) => {
+      if (el.widgetType === "html") htmlWidgets.push(String(el.settings.html ?? ""));
+    });
+    expect(htmlWidgets.some((h) => h.includes("radial-gradient"))).toBe(true);
+    expect(htmlWidgets.every((h) => !h.includes("Feature title"))).toBe(true);
+  });
+
+  it("fixed header chrome may stay whole-subtree custom while page content stays native", () => {
+    const result = convertSource({
+      source: `
+        export default function Page() {
+          return (
+            <div>
+              <header className="fixed inset-x-0 top-0 z-50 bg-slate-900 px-4 py-3">
+                <a href="#a" className="text-sm text-white">Nav</a>
+              </header>
+              <main className="pt-20">
+                <h1 className="text-3xl font-bold">Page title</h1>
+                <p className="text-base">Body</p>
+              </main>
+            </div>
+          );
+        }
+      `,
+      catalogTarget: "4.2.4",
+    });
+    const counts = countWidgets(result.elementorJson as ElementorDocument);
+    expect(counts["widget:heading"] ?? 0).toBeGreaterThanOrEqual(1);
+    expect(counts["widget:html"] ?? 0).toBeGreaterThanOrEqual(1);
+    expect(
+      result.report.nodes.some(
+        (n) => n.irKind === "heading" && n.decision === "native",
+      ),
+    ).toBe(true);
+  });
 });
