@@ -6,9 +6,9 @@
 import { extensionOf } from "../fs/virtual";
 import type { ProjectAsset } from "../assets/types";
 import type { ProjectDiagnostic, ProjectVirtualFS } from "../types";
+import { resolveWordPressTargetConfig } from "../../wordpress/config";
 import {
   createWordPressMediaClient,
-  readWordPressMediaConfigFromEnv,
   sanitizeMediaDiagnostic,
   validateWordPressMediaConfig,
 } from "./client";
@@ -30,7 +30,6 @@ import type {
   ProjectMediaPipelineResult,
   ProjectMediaSummary,
   ProjectMediaUploadResult,
-  ProjectWordPressMediaConfig,
 } from "./types";
 
 function emptySummary(enabled: boolean): ProjectMediaSummary {
@@ -97,30 +96,39 @@ function resolveClient(
     return { ok: true, client: options.client };
   }
 
-  const config: ProjectWordPressMediaConfig | null =
-    options.wordpress ?? readWordPressMediaConfigFromEnv();
+  if (options.wordpress) {
+    const valid = validateWordPressMediaConfig(options.wordpress);
+    if (!valid.ok) {
+      return {
+        ok: false,
+        fatal: true,
+        code: valid.code,
+        message: valid.message,
+      };
+    }
+    return {
+      ok: true,
+      client: createWordPressMediaClient({ config: options.wordpress }),
+    };
+  }
 
-  if (!config) {
+  // Same resolver as CLI WordPress import: `.n2e-wp.local.json` (cwd → parents).
+  const resolved = resolveWordPressTargetConfig({
+    cwd: options.configCwd ?? process.cwd(),
+  });
+  if (!resolved.ok) {
     return {
       ok: false,
       fatal: true,
       code: "media-config-missing",
-      message:
-        "WordPress media is enabled but N2E_WP_BASE_URL, N2E_WP_USER, and N2E_WP_APP_PASSWORD are not configured.",
+      message: resolved.message,
     };
   }
 
-  const valid = validateWordPressMediaConfig(config);
-  if (!valid.ok) {
-    return {
-      ok: false,
-      fatal: true,
-      code: valid.code,
-      message: valid.message,
-    };
-  }
-
-  return { ok: true, client: createWordPressMediaClient({ config }) };
+  return {
+    ok: true,
+    client: createWordPressMediaClient({ config: resolved.config }),
+  };
 }
 
 /**

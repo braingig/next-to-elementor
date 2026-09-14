@@ -81,12 +81,13 @@
           {
             "elType": "container",
             "settingKeys": [
-              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
               "flex_gap",
-              "html_tag"
+              "html_tag",
+              "padding",
+              "width"
             ],
             "children": [
               {
@@ -122,7 +123,8 @@
                   "flex_gap",
                   "flex_wrap",
                   "flex_wrap_mobile",
-                  "html_tag"
+                  "html_tag",
+                  "padding"
                 ],
                 "children": [
                   {
@@ -166,6 +168,7 @@
               "image",
               "image_size",
               "link_to",
+              "space",
               "width"
             ],
             "children": []

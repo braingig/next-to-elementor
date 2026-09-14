@@ -41,6 +41,11 @@ export type StaticPropEnv = {
     | { kind: "value"; value: StaticPrimitive }
     | { kind: "missing" }
     | { kind: "unknown-object" };
+  /**
+   * True when `name` is a default import from a `*.module.css` file.
+   * Used to bind `styles.title` → class token `title` for static CSS matching.
+   */
+  isCssModuleLocal?: (name: string) => boolean;
 };
 
 export function extractStaticPrimitive(
@@ -183,6 +188,95 @@ function extractStaticTemplate(
   return { ok: true, value: out };
 }
 
+/**
+ * Collect class tokens from expressions that are only partially static.
+ *
+ * For template literals with dynamic interpolations (e.g. scroll/menu state
+ * ternaries), keep:
+ * - every static quasi segment
+ * - the **alternate (else)** arm of ConditionalExpression string literals as
+ *   the resting/default appearance (including both arms causes conflicting
+ *   utilities such as `fixed` vs a scrolled `relative` chrome class)
+ *
+ * Never invent classes; never execute the condition.
+ */
+export function extractPartialStaticClassNames(
+  node: Node,
+  env?: StaticPropEnv,
+): { tokens: string[]; partial: boolean } {
+  const tokens: string[] = [];
+  let partial = false;
+
+  const pushString = (value: string) => {
+    for (const t of value.split(/\s+/)) {
+      if (t) tokens.push(t);
+    }
+  };
+
+  const walk = (n: Node | null | undefined): void => {
+    if (!n) return;
+
+    if (n.type === "StringLiteral") {
+      pushString(n.value);
+      return;
+    }
+
+    if (n.type === "TemplateLiteral") {
+      for (let i = 0; i < n.quasis.length; i += 1) {
+        pushString(n.quasis[i]?.value.cooked ?? n.quasis[i]?.value.raw ?? "");
+        const expr = n.expressions[i];
+        if (!expr) continue;
+        const prim = extractStaticPrimitive(expr, env);
+        if (prim.ok && typeof prim.value === "string") {
+          pushString(prim.value);
+        } else if (expr.type === "ConditionalExpression") {
+          partial = true;
+          // Resting/else appearance only — avoids conflicting state utilities.
+          walk(expr.alternate);
+        } else if (
+          expr.type === "LogicalExpression" &&
+          expr.operator === "||"
+        ) {
+          partial = true;
+          walk(expr.left);
+          walk(expr.right);
+        } else if (
+          expr.type === "LogicalExpression" &&
+          expr.operator === "&&"
+        ) {
+          // State-gated optional classes — omit rather than invent on-state UI.
+          partial = true;
+        } else {
+          partial = true;
+        }
+      }
+      return;
+    }
+
+    if (n.type === "ConditionalExpression") {
+      partial = true;
+      walk(n.alternate);
+      return;
+    }
+
+    if (n.type === "BinaryExpression" && n.operator === "+") {
+      walk(n.left);
+      walk(n.right);
+      return;
+    }
+
+    const prim = extractStaticPrimitive(n, env);
+    if (prim.ok && typeof prim.value === "string") {
+      pushString(prim.value);
+    } else {
+      partial = true;
+    }
+  };
+
+  walk(node);
+  return { tokens, partial };
+}
+
 /** Reconstruct a CSS-ish inline style string from a static object expression. */
 export function inlineStyleObjectToRaw(node: ObjectExpression): string | undefined {
   const parts: string[] = [];
@@ -278,6 +372,16 @@ export function collectJsxAttributes(
         if (prim.ok && typeof prim.value === "string") {
           assignAttr(result, "className", prim.value);
         } else if (
+          expr.type === "MemberExpression" &&
+          !expr.computed &&
+          expr.object.type === "Identifier" &&
+          expr.property.type === "Identifier" &&
+          env?.isCssModuleLocal?.(expr.object.name)
+        ) {
+          // CSS modules: `styles.title` → local class token `title` (source CSS
+          // uses `.title`; runtime hashes are not required for static matching).
+          assignAttr(result, "className", expr.property.name);
+        } else if (
           expr.type === "ArrayExpression" &&
           expr.elements.every(
             (el) =>
@@ -296,7 +400,17 @@ export function collectJsxAttributes(
           }
           assignAttr(result, "className", parts.join(" "));
         } else {
-          result.dynamicAttrReasons.push("dynamic-className");
+          // Partial static recovery: keep literal class tokens from template
+          // quasis / ternary string arms. Do not drop the entire className.
+          const recovered = extractPartialStaticClassNames(expr, env);
+          if (recovered.tokens.length > 0) {
+            assignAttr(result, "className", recovered.tokens.join(" "));
+            if (recovered.partial) {
+              result.dynamicAttrReasons.push("partial-dynamic-className");
+            }
+          } else {
+            result.dynamicAttrReasons.push("dynamic-className");
+          }
         }
         continue;
       }

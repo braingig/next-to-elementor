@@ -123,18 +123,37 @@ export function toDimensionsFromSides(sides: {
   if (sides.all && !sides.top && !sides.right && !sides.bottom && !sides.left) {
     return toDimensions(sides.all);
   }
-  const t = parseCssLength(sides.top);
-  const r = parseCssLength(sides.right);
-  const b = parseCssLength(sides.bottom);
-  const l = parseCssLength(sides.left);
+
+  const parseSide = (
+    value: string | undefined,
+  ): { size: string; unit: string } | undefined => {
+    if (!value) return undefined;
+    const trimmed = value.trim().toLowerCase();
+    if (trimmed === "auto") return { size: "auto", unit: "px" };
+    const parsed = parseCssLength(value);
+    if (!parsed) return undefined;
+    return { size: String(parsed.size), unit: parsed.unit };
+  };
+
+  const t = parseSide(sides.top);
+  const r = parseSide(sides.right);
+  const b = parseSide(sides.bottom);
+  const l = parseSide(sides.left);
   if (!t && !r && !b && !l) {
     return sides.all ? toDimensions(sides.all) : undefined;
   }
-  const unit = t?.unit ?? r?.unit ?? b?.unit ?? l?.unit ?? "px";
-  const top = t ? String(t.size) : "0";
-  const right = r ? String(r.size) : "0";
-  const bottom = b ? String(b.size) : "0";
-  const left = l ? String(l.size) : "0";
+  // Prefer a length unit when mixed with auto so Elementor keeps numeric sides.
+  const unit =
+    [t, r, b, l].find((s) => s && s.size !== "auto")?.unit ??
+    t?.unit ??
+    r?.unit ??
+    b?.unit ??
+    l?.unit ??
+    "px";
+  const top = t ? t.size : "0";
+  const right = r ? r.size : "0";
+  const bottom = b ? b.size : "0";
+  const left = l ? l.size : "0";
   return {
     unit,
     top,
@@ -155,6 +174,28 @@ export function toGaps(value: string | undefined): Record<string, unknown> | und
     column: size,
     row: size,
     isLinked: true,
+  };
+}
+
+/**
+ * Unlinked row/column flex gaps when IR has axis-specific spacing
+ * (`gap-x` / `gap-y` / `space-x` / `space-y`).
+ */
+export function toGapsAxes(args: {
+  column?: string;
+  row?: string;
+}): Record<string, unknown> | undefined {
+  const col = parseCssLength(args.column);
+  const row = parseCssLength(args.row);
+  if (!col && !row) return undefined;
+  const unit = col?.unit ?? row?.unit ?? "px";
+  const column = col ? String(col.size) : "0";
+  const rowSize = row ? String(row.size) : "0";
+  return {
+    unit,
+    column,
+    row: rowSize,
+    isLinked: column === rowSize && Boolean(col) && Boolean(row),
   };
 }
 

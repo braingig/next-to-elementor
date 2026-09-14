@@ -1,4 +1,5 @@
 import type { IrNode, IrStyle } from "../../../ir/schema";
+import { isVisuallyHiddenNode } from "./image-like-link";
 
 /**
  * Detect whether an IR `link` is visually a CTA/button chrome rather than a
@@ -6,12 +7,73 @@ import type { IrNode, IrStyle } from "../../../ir/schema";
  *
  * Uses resolved style facts only (no label heuristics). Conservative: ambiguous
  * anchors stay links so Free Button is not forced on normal `<a>`s.
+ *
+ * Named icon + text children (e.g. Phone glyph beside a label) may still map to
+ * Free Button with `selected_icon` when chrome signals are present.
  */
+
+export type ButtonLikeFlatten = {
+  text: string;
+  iconName?: string;
+};
+
+/**
+ * Flatten link children that are only text and/or a single named icon.
+ * Returns null when structure is too rich for Free Button text+icon.
+ */
+export function flattenButtonLikeLinkContent(
+  node: IrNode & { kind: "link" },
+): ButtonLikeFlatten | null {
+  const visible = node.children.filter((c) => !isVisuallyHiddenNode(c));
+  if (visible.length === 0) {
+    const text = node.props.text?.trim();
+    return text ? { text } : null;
+  }
+
+  const textParts: string[] = [];
+  let iconName: string | undefined;
+
+  for (const child of visible) {
+    if (child.kind === "text") {
+      const t = child.props.text?.trim();
+      if (t) textParts.push(t);
+      continue;
+    }
+    if (child.kind === "icon" && child.props.name?.trim()) {
+      if (iconName) return null;
+      iconName = child.props.name.trim();
+      continue;
+    }
+    // Trivial wrapper holding only text (e.g. <span>{label}</span>).
+    if (
+      (child.kind === "container" || child.kind === "group") &&
+      child.children.length > 0
+    ) {
+      const inner = child.children.filter((c) => !isVisuallyHiddenNode(c));
+      if (
+        inner.length > 0 &&
+        inner.every((c) => c.kind === "text")
+      ) {
+        for (const t of inner) {
+          const s = t.kind === "text" ? t.props.text?.trim() : "";
+          if (s) textParts.push(s);
+        }
+        continue;
+      }
+    }
+    return null;
+  }
+
+  const fromProps = node.props.text?.trim();
+  const text = (fromProps || textParts.join(" ").replace(/\s+/g, " ").trim()).trim();
+  if (!text) return null;
+  return { text, ...(iconName ? { iconName } : {}) };
+}
+
 export function isButtonLikeLink(node: IrNode): boolean {
   if (node.kind !== "link") return false;
-  if (!node.props.text?.trim()) return false;
-  // Nested markup cannot live inside Free Button text.
-  if (node.children.length > 0) return false;
+  const flat = flattenButtonLikeLinkContent(node);
+  if (!flat?.text) return false;
 
   const slices: IrStyle[] = [node.style ?? {}];
   if (node.style?.responsive) {
@@ -108,16 +170,23 @@ function isBoxBorder(border: IrStyle["border"] | undefined): boolean {
 export function linkNodeAsButton(
   node: IrNode & { kind: "link" },
 ): IrNode & { kind: "button" } {
+  const flat = flattenButtonLikeLinkContent(node);
   return {
     ...node,
     kind: "button",
+    children: [],
     props: {
-      text: node.props.text ?? "",
+      text: flat?.text ?? node.props.text ?? "",
       href: node.props.href,
       type: "link",
       ...(node.props.target ? { target: node.props.target } : {}),
       ...(node.props.rel ? { rel: node.props.rel } : {}),
+      ...(flat?.iconName ? { iconName: flat.iconName } : {}),
     },
-    notes: [...(node.notes ?? []), "button-like-link"],
+    notes: [
+      ...(node.notes ?? []),
+      "button-like-link",
+      ...(flat?.iconName ? ["button-like-link-icon"] : []),
+    ],
   };
 }

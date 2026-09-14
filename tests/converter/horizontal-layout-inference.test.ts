@@ -8,8 +8,24 @@ import {
   loadElementorFreeCatalog,
   type ElementorDocument,
 } from "@/lib/converter";
-
+import { isOneFrAutoGridTemplate } from "@/lib/converter/rules/native/widgets/layout-inference";
 const catalog = loadElementorFreeCatalog("4.2.4");
+
+describe("isOneFrAutoGridTemplate", () => {
+  it("detects leading 1fr / minmax(0,1fr) + auto tracks", () => {
+    expect(isOneFrAutoGridTemplate("minmax(0,1fr)_auto")).toBe(true);
+    expect(isOneFrAutoGridTemplate("minmax(0, 1fr) auto")).toBe(true);
+    expect(isOneFrAutoGridTemplate("1fr auto")).toBe(true);
+    expect(isOneFrAutoGridTemplate("1fr_auto_auto")).toBe(true);
+  });
+
+  it("rejects equal fr or auto-first templates", () => {
+    expect(isOneFrAutoGridTemplate("1fr 1fr")).toBe(false);
+    expect(isOneFrAutoGridTemplate("auto 1fr")).toBe(false);
+    expect(isOneFrAutoGridTemplate("repeat(3,1fr)")).toBe(false);
+    expect(isOneFrAutoGridTemplate(undefined)).toBe(false);
+  });
+});
 
 function walkElements(
   doc: ElementorDocument,
@@ -170,7 +186,7 @@ export default function Page() {
 }
 `);
     const doc = result.elementorJson as ElementorDocument;
-    let bar: { settings: Record<string, unknown> } | undefined;
+    let bar: { settings: Record<string, unknown>; elements?: unknown[] } | undefined;
     walkElements(doc, (el) => {
       if (
         Array.isArray(el.elements) &&
@@ -186,6 +202,71 @@ export default function Page() {
     expect(bar!.settings.flex_direction).toBe("row");
     expect(bar!.settings.flex_justify_content).toBe("space-between");
     expect(bar!.settings.grid_columns_grid).toBeUndefined();
+  });
+
+  it("escalates 1fr+auto chrome to custom HTML instead of inventing flex tracks", () => {
+    const result = convert(`
+export default function Page() {
+  return (
+    <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3">
+      <a href="#home">Logo</a>
+      <nav className="hidden lg:flex items-center gap-7">
+        <a href="#home">Home</a>
+        <a href="#quote">Quote</a>
+      </nav>
+      <div className="lg:hidden">
+        <a href="#quote">Quote</a>
+      </div>
+    </div>
+  );
+}
+`);
+    const doc = result.elementorJson as ElementorDocument;
+    let htmlBlob = "";
+    walkElements(doc, (el) => {
+      if (el.widgetType === "html" && typeof el.settings.html === "string") {
+        htmlBlob += el.settings.html;
+      }
+    });
+    expect(htmlBlob).toContain("grid-template-columns");
+    expect(htmlBlob).toMatch(/minmax\(0,\s*1fr\)\s+auto/);
+    // No native flex approximation for unequal grid.
+    let invented = false;
+    walkElements(doc, (el) => {
+      if (
+        el.settings.container_type === "flex" &&
+        el.settings.flex_justify_content === "start" &&
+        Array.isArray(el.elements) &&
+        el.elements.length === 3
+      ) {
+        invented = true;
+      }
+    });
+    expect(invented).toBe(false);
+  });
+
+  it("rewrites flex justify-between complementary chrome the same way", () => {
+    const result = convert(`
+export default function Page() {
+  return (
+    <div className="flex items-center justify-between gap-4 px-4 py-3">
+      <a href="#home">Logo</a>
+      <nav className="hidden lg:flex items-center gap-4">
+        <a href="#a">A</a>
+      </nav>
+      <div className="lg:hidden">
+        <a href="#q">Q</a>
+      </div>
+    </div>
+  );
+}
+`);
+    const doc = result.elementorJson as ElementorDocument;
+    const root = doc.content[0]!;
+    expect(root.settings.flex_direction).toBe("row");
+    expect(root.settings.flex_justify_content).toBe("start");
+    expect(root.elements[1]!.settings.margin).toMatchObject({ left: "auto" });
+    expect(root.elements[2]!.settings.margin).toMatchObject({ left: "auto" });
   });
 
   it("still infers equal fr for non-chrome 2-child grids", () => {

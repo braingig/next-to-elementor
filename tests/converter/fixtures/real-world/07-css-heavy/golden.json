@@ -60,12 +60,14 @@
           {
             "elType": "container",
             "settingKeys": [
-              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
               "flex_gap",
-              "html_tag"
+              "html_tag",
+              "margin",
+              "padding",
+              "width"
             ],
             "children": [
               {

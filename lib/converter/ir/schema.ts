@@ -92,6 +92,10 @@ export const IrBoxStyleSchema = z
     minHeight: CssValue.optional(),
     maxWidth: CssValue.optional(),
     maxHeight: CssValue.optional(),
+    /** CSS object-fit for replaced elements (e.g. Tailwind object-contain). */
+    objectFit: CssValue.optional(),
+    /** CSS object-position (e.g. Tailwind object-center / object-left). */
+    objectPosition: CssValue.optional(),
     margin: CssValue.optional(),
     marginTop: CssValue.optional(),
     marginRight: CssValue.optional(),
@@ -119,6 +123,12 @@ export const IrLayoutStyleSchema = z
     gridTemplateColumns: CssValue.optional(),
     gridTemplateRows: CssValue.optional(),
     overflow: CssValue.optional(),
+    /** CSS flex-shrink (e.g. Tailwind shrink-0). */
+    flexShrink: CssValue.optional(),
+    /** CSS flex-grow (e.g. Tailwind grow-0). */
+    flexGrow: CssValue.optional(),
+    /** CSS pointer-events (e.g. none). */
+    pointerEvents: CssValue.optional(),
   })
   .strict();
 
@@ -134,6 +144,8 @@ export const IrTypographyStyleSchema = z
     textDecoration: CssValue.optional(),
     textTransform: CssValue.optional(),
     color: CssValue.optional(),
+    /** CSS white-space (e.g. Tailwind whitespace-nowrap). */
+    whiteSpace: CssValue.optional(),
   })
   .strict();
 
@@ -176,6 +188,14 @@ export const IrEffectsStyleSchema = z
     opacity: CssValue.optional(),
     boxShadow: CssValue.optional(),
     transform: CssValue.optional(),
+    /** CSS filter (e.g. blur). */
+    filter: CssValue.optional(),
+    /** CSS backdrop-filter (e.g. blur(6px)). */
+    backdropFilter: CssValue.optional(),
+    /** CSS isolation (e.g. isolate). */
+    isolation: CssValue.optional(),
+    /** Full CSS animation value when statically known. */
+    animation: CssValue.optional(),
     /** MVP: flags only — full timelines are out of scope. */
     hasTransition: z.boolean().optional(),
     hasAnimation: z.boolean().optional(),
@@ -273,6 +293,8 @@ export const IrButtonPropsSchema = z
     type: z.enum(["button", "submit", "reset", "link"]).optional(),
     target: z.string().optional(),
     rel: z.string().optional(),
+    /** Optional named icon (e.g. flattened from a Lucide/static child). */
+    iconName: z.string().optional(),
   })
   .strict();
 

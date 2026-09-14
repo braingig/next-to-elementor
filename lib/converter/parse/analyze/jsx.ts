@@ -52,6 +52,7 @@ function propEnvFromCtx(ctx: AnalyzerContext): StaticPropEnv {
       lookupPropsMember(ctx, objectName, propName),
     lookupComputedMember: (objectName, key) =>
       lookupStaticObjectField(ctx, objectName, key),
+    isCssModuleLocal: (name) => ctx.cssModuleLocals.has(name),
   };
 }
 

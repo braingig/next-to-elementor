@@ -32,7 +32,8 @@ if (result.outcome === "complete") {
 | 7 | `report/`, `convert.ts` | Report + `convert(ir)` |
 | 8 | `convert-source.ts`, `emit/` | `convertSource` + shared emit helpers |
 | 9 | `tests/converter/fixtures/real-world/` | Real-world section fixtures + goldens |
-| 10 | `compat/` | Elementor Free 4.2.4 static compat (runtime BLOCKED here) |
+| 10 | `compat/` | Elementor Free 4.2.4 static compat |
+| — | `wordpress/` | Configurable target WP media IDs + page import |
 
 ## Lower-level APIs (still supported)
 

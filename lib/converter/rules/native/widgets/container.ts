@@ -19,6 +19,7 @@ import {
   isButtonLikeLink,
   linkNodeAsButton,
 } from "./button-like-link";
+import { extractImageLikeLink } from "./image-like-link";
 import {
   shouldPropagateContainerTextAlign,
   withInheritedParentTextAlign,
@@ -30,6 +31,7 @@ import {
 } from "./flex-child-width";
 import { applyHorizontalLayoutInference } from "./layout-inference";
 import { absorbFullBleedBackground } from "./full-bleed-background";
+import { detectAbsoluteClusterFidelityGap } from "../fidelity";
 import { elementorIdFromIrId } from "../types";
 
 /** Child converter hook — Phase 6 injects native→custom→unsupported. */
@@ -140,12 +142,39 @@ export function convertContainerLike(
   const emittedChildren = absorbed.children;
   const childDecisions = absorbed.childDecisions;
 
+  // Remaining complex absolute layers → custom fallback (not a misleading native shell).
+  const remainingForCluster = children.filter((child) => {
+    const emit = emits.find((e) => e.decision.nodeId === child.id);
+    if (!emit?.element) return false;
+    return emittedChildren.some((el) => el.id === emit.element!.id);
+  });
+  const absGap = detectAbsoluteClusterFidelityGap(remainingForCluster);
+  if (absGap) {
+    return nonNative(node, "needs-fallback", absGap.message, absGap.reasonCode);
+  }
+
   // Infer row / grid columns from cues + child shape (never global flex→row).
   applyHorizontalLayoutInference({
     node,
     settings,
     children: emittedChildren,
   });
+
+  // If Free-compatible grid columns were never set but IR has an unsupported
+  // template, do not invent equal-fr tracks or flex approximations — escalate.
+  const rawGrid = node.style?.layout?.gridTemplateColumns;
+  if (
+    settings.container_type === "grid" &&
+    settings.grid_columns_grid == null &&
+    rawGrid
+  ) {
+    return nonNative(
+      node,
+      "needs-fallback",
+      "Unequal or arbitrary CSS grid tracks cannot be represented accurately by Free equal-fr grid controls; using node-scoped HTML fallback.",
+      "layout-unsupported",
+    );
+  }
 
   // CSS/Tailwind flex default is nowrap; Elementor row forces mobile wrap.
   applyFlexRowNowrapDefault(settings);
@@ -265,23 +294,31 @@ function convertLinkNode(
   node: IrNode & { kind: "link" },
   catalog: ElementorFreeCatalog,
 ): NativeEmit {
-  if (isButtonLikeLink(node)) {
-    return requireLeafWithoutChildren(node, catalog, () => {
-      const asButton = linkNodeAsButton(node);
-      const emit = convertButton(asButton, catalog);
-      if (emit.decision.strategy === "native") {
-        return {
-          ...emit,
-          decision: {
-            ...emit.decision,
-            irKind: "link",
-            message:
-              "Mapped button-like IR link to Free Button widget (filled/outlined chrome + padding).",
-          },
-        };
-      }
-      return emit;
+  const imageLike = extractImageLikeLink(node);
+  if (imageLike) {
+    return convertImage(imageLike.image, catalog, {
+      href: imageLike.href,
+      ...(imageLike.target ? { target: imageLike.target } : {}),
+      ...(imageLike.rel ? { rel: imageLike.rel } : {}),
     });
+  }
+
+  if (isButtonLikeLink(node)) {
+    const asButton = linkNodeAsButton(node);
+    const emit = convertButton(asButton, catalog);
+    if (emit.decision.strategy === "native") {
+      return {
+        ...emit,
+        decision: {
+          ...emit.decision,
+          irKind: "link",
+          message: asButton.props.iconName
+            ? "Mapped button-like IR link (text + named icon) to Free Button widget."
+            : "Mapped button-like IR link to Free Button widget (filled/outlined chrome + padding).",
+        },
+      };
+    }
+    return emit;
   }
 
   return nonNative(

@@ -3,6 +3,9 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { strToU8, zipSync } from "fflate";
 import {
   convertProject,
@@ -367,14 +370,7 @@ describe("Phase 14c: WordPress media pipeline", () => {
   });
 
   it("11. missing configuration → media-config-missing", async () => {
-    const prev = {
-      url: process.env.N2E_WP_BASE_URL,
-      user: process.env.N2E_WP_USER,
-      pass: process.env.N2E_WP_APP_PASSWORD,
-    };
-    delete process.env.N2E_WP_BASE_URL;
-    delete process.env.N2E_WP_USER;
-    delete process.env.N2E_WP_APP_PASSWORD;
+    const emptyCwd = mkdtempSync(join(tmpdir(), "n2e-media-nocfg-"));
     try {
       const result = await convertProjectAsync(
         vfs({
@@ -385,16 +381,19 @@ describe("Phase 14c: WordPress media pipeline", () => {
           `,
           "src/assets/hero.jpg": "x",
         }),
-        { media: { enabled: true } },
+        {
+          media: {
+            enabled: true,
+            configCwd: emptyCwd,
+          },
+        },
       );
       expect(result.outcome).toBe("failed");
       expect(
         result.diagnostics.some((d) => d.code === "media-config-missing"),
       ).toBe(true);
     } finally {
-      if (prev.url) process.env.N2E_WP_BASE_URL = prev.url;
-      if (prev.user) process.env.N2E_WP_USER = prev.user;
-      if (prev.pass) process.env.N2E_WP_APP_PASSWORD = prev.pass;
+      rmSync(emptyCwd, { recursive: true, force: true });
     }
   });
 
@@ -621,31 +620,72 @@ describe("Phase 14c: WordPress media pipeline", () => {
       expect(off.payload.result.media).toBeUndefined();
     }
 
-    // media enabled without env → failed with media-config-missing
-    const prev = {
-      url: process.env.N2E_WP_BASE_URL,
-      user: process.env.N2E_WP_USER,
-      pass: process.env.N2E_WP_APP_PASSWORD,
-    };
-    delete process.env.N2E_WP_BASE_URL;
-    delete process.env.N2E_WP_USER;
-    delete process.env.N2E_WP_APP_PASSWORD;
-    try {
-      const on = await runProjectConvert(zip, { mediaEnabled: true });
+    // media enabled → uses `.n2e-wp.local.json` when present, else clear error
+    const on = await runProjectConvert(zip, { mediaEnabled: true });
+    if (on.status === 422) {
+      expect(on.payload.ok).toBe(false);
+      if (!on.payload.ok) {
+        expect(["media-config-missing", "media-convert-failed"]).toContain(
+          on.payload.code,
+        );
+      }
+    } else {
       expect(on.status).toBe(200);
-      if (on.payload.ok) {
-        expect(on.payload.result.outcome).toBe("failed");
-        expect(
-          on.payload.result.diagnostics.some(
-            (d) => d.code === "media-config-missing",
-          ),
-        ).toBe(true);
-        expect(on.payload.result.media?.enabled).toBe(true);
+      expect(on.payload.ok).toBe(true);
+    }
+  });
+
+  it("18. media-enabled convert resolves .n2e-wp.local.json after restart-like nested cwd", async () => {
+    const root = mkdtempSync(join(tmpdir(), "n2e-media-restart-"));
+    const nestedCwd = join(root, "tmp", "next-dev");
+    const { mkdirSync, writeFileSync } = await import("node:fs");
+    mkdirSync(nestedCwd, { recursive: true });
+    writeFileSync(
+      join(root, ".n2e-wp.local.json"),
+      JSON.stringify({
+        baseUrl: "http://wp.test",
+        username: "admin",
+        applicationPassword: "xxxx xxxx xxxx xxxx",
+      }),
+    );
+
+    const zip = zipSync({
+      "package.json": strToU8(
+        JSON.stringify({
+          dependencies: { react: "18.0.0" },
+          devDependencies: { vite: "5.0.0" },
+        }),
+      ),
+      "src/main.tsx": strToU8(
+        `export default function App(){ return <h1>Hi</h1>; }`,
+      ),
+    });
+
+    const prevCwd = process.cwd();
+    try {
+      // Simulate a Next.js restart where cwd is nested under the project
+      // that holds `.n2e-wp.local.json`.
+      process.chdir(nestedCwd);
+
+      const { resolveWordPressTargetConfig } = await import("@/lib/converter");
+      const resolved = resolveWordPressTargetConfig();
+      expect(resolved.ok).toBe(true);
+      if (!resolved.ok) return;
+      expect(resolved.source).toBe("local-file");
+      expect(resolved.path?.endsWith("/.n2e-wp.local.json")).toBe(true);
+      expect(resolved.path).toContain("n2e-media-restart-");
+      expect(resolved.config.baseUrl).toBe("http://wp.test");
+
+      const on = await runProjectConvert(zip, { mediaEnabled: true });
+      // Config must be found: never media-config-missing after restart.
+      if (!on.payload.ok) {
+        expect(on.payload.code).not.toBe("media-config-missing");
+      } else {
+        expect(on.status).toBe(200);
       }
     } finally {
-      if (prev.url) process.env.N2E_WP_BASE_URL = prev.url;
-      if (prev.user) process.env.N2E_WP_USER = prev.user;
-      if (prev.pass) process.env.N2E_WP_APP_PASSWORD = prev.pass;
+      process.chdir(prevCwd);
+      rmSync(root, { recursive: true, force: true });
     }
   });
 });

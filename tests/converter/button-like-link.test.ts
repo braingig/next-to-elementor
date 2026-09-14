@@ -100,6 +100,35 @@ describe("button-like <a> → Free Button", () => {
     expect(buttons[0]!.link).toMatchObject({ url: "/demo" });
   });
 
+  it("named icon + text CTA becomes Button with selected_icon (not HTML)", () => {
+    const result = convertSource({
+      language: "tsx",
+      catalog,
+      source: `export function PhoneCta() {
+  return (
+    <a
+      href="tel:+15550001111"
+      className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 font-semibold text-slate-800"
+    >
+      <svg data-icon="phone" className="h-4 w-4" viewBox="0 0 24 24" />
+      Call now
+    </a>
+  );
+}`,
+    });
+    const buttons = findWidgets(result.elementorJson as ElementorDocument, "button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]!.text).toBe("Call now");
+    expect(buttons[0]!.link).toMatchObject({ url: "tel:+15550001111" });
+    expect(buttons[0]!.selected_icon).toMatchObject({
+      value: "fas fa-phone",
+      library: "fa-solid",
+    });
+    expect(findHtml(result.elementorJson as ElementorDocument).some((h) =>
+      h.includes("tel:+15550001111"),
+    )).toBe(false);
+  });
+
   it('a role="button" still becomes native Button', () => {
     const result = convertSource({
       language: "tsx",

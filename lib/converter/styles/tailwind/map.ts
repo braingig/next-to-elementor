@@ -207,6 +207,46 @@ export function resolveTailwindUtility(
   if (gridCols) {
     return { layout: { gridTemplateColumns: gridCols[1]! } };
   }
+  // Preserve arbitrary track templates in IR so chrome heuristics can detect
+  // unsupported `1fr + auto` patterns (Free cannot emit unequal fr tracks).
+  const arbGridCols = utility.match(/^grid-cols-\[(.+)\]$/);
+  if (arbGridCols) {
+    return { layout: { gridTemplateColumns: arbGridCols[1]! } };
+  }
+
+  // Replaced-element fit (logos / hero media)
+  if (utility === "object-contain") {
+    return { box: { objectFit: "contain" } };
+  }
+  if (utility === "object-cover") {
+    return { box: { objectFit: "cover" } };
+  }
+  if (utility === "object-fill") {
+    return { box: { objectFit: "fill" } };
+  }
+  if (utility === "object-none") {
+    return { box: { objectFit: "none" } };
+  }
+  if (utility === "object-scale-down") {
+    return { box: { objectFit: "scale-down" } };
+  }
+  const objectPos = utility.match(
+    /^object-(center|top|bottom|left|right|left-top|left-bottom|right-top|right-bottom)$/,
+  );
+  if (objectPos) {
+    const map: Record<string, string> = {
+      center: "center center",
+      top: "center top",
+      bottom: "center bottom",
+      left: "left center",
+      right: "right center",
+      "left-top": "left top",
+      "left-bottom": "left bottom",
+      "right-top": "right top",
+      "right-bottom": "right bottom",
+    };
+    return { box: { objectPosition: map[objectPos[1]!] } };
+  }
 
   const justify = utility.match(/^justify-(start|end|center|between|around|evenly)$/);
   if (justify) {
@@ -233,10 +273,65 @@ export function resolveTailwindUtility(
     return { layout: { alignItems: map[items[1]!] } };
   }
 
+  // Axis gaps / space-between children before generic `gap-*`
+  // (otherwise `gap-x-4` is consumed as an unknown gap token).
+  const gapX = utility.match(/^gap-x-(\S+)$/);
+  if (gapX) {
+    const v = spacing(gapX[1]!);
+    return v ? { layout: { columnGap: v } } : null;
+  }
+  const gapY = utility.match(/^gap-y-(\S+)$/);
+  if (gapY) {
+    const v = spacing(gapY[1]!);
+    return v ? { layout: { rowGap: v } } : null;
+  }
+  const spaceX = utility.match(/^space-x-(\S+)$/);
+  if (spaceX) {
+    const v = spacing(spaceX[1]!);
+    return v ? { layout: { columnGap: v } } : null;
+  }
+  const spaceY = utility.match(/^space-y-(\S+)$/);
+  if (spaceY) {
+    const v = spacing(spaceY[1]!);
+    return v ? { layout: { rowGap: v } } : null;
+  }
+
   const gap = utility.match(/^gap-(\S+)$/);
   if (gap) {
     const v = spacing(gap[1]!);
     return v ? { layout: { gap: v } } : null;
+  }
+
+  if (utility === "whitespace-nowrap") {
+    return { typography: { whiteSpace: "nowrap" } };
+  }
+  if (utility === "whitespace-normal") {
+    return { typography: { whiteSpace: "normal" } };
+  }
+
+  if (utility === "shrink-0" || utility === "flex-shrink-0") {
+    return { layout: { flexShrink: "0" } };
+  }
+  if (utility === "shrink" || utility === "flex-shrink") {
+    return { layout: { flexShrink: "1" } };
+  }
+  if (utility === "grow-0" || utility === "flex-grow-0") {
+    return { layout: { flexGrow: "0" } };
+  }
+  if (utility === "grow" || utility === "flex-grow") {
+    return { layout: { flexGrow: "1" } };
+  }
+
+  const minW = utility.match(/^min-w-(\S+)$/);
+  if (minW) {
+    const named: Record<string, string> = {
+      full: "100%",
+      min: "min-content",
+      max: "max-content",
+      fit: "fit-content",
+    };
+    const v = named[minW[1]!] ?? spacing(minW[1]!);
+    return v ? { box: { minWidth: v } } : null;
   }
 
   // Spacing
@@ -325,6 +420,16 @@ export function resolveTailwindUtility(
     };
     const v = named[minH[1]!] ?? spacing(minH[1]!);
     return v ? { box: { minHeight: v } } : null;
+  }
+  const maxH = utility.match(/^max-h-(\S+)$/);
+  if (maxH) {
+    const named: Record<string, string> = {
+      screen: "100vh",
+      full: "100%",
+      none: "none",
+    };
+    const v = named[maxH[1]!] ?? spacing(maxH[1]!);
+    return v ? { box: { maxHeight: v } } : null;
   }
 
   // Typography
@@ -508,6 +613,110 @@ export function resolveTailwindUtility(
   if (utility === "shadow-none") {
     return { effects: { boxShadow: "none" } };
   }
+  const arbShadow = utility.match(/^shadow-\[(.+)\]$/);
+  if (arbShadow) {
+    return {
+      effects: { boxShadow: arbShadow[1]!.replace(/_/g, " ") },
+    };
+  }
+
+  // Backdrop / isolation / pointer-events — Free native lacks these; IR → custom CSS.
+  if (utility === "isolate") {
+    return { effects: { isolation: "isolate" } };
+  }
+  if (utility === "pointer-events-none") {
+    return { layout: { pointerEvents: "none" } };
+  }
+  if (utility === "pointer-events-auto") {
+    return { layout: { pointerEvents: "auto" } };
+  }
+  if (utility === "backdrop-blur" || utility === "backdrop-blur-md") {
+    return { effects: { backdropFilter: "blur(12px)" } };
+  }
+  if (utility === "backdrop-blur-sm") {
+    return { effects: { backdropFilter: "blur(4px)" } };
+  }
+  if (utility === "backdrop-blur-lg") {
+    return { effects: { backdropFilter: "blur(16px)" } };
+  }
+  const arbBackdrop = utility.match(/^backdrop-blur-\[(.+)\]$/);
+  if (arbBackdrop) {
+    return {
+      effects: {
+        backdropFilter: `blur(${arbBackdrop[1]!.replace(/_/g, " ")})`,
+      },
+    };
+  }
+
+  // Transforms — Free native cannot map these; IR facts enable custom HTML CSS.
+  const translate = utility.match(/^-?translate-([xy])-(.+)$/);
+  if (translate) {
+    const axis = translate[1]!;
+    const neg = utility.startsWith("-");
+    const v = spacing(translate[2]!);
+    if (v) {
+      const val = neg && !v.startsWith("-") ? `-${v}` : v;
+      return {
+        effects: {
+          transform:
+            axis === "x" ? `translateX(${val})` : `translateY(${val})`,
+        },
+      };
+    }
+  }
+  const rotate = utility.match(/^-?rotate-(.+)$/);
+  if (rotate) {
+    const neg = utility.startsWith("-");
+    const token = rotate[1]!;
+    const named: Record<string, string> = {
+      "0": "0deg",
+      "1": "1deg",
+      "2": "2deg",
+      "3": "3deg",
+      "6": "6deg",
+      "12": "12deg",
+      "45": "45deg",
+      "90": "90deg",
+      "180": "180deg",
+    };
+    let angle = named[token];
+    if (!angle) {
+      const arb = token.match(/^\[(.+)\]$/);
+      if (arb) angle = arb[1]!.replace(/_/g, " ");
+    }
+    if (angle) {
+      return {
+        effects: {
+          transform: `rotate(${neg && !angle.startsWith("-") ? `-${angle}` : angle})`,
+        },
+      };
+    }
+  }
+  const scale = utility.match(/^scale-(\d+)$/);
+  if (scale) {
+    return {
+      effects: { transform: `scale(${Number(scale[1]) / 100})` },
+    };
+  }
+  const scaleAxis = utility.match(/^scale-([xy])-(\d+)$/);
+  if (scaleAxis) {
+    const n = Number(scaleAxis[2]) / 100;
+    return {
+      effects: {
+        transform:
+          scaleAxis[1] === "x" ? `scaleX(${n})` : `scaleY(${n})`,
+      },
+    };
+  }
+
+  // Arbitrary rounded / sizing already covered via spacing([...])
+  const roundedArb = utility.match(/^rounded-\[(.+)\]$/);
+  if (roundedArb) {
+    return { border: { radius: roundedArb[1]!.replace(/_/g, " ") } };
+  }
+
+  // from- / to- gradient stops alone are incomplete without direction — leave unknown
+  // unless composed as bg-[linear-gradient(...)] which is handled above.
 
   return null;
 }

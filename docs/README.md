@@ -47,11 +47,11 @@ if (result.outcome === "complete") {
 | [phase-7.md](./phase-7.md) / [report.md](./report.md) | Report + unsupported |
 | [phase-8.md](./phase-8.md) | End-to-end `convertSource` |
 | [phase-9.md](./phase-9.md) | Real-world fixtures + accuracy validation |
-| [phase-10.md](./phase-10.md) | Elementor Free 4.2.4 static/runtime compat |
-| [phase-11.md](./phase-11.md) | WordPress + Elementor Free 4.2.4 runtime harness |
+| [phase-10.md](./phase-10.md) | Elementor Free 4.2.4 static compat |
 | [phase-12.md](./phase-12.md) | Product converter UI + `/api/convert` |
 | [phase-13.md](./phase-13.md) | Project ZIP layer (13a–13f) |
-| [phase-14.md](./phase-14.md) | Project assets — admission (14a), VFS mapping (14b); WP media deferred |
+| [phase-14.md](./phase-14.md) | Project assets + opt-in WordPress media (14a–14d) |
+| [wordpress-target.md](./wordpress-target.md) | Configurable target WordPress media + page import |
 | [section-input.md](./section-input.md) | Virtual section folder map (engine; UI/API not yet) |
 | [conversion-rules.md](./conversion-rules.md) | Decision order |
 | [unsupported-policy.md](./unsupported-policy.md) | Reason codes |

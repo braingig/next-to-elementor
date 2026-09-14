@@ -98,7 +98,10 @@ export function ProjectZipPanel() {
     setBusy("convert");
     setUiError(null);
     try {
-      const response = await requestProjectConvert(zipFile);
+      // Media-enabled so Download route JSON is ready for Elementor Templates → Import.
+      const response = await requestProjectConvert(zipFile, {
+        mediaEnabled: true,
+      });
       if (!response.ok) {
         setConvertResult(null);
         setUiError(response.error);
@@ -434,6 +437,20 @@ export function ProjectZipPanel() {
                     Copy JSON
                   </button>
                 </div>
+                <p className="text-xs text-zinc-600">
+                  For Elementor → Templates → Import, use this download after a
+                  media-enabled convert (WordPress credentials on the server).
+                  Media-off JSON keeps Custom HTML logos with empty{" "}
+                  <code className="font-mono">src</code>.
+                </p>
+                {convertResult?.result.media ? (
+                  <p className="text-xs text-zinc-700">
+                    Media: uploaded {convertResult.result.media.uploadedCount},
+                    reused {convertResult.result.media.reusedCount}, failed{" "}
+                    {convertResult.result.media.failedCount}, skipped{" "}
+                    {convertResult.result.media.skippedCount}
+                  </p>
+                ) : null}
 
                 {selectedRoute.conversion.elementorJson ? (
                   <pre className="max-h-[320px] overflow-auto rounded-lg border border-zinc-200 bg-zinc-950 p-3 font-mono text-[11px] leading-4 text-zinc-100 sm:text-xs">

@@ -1,12 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { resolveWordPressTargetConfig } from "../wordpress/config";
 
 export const REQUIRED_ELEMENTOR_FREE_VERSION = "4.2.4" as const;
 
 /**
- * Resolve the Elementor Free 4.2.4 source tree used for STATIC compatibility checks
- * and for mounting into the Phase 11 Docker harness.
+ * Resolve the Elementor Free 4.2.4 source tree used for STATIC compatibility checks.
  *
  * Priority:
  * 1. ELEMENTOR_FREE_4_2_4_PATH
@@ -47,7 +47,7 @@ export function resolveElementorFree424SourceRoot(
       `Elementor Free ${REQUIRED_ELEMENTOR_FREE_VERSION} source tree not found.`,
       `Tried: ${tried.join(", ")}`,
       "Set ELEMENTOR_FREE_4_2_4_PATH to the Free 4.2.4 plugin root.",
-      "Note: the in-repo ./elementor tree is 4.2.1 and must not be used for Phase 10/11.",
+      "Note: the in-repo ./elementor tree is 4.2.1 and must not be used for static compat.",
     ].join(" "),
   };
 }
@@ -65,37 +65,21 @@ export type RuntimeEnvironmentStatus = {
   elementorVersionTarget: typeof REQUIRED_ELEMENTOR_FREE_VERSION;
   wordpress: "missing" | "unknown" | "available";
   php: "missing" | "available";
-  docker: "missing" | "daemon-unavailable" | "available";
   reasons: string[];
 };
 
-function dockerDaemonAvailable(): boolean {
-  const r = spawnSync("docker", ["info"], { encoding: "utf8" });
-  return r.status === 0;
-}
-
 /**
- * Probe whether a real WordPress + Elementor Free 4.2.4 runtime can be used.
- * Does not start containers — reports Docker + harness readiness only.
+ * Probe whether a configured target WordPress + Elementor Free 4.2.4 source
+ * are available for development workflows. Does not start services.
  */
 export function probeRuntimeEnvironment(): RuntimeEnvironmentStatus {
   const reasons: string[] = [];
-  let docker: RuntimeEnvironmentStatus["docker"] = "available";
   let php: RuntimeEnvironmentStatus["php"] = "missing";
   let wordpress: RuntimeEnvironmentStatus["wordpress"] = "missing";
-
-  if (!dockerDaemonAvailable()) {
-    docker = "daemon-unavailable";
-    reasons.push("Docker daemon is not reachable.");
-  }
 
   const phpCheck = spawnSync("php", ["-v"], { encoding: "utf8" });
   if (phpCheck.status === 0) {
     php = "available";
-  } else {
-    reasons.push(
-      "Host PHP CLI is missing (Docker WordPress image supplies PHP inside containers).",
-    );
   }
 
   const source = resolveElementorFree424SourceRoot();
@@ -103,50 +87,25 @@ export function probeRuntimeEnvironment(): RuntimeEnvironmentStatus {
     reasons.push(source.error);
   }
 
-  const envPath = join(
-    process.cwd(),
-    "tests/runtime/generated/environment.json",
-  );
-  if (existsSync(envPath)) {
-    try {
-      const env = JSON.parse(readFileSync(envPath, "utf8")) as {
-        elementor?: string;
-      };
-      if (env.elementor === REQUIRED_ELEMENTOR_FREE_VERSION) {
-        wordpress = "available";
-      } else {
-        reasons.push(
-          `Harness environment.json Elementor is ${env.elementor ?? "missing"}, required ${REQUIRED_ELEMENTOR_FREE_VERSION}.`,
-        );
-      }
-    } catch {
-      reasons.push("environment.json exists but could not be parsed.");
-    }
-  } else if (docker === "available") {
-    reasons.push(
-      "Docker is available but Phase 11 harness is not set up yet (npm run test:elementor:runtime:setup).",
-    );
+  const wp = resolveWordPressTargetConfig();
+  if (wp.ok) {
+    wordpress = "available";
+  } else {
+    reasons.push(wp.message);
   }
 
-  if (
-    docker === "available" &&
-    wordpress === "available" &&
-    !("error" in source)
-  ) {
+  if (wordpress === "available" && !("error" in source)) {
     return {
       status: "available",
       elementorVersionTarget: REQUIRED_ELEMENTOR_FREE_VERSION,
       wordpress,
       php,
-      docker,
       reasons: [],
     };
   }
 
   if (reasons.length === 0) {
-    reasons.push(
-      "WordPress + Elementor Free 4.2.4 runtime harness is not ready.",
-    );
+    reasons.push("Target WordPress / Elementor Free 4.2.4 source not ready.");
   }
 
   return {
@@ -154,7 +113,6 @@ export function probeRuntimeEnvironment(): RuntimeEnvironmentStatus {
     elementorVersionTarget: REQUIRED_ELEMENTOR_FREE_VERSION,
     wordpress,
     php,
-    docker,
     reasons,
   };
 }

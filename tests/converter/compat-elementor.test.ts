@@ -116,8 +116,7 @@ describe("Phase 10 Elementor Free 4.2.4 compatibility", () => {
   });
 
   it("runtime import is never a fabricated PASS without execution", () => {
-    // Phase 11: BLOCKED until harness setup, READY when environment.json exists.
-    // Actual RUNTIME_PASS/FAIL comes only from npm run test:elementor:runtime.
+    // READY when target WP credentials resolve; PASS only from a live import run.
     expect(["BLOCKED", "READY"]).toContain(runtime.status);
     expect(runtime.executed).toBe(false);
     expect(runtime.elementorVersion).toBe("4.2.4");

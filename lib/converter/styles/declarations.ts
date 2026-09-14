@@ -15,6 +15,8 @@ const PROP_MAP: Record<
   gap: { group: "layout", key: "gap" },
   "row-gap": { group: "layout", key: "rowGap" },
   "column-gap": { group: "layout", key: "columnGap" },
+  "flex-shrink": { group: "layout", key: "flexShrink" },
+  "flex-grow": { group: "layout", key: "flexGrow" },
   "grid-template-columns": { group: "layout", key: "gridTemplateColumns" },
   "grid-template-rows": { group: "layout", key: "gridTemplateRows" },
   overflow: { group: "layout", key: "overflow" },
@@ -22,9 +24,12 @@ const PROP_MAP: Record<
   width: { group: "box", key: "width" },
   height: { group: "box", key: "height" },
   "min-width": { group: "box", key: "minWidth" },
+  "white-space": { group: "typography", key: "whiteSpace" },
   "min-height": { group: "box", key: "minHeight" },
   "max-width": { group: "box", key: "maxWidth" },
   "max-height": { group: "box", key: "maxHeight" },
+  "object-fit": { group: "box", key: "objectFit" },
+  "object-position": { group: "box", key: "objectPosition" },
   margin: { group: "box", key: "margin" },
   "margin-top": { group: "box", key: "marginTop" },
   "margin-right": { group: "box", key: "marginRight" },
@@ -74,6 +79,14 @@ const PROP_MAP: Record<
   opacity: { group: "effects", key: "opacity" },
   "box-shadow": { group: "effects", key: "boxShadow" },
   transform: { group: "effects", key: "transform" },
+  filter: { group: "effects", key: "filter" },
+  "backdrop-filter": { group: "effects", key: "backdropFilter" },
+  "-webkit-backdrop-filter": { group: "effects", key: "backdropFilter" },
+  isolation: { group: "effects", key: "isolation" },
+  "pointer-events": { group: "layout", key: "pointerEvents" },
+  "inset-inline": { special: "inset-inline" },
+  "inset-block": { special: "inset-block" },
+  inset: { special: "inset" },
   transition: { special: "transition" },
   animation: { special: "animation" },
 };
@@ -121,7 +134,8 @@ export function declarationsToIrStyle(
         ) {
           setGroup(style, "background", "color", value);
         } else {
-          unresolved.push(prop);
+          // Gradients / images / layered backgrounds → background-image fact.
+          setGroup(style, "background", "image", value);
         }
         continue;
       }
@@ -134,12 +148,33 @@ export function declarationsToIrStyle(
         }
         continue;
       }
+      if (mapping.special === "inset-inline") {
+        setGroup(style, "position", "left", value);
+        setGroup(style, "position", "right", value);
+        continue;
+      }
+      if (mapping.special === "inset-block") {
+        setGroup(style, "position", "top", value);
+        setGroup(style, "position", "bottom", value);
+        continue;
+      }
+      if (mapping.special === "inset") {
+        setGroup(style, "position", "top", value);
+        setGroup(style, "position", "right", value);
+        setGroup(style, "position", "bottom", value);
+        setGroup(style, "position", "left", value);
+        continue;
+      }
       if (mapping.special === "transition") {
         style.effects = { ...style.effects, hasTransition: true };
         continue;
       }
       if (mapping.special === "animation") {
-        style.effects = { ...style.effects, hasAnimation: true };
+        style.effects = {
+          ...style.effects,
+          animation: value,
+          hasAnimation: true,
+        };
         continue;
       }
     } else {

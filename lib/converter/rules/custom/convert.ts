@@ -8,7 +8,7 @@ import {
 } from "../native/types";
 import type { NativeEmit } from "../native/widgets/leaf";
 import { mapIrStyleToSettings } from "../native/styles/map-style";
-import { serializeScopedCss } from "./css";
+import { serializeSubtreeScopedCss } from "./css";
 import { serializeIrNodeHtml } from "./html";
 import { findUnsafeCustomPatterns } from "./safety";
 
@@ -118,7 +118,9 @@ export function convertCustomFallback(
     };
   }
 
-  const css = serializeScopedCss(scopeClass, node.style);
+  // Emit scoped CSS for the entire fallback subtree from resolved IrStyle —
+  // never dump global stylesheets; never leave dead Tailwind classes on children.
+  const css = serializeSubtreeScopedCss(scopeClass, node);
   const html = css ? `${body}<style>${css}</style>` : body;
   const styleSettings = mapIrStyleToSettings(node.style, {
     catalog,
@@ -126,9 +128,21 @@ export function convertCustomFallback(
     spacingPrefix: "_",
   });
   const settings: ElementorSettings = { html };
-  for (const key of ["hide_desktop", "hide_tablet", "hide_mobile"] as const) {
-    if (styleSettings[key] != null) {
-      settings[key] = styleSettings[key];
+  // Only Elementor placement chrome — visual styles live in scoped CSS.
+  // Absolute/fixed HTML siblings must keep Free `_position` / `_z_index` so a
+  // native parent can host them without absorbing the whole subtree.
+  for (const key of Object.keys(styleSettings)) {
+    if (
+      /^(hide_desktop|hide_tablet|hide_mobile|_position|_z_index|_offset_x|_offset_y|_element_width|_element_custom_width|width)$/.test(
+        key,
+      ) ||
+      /^(hide_desktop|hide_tablet|hide_mobile|_position|_z_index|_offset_x|_offset_y|_element_width|_element_custom_width|width)_(tablet|mobile)$/.test(
+        key,
+      )
+    ) {
+      if (styleSettings[key] != null) {
+        settings[key] = styleSettings[key];
+      }
     }
   }
 

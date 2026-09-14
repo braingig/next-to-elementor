@@ -1,5 +1,5 @@
 /**
- * WordPress REST media client + env config (server-side only).
+ * WordPress REST media client (server-side only).
  * Never logs credentials or Authorization headers.
  */
 
@@ -10,7 +10,6 @@ import type {
   ProjectMediaUploadResult,
   ProjectWordPressMediaConfig,
 } from "./types";
-import { WP_MEDIA_ENV } from "./types";
 
 function stripTrailingSlash(url: string): string {
   return url.replace(/\/+$/, "");
@@ -37,16 +36,6 @@ export function sanitizeMediaDiagnostic(
   return { ...d, message: sanitizeMediaMessage(d.message) };
 }
 
-export function readWordPressMediaConfigFromEnv(
-  env: NodeJS.ProcessEnv = process.env,
-): ProjectWordPressMediaConfig | null {
-  const baseUrl = env[WP_MEDIA_ENV.baseUrl]?.trim();
-  const username = env[WP_MEDIA_ENV.username]?.trim();
-  const applicationPassword = env[WP_MEDIA_ENV.applicationPassword]?.trim();
-  if (!baseUrl || !username || !applicationPassword) return null;
-  return { baseUrl, username, applicationPassword };
-}
-
 export function validateWordPressMediaConfig(
   config: ProjectWordPressMediaConfig,
 ): { ok: true } | { ok: false; code: string; message: string } {
@@ -56,14 +45,14 @@ export function validateWordPressMediaConfig(
       return {
         ok: false,
         code: "media-config-invalid",
-        message: "N2E_WP_BASE_URL must be an http(s) URL.",
+        message: "WordPress baseUrl must be an http(s) URL.",
       };
     }
   } catch {
     return {
       ok: false,
       code: "media-config-invalid",
-      message: "N2E_WP_BASE_URL is not a valid URL.",
+      message: "WordPress baseUrl is not a valid URL.",
     };
   }
   if (!config.username || !config.applicationPassword) {
@@ -71,7 +60,7 @@ export function validateWordPressMediaConfig(
       ok: false,
       code: "media-config-missing",
       message:
-        "WordPress media requires N2E_WP_BASE_URL, N2E_WP_USER, and N2E_WP_APP_PASSWORD.",
+        "WordPress media requires baseUrl, username, and applicationPassword in .n2e-wp.local.json.",
     };
   }
   return { ok: true };

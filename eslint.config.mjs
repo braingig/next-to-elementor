@@ -19,7 +19,6 @@ const eslintConfig = defineConfig([
     // Browser manual folder pick fixture (not Next app source).
     "manual-validation/**",
     // Phase 11 generated runtime artifacts (HTML/CJS screenshots/reports).
-    "tests/runtime/generated/**",
   ]),
 ]);
 

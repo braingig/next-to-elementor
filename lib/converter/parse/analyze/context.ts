@@ -106,6 +106,11 @@ export type AnalyzerContext = {
   passthroughDepth: number;
   /** Stack of static prop scopes for nested local inlining (innermost last). */
   propScopes: PropScope[];
+  /**
+   * Local binding names that are default imports from `*.module.css`.
+   * Enables `styles.foo` → class token `foo` without executing modules.
+   */
+  cssModuleLocals: Set<string>;
 };
 
 export type LocalComponentDef = {

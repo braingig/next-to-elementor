@@ -10,6 +10,7 @@ import {
   toDimensions,
   toDimensionsFromSides,
   toGaps,
+  toGapsAxes,
   toGridColumns,
   toSlider,
 } from "./values";
@@ -237,7 +238,15 @@ export function applyIrStyleSlice(
   if (style.layout?.alignItems) {
     allow("flex_align_items", mapFlexAlign(style.layout.alignItems));
   }
-  if (style.layout?.gap) {
+  if (style.layout?.columnGap || style.layout?.rowGap) {
+    allow(
+      "flex_gap",
+      toGapsAxes({
+        column: style.layout.columnGap ?? style.layout.gap,
+        row: style.layout.rowGap ?? style.layout.gap,
+      }),
+    );
+  } else if (style.layout?.gap) {
     allow("flex_gap", toGaps(style.layout.gap));
   }
   if (style.layout?.flexWrap) {
@@ -248,6 +257,28 @@ export function applyIrStyleSlice(
           ? "nowrap"
           : undefined;
     allow("flex_wrap", wrap);
+  }
+  // Source white-space:nowrap on a flex chrome container → keep items on one line.
+  if (
+    style.typography?.whiteSpace === "nowrap" &&
+    (style.layout?.display === "flex" ||
+      style.layout?.display === "inline-flex" ||
+      style.layout?.flexDirection === "row" ||
+      style.layout?.flexDirection === "row-reverse")
+  ) {
+    allow("flex_wrap", "nowrap");
+    // Elementor applies --flex-wrap-mobile independently; keep nowrap there too.
+    if (suffix === "") {
+      setIfAllowed(
+        catalog,
+        widgetId,
+        settings,
+        "flex_wrap",
+        "nowrap",
+        true,
+        "_mobile",
+      );
+    }
   }
   if (style.layout?.overflow) {
     const o =
@@ -265,7 +296,25 @@ export function applyIrStyleSlice(
     bottom: style.box?.paddingBottom,
     left: style.box?.paddingLeft,
   });
-  allow(`${spacingPrefix}padding`, pad);
+  if (pad) {
+    allow(`${spacingPrefix}padding`, pad);
+  } else if (widgetId === "container" && suffix === "") {
+    // Elementor Free containers default to ~10px padding via CSS variables.
+    // Emit explicit 0 when the source has no padding so chrome wrappers do not
+    // invent vertical/horizontal empty space.
+    allow(
+      `${spacingPrefix}padding`,
+      {
+        unit: "px",
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "0",
+        isLinked: true,
+      },
+      false,
+    );
+  }
 
   const margin = toDimensionsFromSides({
     all: style.box?.margin,
@@ -277,21 +326,80 @@ export function applyIrStyleSlice(
   allow(`${spacingPrefix}margin`, margin);
 
   if (style.box?.width) {
-    allow("width", toSlider(style.box.width));
-    allow("_element_custom_width", toSlider(style.box.width));
+    if (style.box.width === "auto" || style.box.width === "fit-content") {
+      // Free leaf widgets: hug content instead of 100% grow in flex rows.
+      allow("_element_width", "auto", false);
+    } else {
+      allow("width", toSlider(style.box.width));
+      allow("_element_custom_width", toSlider(style.box.width));
+    }
   }
   if (style.box?.maxWidth) {
-    // Free Container: boxed content width + boxed_width slider
-    allow("content_width", "boxed", false);
-    allow("boxed_width", toSlider(style.box.maxWidth));
+    if (widgetId === "image") {
+      // Image `space` control is max-width related.
+      allow("space", toSlider(style.box.maxWidth));
+    } else if (widgetId === "container") {
+      // Prefer full-width container + CSS max-width semantics.
+      // Elementor `content_width: boxed` creates an outer full-width shell plus
+      // `.e-con-inner` (and forces column on the shell), which reads as an extra
+      // empty container around header chrome and double-shrinks nested bars.
+      allow("content_width", "full", false);
+      allow(
+        "width",
+        {
+          size: `min(100%, ${style.box.maxWidth})`,
+          unit: "custom",
+        },
+        false,
+      );
+    } else {
+      allow("content_width", "boxed", false);
+      allow("boxed_width", toSlider(style.box.maxWidth));
+    }
   }
   if (style.box?.minHeight) {
     allow("min_height", toSlider(style.box.minHeight));
   }
   if (style.box?.height) {
-    // spacer uses space; containers may use min_height
-    allow("space", toSlider(style.box.height));
-    allow("min_height", toSlider(style.box.height));
+    if (widgetId === "image") {
+      // Prefer Image height control so intrinsic asset dimensions do not win.
+      allow("height", toSlider(style.box.height));
+    } else if (widgetId === "spacer") {
+      allow("space", toSlider(style.box.height));
+    } else {
+      allow("min_height", toSlider(style.box.height));
+    }
+  }
+  // max-h-* without explicit height: constrain Image height so intrinsic
+  // asset pixels do not dominate chrome (logos).
+  if (
+    widgetId === "image" &&
+    style.box?.maxHeight &&
+    style.box.maxHeight !== "none" &&
+    !style.box?.height
+  ) {
+    allow("height", toSlider(style.box.maxHeight));
+  }
+  if (widgetId === "image" && style.box?.objectFit) {
+    const fit = style.box.objectFit;
+    if (
+      fit === "fill" ||
+      fit === "cover" ||
+      fit === "contain" ||
+      fit === "scale-down"
+    ) {
+      allow("object-fit", fit);
+    }
+  }
+  if (widgetId === "image" && style.box?.objectPosition) {
+    allow("object-position", style.box.objectPosition);
+  }
+  // shrink-0 / grow-0 → hug content when Free has no flex-shrink control.
+  if (
+    style.layout?.flexShrink === "0" ||
+    style.layout?.flexGrow === "0"
+  ) {
+    allow("_element_width", "auto", false);
   }
 
   // Background
@@ -375,13 +483,35 @@ export function applyIrStyleSlice(
     allow("align", mapAlign(style.typography.textAlign));
   }
 
-  // Position (globals)
-  if (style.position?.position === "absolute" || style.position?.position === "fixed") {
+  // Position — Free Container uses `position` / `z_index`; leaf widgets use
+  // common-base `_position` / `_z_index`. Catalog-gate both forms.
+  if (
+    style.position?.position === "absolute" ||
+    style.position?.position === "fixed"
+  ) {
+    allow("position", style.position.position, false);
     allow("_position", style.position.position, false);
+    // Fixed/absolute chrome must span the viewport like CSS inset-x-0 / width 100%.
+    if (widgetId === "container") {
+      allow("content_width", "full", false);
+      if (settings.width == null) {
+        allow("width", { size: 100, unit: "%" }, false);
+      }
+    }
   }
   if (style.position?.zIndex) {
     const n = Number(style.position.zIndex);
-    if (!Number.isNaN(n)) allow("_z_index", n);
+    if (!Number.isNaN(n)) {
+      allow("z_index", n);
+      allow("_z_index", n);
+    }
+  }
+  // Simple sticky-header offsets when Elementor offset sliders are catalogued.
+  if (style.position?.top === "0px" || style.position?.top === "0") {
+    allow("_offset_y", { size: 0, unit: "px" });
+  }
+  if (style.position?.left === "0px" || style.position?.left === "0") {
+    allow("_offset_x", { size: 0, unit: "px" });
   }
 
   // Effects

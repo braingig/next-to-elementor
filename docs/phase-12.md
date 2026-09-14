@@ -78,4 +78,6 @@ Resolver failures (missing entry, ambiguous entry, missing/circular imports, lim
 - Assets not packaged / no WordPress media IDs
 - No Elementor/WordPress version detection
 - Plain editors (no Monaco)
-- UI does not import documents into WordPress (Phase 11 harness is separate)
+- UI does not import documents into WordPress by default; use the CLI
+  `npm run import:wordpress` with `.n2e-wp.local.json`
+  (see [wordpress-target.md](./wordpress-target.md)).

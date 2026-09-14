@@ -5,6 +5,7 @@ import {
   mapIrStyleToSettings,
   resolveTailwindClasses,
   resolveTailwindUtility,
+  toGridColumns,
   type ElementorDocument,
 } from "@/lib/converter";
 
@@ -77,10 +78,18 @@ describe("flex default direction + mobile-first cascade", () => {
     expect(s.flex_direction_mobile).toBe("column");
   });
 
-  it("max-w-6xl → boxed container + boxed_width", () => {
+  it("max-w-6xl → full container with CSS max-width width (not boxed shell)", () => {
     const s = settingsFromClasses("max-w-6xl mx-auto");
-    expect(s.content_width).toBe("boxed");
-    expect(s.boxed_width).toEqual({ unit: "rem", size: 72 });
+    expect(s.content_width).toBe("full");
+    expect(s.width).toEqual({
+      size: "min(100%, 72rem)",
+      unit: "custom",
+    });
+    expect(s.boxed_width).toBeUndefined();
+    expect(s.margin).toMatchObject({
+      left: "auto",
+      right: "auto",
+    });
   });
 
   it("flex items-center justify-between stays horizontal", () => {
@@ -139,10 +148,16 @@ describe("grid-cols → grid_columns_grid", () => {
     expect(s.grid_columns_grid_mobile).toEqual({ unit: "fr", size: 1 });
   });
 
-  it("unsupported grid-cols utilities stay unresolved", () => {
+  it("unsupported grid-cols utilities stay unresolved for Free tracks", () => {
     expect(resolveTailwindUtility("grid-cols-none")).toBeNull();
     expect(resolveTailwindUtility("grid-cols-13")).toBeNull();
-    expect(resolveTailwindUtility("grid-cols-[200px]")).toBeNull();
+    // Arbitrary templates are kept in IR so chrome heuristics can detect
+    // unsupported 1fr+auto patterns — Free still cannot emit them as tracks.
+    expect(resolveTailwindUtility("grid-cols-[200px]")).toEqual({
+      layout: { gridTemplateColumns: "200px" },
+    });
+    expect(toGridColumns("200px")).toBeUndefined();
+    expect(toGridColumns("minmax(0,1fr)_auto")).toBeUndefined();
     const { style, unknown } = resolveTailwindClasses([
       "grid",
       "grid-cols-none",

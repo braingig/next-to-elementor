@@ -60,12 +60,19 @@ function hasExplicitWrap(settings: ElementorSettings): boolean {
 /**
  * Match CSS flex default (`nowrap`) on Elementor flex-row containers.
  * Without this, Elementor forces mobile wrap and horizontal clusters reflow.
+ * When wrap is already `nowrap` from source (e.g. whitespace-nowrap), still
+ * emit `flex_wrap_mobile: nowrap` so tablet/mobile do not reintroduce wrap.
  */
 export function applyFlexRowNowrapDefault(settings: ElementorSettings): void {
   if (!isRowDirection(settings.flex_direction)) return;
-  if (hasExplicitWrap(settings)) return;
-  settings.flex_wrap = "nowrap";
-  settings.flex_wrap_mobile = "nowrap";
+  if (!hasExplicitWrap(settings)) {
+    settings.flex_wrap = "nowrap";
+    settings.flex_wrap_mobile = "nowrap";
+    return;
+  }
+  if (settings.flex_wrap === "nowrap" && settings.flex_wrap_mobile == null) {
+    settings.flex_wrap_mobile = "nowrap";
+  }
 }
 
 /**

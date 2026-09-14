@@ -24,6 +24,22 @@ import {
   mapKnownComponentsToModulePaths,
 } from "./static-module-exports";
 
+/** Collect default import locals from `*.module.css` (static CSS-module class binding). */
+export function collectCssModuleLocals(ast: File): Set<string> {
+  const locals = new Set<string>();
+  for (const stmt of ast.program.body) {
+    if (stmt.type !== "ImportDeclaration") continue;
+    const src = stmt.source.value;
+    if (!/\.module\.css$/i.test(src)) continue;
+    for (const spec of stmt.specifiers) {
+      if (spec.type === "ImportDefaultSpecifier") {
+        locals.add(spec.local.name);
+      }
+    }
+  }
+  return locals;
+}
+
 function mergeKnownComponentSources(
   ctx: AnalyzerContext,
   known: Record<string, string>,
@@ -69,6 +85,10 @@ function mergeKnownComponentSources(
             pathAliases,
           }),
         );
+      }
+
+      for (const local of collectCssModuleLocals(ast)) {
+        ctx.cssModuleLocals.add(local);
       }
     } catch {
       addDiagnostic(ctx, {
@@ -134,6 +154,7 @@ export function analyzeReactAst(
     inlineDepth: 0,
     passthroughDepth: 0,
     propScopes: [],
+    cssModuleLocals: collectCssModuleLocals(ast),
   };
 
   mergeKnownComponentSources(

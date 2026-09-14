@@ -11,6 +11,8 @@ export {
   convertCustomFallback,
   serializeIrNodeHtml,
   serializeScopedCss,
+  serializeSubtreeScopedCss,
+  scopedClassForNode,
   escapeHtmlAttr,
   escapeHtmlText,
   findUnsafeCustomPatterns,

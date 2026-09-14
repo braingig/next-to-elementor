@@ -15,11 +15,12 @@
 /test-results
 /playwright-report
 /blob-report
-tests/runtime/generated/**
-!tests/runtime/generated/.gitkeep
 
-# Runtime harness only — Hello Elementor theme cache (downloaded by setup)
-/docker/themes/hello-elementor/
+# Local target WordPress credentials (never commit)
+.n2e-wp.local.json
+
+# Local import artifacts
+/tmp/
 
 # next.js
 /.next/

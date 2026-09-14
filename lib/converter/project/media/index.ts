@@ -15,8 +15,6 @@ export type {
   ProjectMediaPipelineResult,
 } from "./types";
 
-export { WP_MEDIA_ENV } from "./types";
-
 export {
   MEDIA_UPLOAD_EXTENSIONS,
   mimeTypeForExtension,
@@ -27,7 +25,6 @@ export {
 
 export {
   createWordPressMediaClient,
-  readWordPressMediaConfigFromEnv,
   validateWordPressMediaConfig,
   sanitizeMediaDiagnostic,
 } from "./client";

@@ -27,9 +27,14 @@ export type ProjectConvertClientResult =
 async function postZip(
   url: string,
   file: File,
+  options?: { mediaEnabled?: boolean },
 ): Promise<{ status: number; payload: ProjectAnalyzeResponse | ProjectConvertResponse | null }> {
   const body = new FormData();
   body.append("zip", file, file.name || "project.zip");
+  // Media-enabled JSON is required for Elementor Templates → Import with working images.
+  if (options?.mediaEnabled) {
+    body.append("media", "1");
+  }
 
   const res = await fetch(url, {
     method: "POST",
@@ -70,8 +75,11 @@ export async function requestProjectAnalyze(
 
 export async function requestProjectConvert(
   file: File,
+  options: { mediaEnabled?: boolean } = { mediaEnabled: true },
 ): Promise<ProjectConvertClientResult> {
-  const { status, payload } = await postZip("/api/project/convert", file);
+  const { status, payload } = await postZip("/api/project/convert", file, {
+    mediaEnabled: options.mediaEnabled !== false,
+  });
   if (!payload) {
     return {
       ok: false,

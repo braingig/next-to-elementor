@@ -6,9 +6,12 @@
 import {
   PROJECT_LIMITS,
   analyzeProjectStructure,
+  applyMediaAttachmentIds,
   convertProject,
   convertProjectAsync,
   extractProjectZip,
+  resolveWordPressTargetConfig,
+  type ElementorDocument,
   type ProjectConversionResult,
   type ProjectDiagnostic,
   type ProjectStructureAnalysis,
@@ -341,8 +344,38 @@ export function runProjectAnalyze(
 }
 
 /**
+ * Attach Media Library IDs onto route Elementor JSON after a media-enabled
+ * convert so Templates → Import receives library Image widgets (not empty src).
+ */
+export function applyMediaIdsToProjectResult(
+  result: ProjectConversionResult,
+): ProjectConversionResult {
+  const uploads = result.media?.uploads;
+  if (!uploads?.length) return result;
+  return {
+    ...result,
+    routes: result.routes.map((route) => {
+      const json = route.conversion.elementorJson;
+      if (!json || typeof json !== "object") return route;
+      return {
+        ...route,
+        conversion: {
+          ...route.conversion,
+          elementorJson: applyMediaAttachmentIds(
+            json as ElementorDocument,
+            uploads,
+          ),
+        },
+      };
+    }),
+  };
+}
+
+/**
  * Convert a project ZIP (in-memory). Used by the route handler and unit tests.
- * When `mediaEnabled` is true, uses convertProjectAsync with server WP env config.
+ * When `mediaEnabled` is true, resolves WordPress credentials the same way as
+ * the CLI importer (`.n2e-wp.local.json`), runs media upload, and stamps
+ * attachment IDs onto downloadable Elementor JSON.
  */
 export async function runProjectConvert(
   zipBytes: Uint8Array,
@@ -354,11 +387,32 @@ export async function runProjectConvert(
   }
 
   try {
-    const result = options.mediaEnabled
-      ? await convertProjectAsync(extracted.vfs, {
-          media: { enabled: true },
-        })
-      : convertProject(extracted.vfs);
+    let result: ProjectConversionResult;
+
+    if (options.mediaEnabled) {
+      const wp = resolveWordPressTargetConfig();
+      if (!wp.ok) {
+        return errorPayload(422, "media-config-missing", wp.message);
+      }
+      result = await convertProjectAsync(extracted.vfs, {
+        media: {
+          enabled: true,
+          wordpress: wp.config,
+        },
+      });
+      if (result.outcome === "failed" && result.media?.enabled) {
+        return errorPayload(
+          422,
+          "media-convert-failed",
+          "Media-enabled convert failed. Check WordPress connectivity and Application Password permissions.",
+          result.diagnostics,
+        );
+      }
+      result = applyMediaIdsToProjectResult(result);
+    } else {
+      result = convertProject(extracted.vfs);
+    }
+
     return {
       status: 200,
       payload: {

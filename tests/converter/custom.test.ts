@@ -138,7 +138,7 @@ describe("Phase 6 custom fallback", () => {
     ).toBe(true);
   });
 
-  it("emits scoped CSS only for the fallback node styles", () => {
+  it("emits scoped CSS for fallback node styles with mobile-first media queries", () => {
     const result = convertToElementor(
       doc({
         id: "wrap",
@@ -170,9 +170,94 @@ describe("Phase 6 custom fallback", () => {
     expect(html).toContain(`<style>.${scope}{`);
     expect(html).toContain("color:#112233");
     expect(html).toContain("font-size:18px");
-    expect(html).toContain(`@media (max-width: 767px){.${scope}{font-size:14px}}`);
+    expect(html).toContain(
+      `@media (min-width: 640px){.${scope}{font-size:14px}}`,
+    );
     expect(html).not.toContain("padding:40px");
-    expect(html).toContain("nav-link");
+    // Dead Tailwind/utility class names are stripped; styles come from scoped CSS.
+    expect(html).not.toContain("nav-link");
+    expect(html).toContain(`class="${scope}"`);
+  });
+
+  it("preserves child IrStyle facts inside a custom fallback subtree", () => {
+    const result = convertToElementor(
+      doc({
+        id: "nav",
+        kind: "list",
+        props: { listType: "ul" },
+        style: {
+          layout: {
+            display: "flex",
+            flexDirection: "row",
+            gap: "1rem",
+          },
+        },
+        provenance: {
+          htmlTag: "ul",
+          classNames: ["flex", "gap-4"],
+          attributes: {},
+        },
+        children: [
+          {
+            id: "li1",
+            kind: "list-item",
+            props: { text: "A" },
+            style: { typography: { color: "#111111", fontSize: "14px" } },
+            provenance: {
+              htmlTag: "li",
+              classNames: ["text-sm"],
+              attributes: {},
+            },
+            children: [],
+          },
+          {
+            id: "li2",
+            kind: "list-item",
+            props: { text: "B" },
+            style: {
+              typography: { color: "#222222", fontWeight: "600" },
+              box: { padding: "8px" },
+              responsive: {
+                md: { typography: { fontSize: "16px" } },
+              },
+            },
+            provenance: {
+              htmlTag: "li",
+              classNames: ["font-semibold", "p-2"],
+              attributes: {},
+            },
+            children: [],
+          },
+        ],
+      }),
+      { catalog },
+    );
+
+    expect(result.outcome).toBe("success");
+    // List is the document root → Free HTML widget at content[0].
+    const html = String(result.document!.content[0]!.settings.html);
+    const rootScope = `nte-fb-${elementorIdFromIrId("nav")}`;
+    const c1 = `${rootScope}__${elementorIdFromIrId("li1")}`;
+    const c2 = `${rootScope}__${elementorIdFromIrId("li2")}`;
+
+    expect(html).toContain(`class="${rootScope}"`);
+    expect(html).toContain(`class="${c1}"`);
+    expect(html).toContain(`class="${c2}"`);
+    expect(html).toContain(`.${rootScope}{`);
+    expect(html).toContain("display:flex");
+    expect(html).toContain("gap:1rem");
+    expect(html).toContain(`.${c1}{`);
+    expect(html).toContain("color:#111111");
+    expect(html).toContain("font-size:14px");
+    expect(html).toContain(`.${c2}{`);
+    expect(html).toContain("color:#222222");
+    expect(html).toContain("padding:8px");
+    expect(html).toContain(
+      `@media (min-width: 768px){.${c2}{font-size:16px}}`,
+    );
+    expect(html).not.toContain("text-sm");
+    expect(html).not.toContain("font-semibold");
+    expect(html).not.toContain("gap-4");
   });
 
   it("falls back SVG icons via html widget", () => {
@@ -186,7 +271,9 @@ describe("Phase 6 custom fallback", () => {
           {
             id: "ico",
             kind: "icon",
-            props: { svg: "<svg viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10H0z\"/></svg>" },
+            props: {
+              svg: '<svg viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg>',
+            },
             provenance: { htmlTag: "span", classNames: [], attributes: {} },
             children: [],
           },
@@ -303,9 +390,9 @@ describe("Phase 6 custom fallback", () => {
     const a = serializeIrNodeHtml(node, "nte-fb-scope");
     const b = serializeIrNodeHtml(node, "nte-fb-scope");
     expect(a).toBe(b);
-    // class tokens sorted; attributes sorted
+    // Scope class only — original utility classes stripped; attributes sorted
     expect(a).toBe(
-      '<a aria-label="Z" class="a b nte-fb-scope" data-x="1" href="/z" rel="noopener" target="_blank">Z</a>',
+      '<a aria-label="Z" class="nte-fb-scope" data-x="1" href="/z" rel="noopener" target="_blank">Z</a>',
     );
   });
 

@@ -1,7 +1,7 @@
 import type { IrNode, IrStyle } from "../ir/schema";
 import type { ReportDiagnostic } from "./schema";
 import { irBreakpointToSuffix } from "../rules/native/styles/map-style";
-import { toBoxShadow } from "../rules/native/styles/values";
+import { toBoxShadow, toGridColumns } from "../rules/native/styles/values";
 import type { ElementorFreeCatalog } from "../catalog/schema";
 import { canUseControl } from "../catalog/compliance";
 
@@ -19,28 +19,29 @@ export function collectStyleAccuracyDiagnostics(
   const style = node.style;
   if (!style) return out;
 
-  if (strategy === "native") {
-    pushNativeStyleLoss(node.id, style, out, catalog, widgetType);
-    if (style.responsive) {
-      for (const bp of Object.keys(style.responsive)) {
-        if (irBreakpointToSuffix(catalog, bp) === null) {
-          out.push({
-            severity: "warning",
-            code: "responsive-unsupported",
-            message: `Responsive breakpoint "${bp}" has no Elementor Free mapping; styles at this breakpoint were not applied.`,
-            nodeId: node.id,
-            ...(node.provenance?.loc ? { loc: node.provenance.loc } : {}),
-          });
-        }
-        pushNativeStyleLoss(
-          node.id,
-          style.responsive[bp],
-          out,
-          catalog,
-          widgetType,
-          bp,
-        );
+  // Custom Free HTML fallback emits scoped CSS from IrStyle — no native style-loss.
+  if (strategy === "custom") return out;
+
+  pushNativeStyleLoss(node.id, style, out, catalog, widgetType);
+  if (style.responsive) {
+    for (const bp of Object.keys(style.responsive)) {
+      if (irBreakpointToSuffix(catalog, bp) === null) {
+        out.push({
+          severity: "warning",
+          code: "responsive-unsupported",
+          message: `Responsive breakpoint "${bp}" has no Elementor Free mapping; styles at this breakpoint were not applied.`,
+          nodeId: node.id,
+          ...(node.provenance?.loc ? { loc: node.provenance.loc } : {}),
+        });
       }
+      pushNativeStyleLoss(
+        node.id,
+        style.responsive[bp],
+        out,
+        catalog,
+        widgetType,
+        bp,
+      );
     }
   }
 
@@ -94,12 +95,37 @@ function pushNativeStyleLoss(
     }
   }
   if (style.background?.image) {
+    const canMap =
+      Boolean(widgetType) &&
+      (canUseControl(catalog, widgetType!, "background_image") ||
+        canUseControl(catalog, widgetType!, "_background_image") ||
+        canUseControl(catalog, widgetType!, "background_background"));
+    if (!canMap) {
+      out.push({
+        severity: "warning",
+        code: "unsupported-css",
+        message: `background-image was not mapped to a Free native control${suffix}.`,
+        nodeId,
+      });
+    }
+  }
+  if (style.background?.color && /gradient\(/i.test(style.background.color)) {
     out.push({
       severity: "warning",
       code: "unsupported-css",
-      message: `background-image was not mapped to a Free native control${suffix}.`,
+      message: `Gradient background-color was not mapped to a Free native color control${suffix}.`,
       nodeId,
     });
+  }
+  if (style.layout?.gridTemplateColumns) {
+    if (toGridColumns(style.layout.gridTemplateColumns) == null) {
+      out.push({
+        severity: "warning",
+        code: "layout-unsupported",
+        message: `grid-template-columns "${style.layout.gridTemplateColumns}" is not representable as Free equal-fr tracks${suffix}.`,
+        nodeId,
+      });
+    }
   }
   if (style.typography?.letterSpacing) {
     const canMap =
@@ -134,8 +160,5 @@ function pushNativeStyleLoss(
       message: `text-decoration was not mapped to a Free native control${suffix}.`,
       nodeId,
     });
-  }
-  if (style.layout?.display === "grid") {
-    // Grid container_type may exist; still flag exotic grid tracks if present later.
   }
 }

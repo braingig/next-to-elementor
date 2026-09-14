@@ -258,6 +258,120 @@ describe("Phase 13f Project ZIP UI contracts", () => {
     expect(panelSrc).toContain("Failed");
     expect(panelSrc).toContain("requestProjectAnalyze");
     expect(panelSrc).toContain("requestProjectConvert");
+    expect(panelSrc).toContain("mediaEnabled: true");
+    expect(panelSrc).toContain("Templates → Import");
     expect(panelSrc).toContain("isDynamic");
+  });
+
+  it("stamps media attachment ids onto downloadable Elementor JSON", async () => {
+    const { applyMediaIdsToProjectResult } = await import(
+      "@/app/lib/server-project"
+    );
+    const result = applyMediaIdsToProjectResult({
+      outcome: "complete",
+      elementorTarget: "elementor-free",
+      catalogVersion: "4.2.4",
+      irVersion: "0.1.0",
+      manifest: {
+        framework: "next-app",
+        frameworkConfidence: "high",
+        typescript: true,
+        routerMode: "app",
+        entryHints: [],
+        diagnostics: [],
+      },
+      routes: [
+        {
+          route: {
+            id: "r1",
+            path: "/",
+            entryFile: "app/page.tsx",
+            isDynamic: false,
+          },
+          outcome: "complete",
+          conversion: {
+            elementorJson: {
+              version: "0.4",
+              title: "t",
+              type: "page",
+              content: [
+                {
+                  id: "a",
+                  elType: "widget",
+                  widgetType: "image",
+                  settings: {
+                    image: {
+                      url: "http://wp.test/wp-content/uploads/mark.png",
+                      id: "",
+                      source: "url",
+                    },
+                  },
+                  elements: [],
+                },
+              ],
+            },
+            report: {
+              summary: {
+                message: "ok",
+                totalNodes: 1,
+                nativeCount: 1,
+                customCount: 0,
+                unsupportedCount: 0,
+                warningCount: 0,
+                errorCount: 0,
+              },
+              diagnostics: [],
+            },
+          },
+          diagnostics: [],
+          unit: null,
+        },
+      ],
+      projectReport: {
+        message: "ok",
+        totalNodes: 1,
+        nativeCount: 1,
+        customCount: 0,
+        unsupportedCount: 0,
+        warningCount: 0,
+        errorCount: 0,
+      },
+      diagnostics: [],
+      analysis: {
+        manifest: {
+          framework: "next-app",
+          frameworkConfidence: "high",
+          typescript: true,
+          routerMode: "app",
+          entryHints: [],
+          diagnostics: [],
+        },
+        routes: [],
+        diagnostics: [],
+      },
+      media: {
+        enabled: true,
+        uploadedCount: 1,
+        reusedCount: 0,
+        failedCount: 0,
+        skippedCount: 0,
+        uploads: [
+          {
+            assetPath: "public/mark.png",
+            status: "uploaded",
+            url: "http://wp.test/wp-content/uploads/mark.png",
+            attachmentId: "42",
+          },
+        ],
+      },
+    } as never);
+
+    const img = (
+      result.routes[0]!.conversion.elementorJson as {
+        content: Array<{ settings: { image: { id: number; source: string } } }>;
+      }
+    ).content[0]!.settings.image;
+    expect(img.id).toBe(42);
+    expect(img.source).toBe("library");
   });
 });

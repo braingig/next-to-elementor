@@ -477,7 +477,7 @@ describe("Phase 7 convert() report", () => {
     );
   });
 
-  it("reports native style loss without claiming silent accuracy", () => {
+  it("escalates transform style loss to custom HTML instead of silent native approximation", () => {
     const result = convert(
       doc({
         id: "wrap",
@@ -500,25 +500,24 @@ describe("Phase 7 convert() report", () => {
       { catalog },
     );
     expect(result.report.nodes.find((n) => n.nodeId === "h")?.decision).toBe(
-      "native",
+      "custom",
     );
-    expect(
-      result.report.diagnostics.filter((d) => d.code === "unsupported-css")
-        .length,
-    ).toBeGreaterThanOrEqual(1);
+    const htmlWidget = (
+      result.elementorJson as {
+        content: Array<{
+          elements: Array<{ settings: { html?: string } }>;
+        }>;
+      }
+    ).content[0]!.elements[0]!;
+    const html = String(htmlWidget.settings.html);
+    expect(html).toContain("transform:rotate(3deg)");
+    expect(html).toContain("box-shadow:0 0 4px #000");
     expect(
       result.report.diagnostics.some(
         (d) =>
           d.code === "unsupported-css" && d.message.includes("transform"),
       ),
-    ).toBe(true);
-    expect(
-      result.report.diagnostics.some(
-        (d) =>
-          d.code === "unsupported-css" && d.message.includes("box-shadow"),
-      ),
     ).toBe(false);
-    expect(result.outcome).toBe("partial");
   });
 
   it("includes children absorbed into custom group fallback", () => {

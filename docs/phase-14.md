@@ -67,14 +67,13 @@ rewrites packaged `ConversionUnit` sources/CSS **before** `convertSource()`.
 
 ### Server configuration (Application Passwords)
 
-Credentials are **server environment only** — never accepted from multipart, never
-returned to the browser, never logged:
+Credentials are **server-side only** via gitignored `.n2e-wp.local.json` —
+never accepted from multipart, never returned to the browser, never logged.
+See [wordpress-target.md](./wordpress-target.md).
 
-| Env | Purpose |
-|-----|---------|
-| `N2E_WP_BASE_URL` | WordPress site origin (http/https) |
-| `N2E_WP_USER` | Username |
-| `N2E_WP_APP_PASSWORD` | Application Password |
+| Config | Purpose |
+|--------|---------|
+| `.n2e-wp.local.json` | WordPress `baseUrl`, `username`, `applicationPassword` |
 | `N2E_MEDIA_OPTIMIZE` | Kill-switch for Phase 14d (`0`/`false`/`off`/`no` disables). Default: enabled when media is on |
 
 Missing/invalid config with media enabled → `media-config-missing` (or

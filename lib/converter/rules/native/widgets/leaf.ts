@@ -1,6 +1,6 @@
 import type { IrNode } from "../../../ir/schema";
 import type { ElementorFreeCatalog } from "../../../catalog/schema";
-import { canUseWidget } from "../../../catalog/compliance";
+import { canUseControl, canUseWidget } from "../../../catalog/compliance";
 import { mapIrStyleToSettings } from "../styles/map-style";
 import { mapAlign, toSlider, toUrl } from "../styles/values";
 import type { ElementorSettings, NativeNodeDecision } from "../types";
@@ -149,6 +149,7 @@ export function convertText(
 export function convertImage(
   node: IrNode & { kind: "image" },
   catalog: ElementorFreeCatalog,
+  linkOpts?: { href: string; target?: string; rel?: string },
 ): NativeEmit {
   const blocked = ensureWidget(catalog, "image", node);
   if (blocked) return blocked;
@@ -181,6 +182,53 @@ export function convertImage(
     link_to: "none",
   };
 
+  // When a utility height is present (e.g. h-12) and width is auto/unspecified,
+  // keep aspect via object-fit rather than stretching to intrinsic asset size.
+  if (
+    settings.height &&
+    canUseControl(catalog, "image", "object-fit") &&
+    settings["object-fit"] == null
+  ) {
+    const width = node.style?.box?.width;
+    if (!width || width === "auto" || width === "fit-content") {
+      settings["object-fit"] = "contain";
+    }
+  }
+  // Prefer explicit IR object-fit / object-position from Tailwind/CSS.
+  if (
+    node.style?.box?.objectFit &&
+    canUseControl(catalog, "image", "object-fit")
+  ) {
+    const fit = node.style.box.objectFit;
+    if (
+      fit === "fill" ||
+      fit === "cover" ||
+      fit === "contain" ||
+      fit === "scale-down"
+    ) {
+      settings["object-fit"] = fit;
+    }
+  }
+  if (
+    node.style?.box?.objectPosition &&
+    canUseControl(catalog, "image", "object-position")
+  ) {
+    settings["object-position"] = node.style.box.objectPosition;
+  }
+
+  if (linkOpts?.href) {
+    const link = toUrl(linkOpts.href, {
+      target: linkOpts.target,
+      rel: linkOpts.rel,
+    });
+    if (link && canUseControl(catalog, "image", "link_to")) {
+      settings.link_to = "custom";
+      if (canUseControl(catalog, "image", "link")) {
+        settings.link = link;
+      }
+    }
+  }
+
   const align = mapAlign(node.style?.typography?.textAlign);
   if (align) {
     settings.align =
@@ -190,11 +238,13 @@ export function convertImage(
   return {
     decision: {
       nodeId: node.id,
-      irKind: "image",
+      irKind: linkOpts?.href ? "link" : "image",
       strategy: "native",
       elementorType: "image",
       settings,
-      message: "Mapped to Free Image widget (URL media; no attachment id).",
+      message: linkOpts?.href
+        ? "Mapped image-like IR link to Free Image widget with custom link URL."
+        : "Mapped to Free Image widget (URL media; no attachment id).",
     },
     element: {
       id: elementorIdFromIrId(node.id),
@@ -238,6 +288,18 @@ export function convertButton(
   if (node.style?.background?.color) {
     settings.background_background = "classic";
     settings.background_color = node.style.background.color;
+  }
+  if (
+    node.props.iconName &&
+    canUseControl(catalog, "button", "selected_icon")
+  ) {
+    settings.selected_icon = {
+      value: `fas fa-${node.props.iconName}`,
+      library: "fa-solid",
+    };
+    if (canUseControl(catalog, "button", "icon_align")) {
+      settings.icon_align = "left";
+    }
   }
 
   const align = mapAlign(node.style?.typography?.textAlign);
@@ -300,8 +362,15 @@ export function convertIcon(
   if (node.style?.typography?.color) {
     settings.primary_color = node.style.typography.color;
   }
-  if (node.style?.box?.width) {
-    // size slider — map-style may not set it; try from width
+  const iconSize =
+    node.style?.box?.width && node.style.box.width !== "auto"
+      ? node.style.box.width
+      : node.style?.box?.height && node.style.box.height !== "auto"
+        ? node.style.box.height
+        : undefined;
+  if (iconSize && canUseControl(catalog, "icon", "size")) {
+    const slider = toSlider(iconSize);
+    if (slider) settings.size = slider;
   }
 
   return {

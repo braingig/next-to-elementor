@@ -120,7 +120,6 @@
           {
             "elType": "container",
             "settingKeys": [
-              "boxed_width",
               "container_type",
               "content_width",
               "flex_direction",
@@ -130,6 +129,7 @@
               "flex_wrap",
               "flex_wrap_mobile",
               "html_tag",
+              "padding",
               "width"
             ],
             "children": [

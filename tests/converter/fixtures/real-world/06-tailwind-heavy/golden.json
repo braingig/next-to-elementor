@@ -106,7 +106,8 @@
               "flex_justify_content_tablet",
               "flex_wrap",
               "flex_wrap_mobile",
-              "html_tag"
+              "html_tag",
+              "padding"
             ],
             "children": [
               {
@@ -146,7 +147,8 @@
               "flex_gap",
               "flex_wrap",
               "flex_wrap_mobile",
-              "html_tag"
+              "html_tag",
+              "padding"
             ],
             "children": [
               {

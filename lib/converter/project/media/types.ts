@@ -71,11 +71,17 @@ export type ProjectMediaPipelineOptions = {
   enabled: boolean;
   /**
    * Injected client (tests). When omitted and enabled, WordPress REST client
-   * is built from `wordpress` config or environment.
+   * is built from `wordpress` config or `.n2e-wp.local.json` via
+   * `resolveWordPressTargetConfig`.
    */
   client?: ProjectMediaClient;
-  /** Explicit config; otherwise read from process.env (server only). */
+  /** Explicit config; otherwise `.n2e-wp.local.json` (server only). */
   wordpress?: ProjectWordPressMediaConfig;
+  /**
+   * Directory used to locate `.n2e-wp.local.json` (walks parents).
+   * Defaults to `process.cwd()`.
+   */
+  configCwd?: string;
   /**
    * Phase 14d: optimize images before upload when media is enabled.
    * Default: from `N2E_MEDIA_OPTIMIZE` (enabled unless 0/false/off/no).
@@ -107,10 +113,3 @@ export type ProjectMediaPipelineResult = {
   urlByAssetPath: Record<string, string>;
   diagnostics: ProjectDiagnostic[];
 };
-
-/** Env vars for server-side WP Application Passwords. */
-export const WP_MEDIA_ENV = {
-  baseUrl: "N2E_WP_BASE_URL",
-  username: "N2E_WP_USER",
-  applicationPassword: "N2E_WP_APP_PASSWORD",
-} as const;

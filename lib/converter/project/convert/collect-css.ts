@@ -134,9 +134,25 @@ export function collectRouteScopedCss(args: {
   }
 
   cssPaths.sort((a, b) => a.localeCompare(b));
-  const css = cssPaths
-    .map((p) => args.textFiles[p])
-    .filter((c): c is string => typeof c === "string" && c.trim().length > 0);
+  const css: string[] = [];
+  for (const p of cssPaths) {
+    const content = args.textFiles[p];
+    if (typeof content !== "string" || !content.trim()) continue;
+
+    // SCSS/SASS/LESS are not browser CSS. Including raw preprocessor source
+    // would pretend it applies. Keep diagnostics; omit from style resolution.
+    if (/\.(scss|sass|less)$/i.test(p)) {
+      diagnostics.push({
+        severity: "warning",
+        code: "preprocessor-css-not-applied",
+        message: `Preprocessor stylesheet omitted from style resolution (not compiled): ${p}`,
+        path: p,
+      });
+      continue;
+    }
+
+    css.push(content);
+  }
 
   return { css, cssPaths, cssImporters, diagnostics };
 }

@@ -27,17 +27,22 @@ export function flattenDecisions(
 
 /**
  * Normalize a converter draft into the classic Elementor element shape.
- * Containers always receive `isInner: false` for MVP page-level emission.
+ * Top-level containers are `isInner: false` (e-parent); nested containers are
+ * `isInner: true` (e-child) so Elementor does not treat chrome bars as page roots.
  */
 export function toElementorElement(
   emit: ElementorElementDraft,
+  options: { isInner?: boolean } = {},
 ): ElementorElement {
+  const isInner = options.isInner ?? false;
   return {
     id: emit.id,
     elType: emit.elType,
     ...(emit.widgetType ? { widgetType: emit.widgetType } : {}),
-    ...(emit.elType === "container" ? { isInner: false } : {}),
+    ...(emit.elType === "container" ? { isInner } : {}),
     settings: emit.settings,
-    elements: emit.elements.map((child) => toElementorElement(child)),
+    elements: emit.elements.map((child) =>
+      toElementorElement(child, { isInner: true }),
+    ),
   };
 }

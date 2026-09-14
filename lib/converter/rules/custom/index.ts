@@ -15,6 +15,7 @@ import {
   toElementorElement,
   validateElementorDocument,
 } from "../../emit";
+import { detectNativeFidelityGap } from "../native/fidelity";
 import { convertCustomFallback } from "./convert";
 import type { NativeEmit } from "../native/widgets/leaf";
 
@@ -27,11 +28,19 @@ export type ConvertToElementorOptions = {
 /**
  * Per-node decision order:
  * accurate Free native → node-scoped custom HTML fallback → unsupported
+ *
+ * Escalate to custom when Free native would only partially map style/layout
+ * (transforms, unequal grids, gradients, multi-layer shadows, lossy responsive).
  */
 export function convertIrNodeWithFallback(
   node: IrNode,
   catalog: ElementorFreeCatalog,
 ): NativeEmit {
+  const fidelityGap = detectNativeFidelityGap(node);
+  if (fidelityGap) {
+    return convertCustomFallback(node, catalog, fidelityGap.message);
+  }
+
   const native = convertIrNode(node, catalog, convertIrNodeWithFallback);
 
   if (native.decision.strategy === "needs-fallback") {
@@ -105,7 +114,11 @@ export function convertToElementor(
 
 export { convertCustomFallback } from "./convert";
 export { serializeIrNodeHtml } from "./html";
-export { serializeScopedCss } from "./css";
+export {
+  serializeScopedCss,
+  serializeSubtreeScopedCss,
+  scopedClassForNode,
+} from "./css";
 export {
   escapeHtmlAttr,
   escapeHtmlText,
